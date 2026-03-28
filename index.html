@@ -3,214 +3,191 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>weather.gov — Oahu Prototype</title>
+<title>weather.gov — Oahu</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{
-  --blue:#0050d8;--bd:#002868;--green:#1a9850;
-  --yellow:#f5a623;--orange:#e66000;--red:#e52207;
+  --blue:#0050d8;--bd:#002868;
+  --green:#1a9850;--yellow:#f5a623;--orange:#e66000;--red:#e52207;
   --bg:#0d1117;--card:#161b22;--card2:#1c2430;
   --border:#30363d;--text:#e6edf3;--muted:#8b949e;
 }
-html,body{height:100%;overflow:hidden;}
-body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f4f8;color:#1b1b1b;}
+html,body{height:100%;font-family:'Segoe UI',system-ui,sans-serif;background:#f0f4f8;color:#1b1b1b;}
 
 /* ─── HEADER ─── */
 header{
-  background:var(--bd);color:#fff;padding:0 20px;
-  display:flex;align-items:center;justify-content:space-between;
-  height:50px;box-shadow:0 2px 8px rgba(0,0,0,.35);
+  background:var(--bd);color:#fff;
+  padding:0 20px;display:flex;align-items:center;
+  justify-content:space-between;height:50px;
+  box-shadow:0 2px 8px rgba(0,0,0,.35);
   position:relative;z-index:900;
 }
 .logo{font-size:18px;font-weight:800;letter-spacing:-.5px;display:flex;align-items:center;gap:8px;}
 .pulse{width:8px;height:8px;border-radius:50%;background:#4fc3f7;animation:blink 2s ease-in-out infinite;}
 @keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
 .proto{background:rgba(229,34,7,.85);font-size:10px;font-weight:800;padding:2px 7px;border-radius:3px;letter-spacing:.5px;}
-.tabs{display:flex;gap:2px;background:rgba(255,255,255,.12);border-radius:6px;padding:3px;}
-.tab{padding:5px 16px;border:none;border-radius:4px;cursor:pointer;font-size:13px;font-weight:600;color:rgba(255,255,255,.65);background:transparent;transition:all .15s;white-space:nowrap;}
-.tab.on{background:#fff;color:var(--bd);}
-.tab:not(.on):hover{background:rgba(255,255,255,.18);color:#fff;}
+.hdr-actions{display:flex;align-items:center;gap:8px;}
+.hdr-btn{background:rgba(255,255,255,.15);border:none;color:rgba(255,255,255,.85);font-size:12px;padding:5px 12px;border-radius:4px;cursor:pointer;transition:background .15s;}
+.hdr-btn:hover{background:rgba(255,255,255,.25);}
+.hdr-btn.active{background:rgba(255,255,255,.3);}
 
 /* ─── LAYOUT ─── */
-.shell{display:flex;height:calc(100vh - 50px);}
-.sidebar{width:340px;flex-shrink:0;overflow-y:auto;background:#fff;border-right:1px solid #dde1e7;}
-.sidebar::-webkit-scrollbar{width:4px;}
-.sidebar::-webkit-scrollbar-thumb{background:#d0d5dd;border-radius:4px;}
+.shell{display:flex;height:calc(100vh - 50px);overflow:hidden;}
+.content{width:360px;flex-shrink:0;overflow-y:auto;background:#fff;border-right:1px solid #dde1e7;}
+.content::-webkit-scrollbar{width:4px;}
+.content::-webkit-scrollbar-thumb{background:#d0d5dd;border-radius:4px;}
 .map-area{flex:1;position:relative;min-width:0;}
 #map{width:100%;height:100%;}
-.pro .sidebar{background:var(--bg);border-right-color:var(--border);}
-.pro .sidebar::-webkit-scrollbar-thumb{background:var(--border);}
 
-/* ─── MAP CONTROLS ─── */
-.map-legend{position:absolute;bottom:20px;left:12px;z-index:500;background:rgba(255,255,255,.95);border-radius:8px;padding:10px 14px;box-shadow:0 2px 8px rgba(0,0,0,.15);font-size:12px;}
-.pro .map-legend{background:rgba(22,27,34,.95);color:var(--text);}
-.leg-title{font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:#777;margin-bottom:7px;}
-.pro .leg-title{color:var(--muted);}
-.leg-row{display:flex;align-items:center;gap:7px;margin-bottom:4px;font-size:11px;}
-.sw{width:12px;height:12px;border-radius:2px;flex-shrink:0;}
-.map-layers{position:absolute;top:12px;right:12px;z-index:500;background:rgba(255,255,255,.95);border-radius:8px;padding:10px 12px;box-shadow:0 2px 8px rgba(0,0,0,.15);font-size:12px;}
-.pro .map-layers{background:rgba(22,27,34,.95);color:var(--text);}
-.lyr-title{font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:#777;margin-bottom:7px;}
-.pro .lyr-title{color:var(--muted);}
-.lyr-row{display:flex;align-items:center;gap:6px;margin-bottom:5px;cursor:pointer;font-size:12px;}
-.lyr-row:last-child{margin:0;}
-.lyr-row input{cursor:pointer;accent-color:var(--blue);}
+/* ─── HAZARD STATUS BAR ─── */
+.hazard-bar{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 18px;font-size:13px;font-weight:700;
+  border-bottom:1px solid #e5e7eb;cursor:pointer;
+  transition:background .15s;
+}
+.hazard-bar:hover{filter:brightness(.97);}
+.hb-clear{background:#e8f5e9;color:#1b5e20;}
+.hb-advisory{background:#fff8e1;color:#92400e;}
+.hb-watch{background:#fff3cd;color:#92400e;}
+.hb-warning{background:#fce4ec;color:#880e4f;animation:warnpulse 2.5s ease-in-out infinite;}
+@keyframes warnpulse{0%,100%{opacity:1;}50%{opacity:.85;}}
+.hb-icon{font-size:16px;flex-shrink:0;}
+.hb-text{flex:1;line-height:1.3;}
+.hb-detail{font-size:11px;font-weight:400;margin-top:1px;opacity:.8;}
+.hb-arrow{font-size:12px;opacity:.6;}
 
-/* ─── SHARED ─── */
-.sec{padding:10px 18px 5px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#888;}
-.pro .sec{color:var(--muted);}
-.loading{padding:40px 20px;text-align:center;color:#999;font-size:14px;}
+/* ─── SITUATION ─── */
+.situation{padding:14px 18px 12px;border-bottom:1px solid #eee;}
+.sit-meta{font-size:11px;color:#888;margin-bottom:6px;display:flex;align-items:center;gap:6px;}
+.nim-tag{background:#e3f2fd;color:#1565c0;font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;}
+.sit-public{font-size:15px;font-weight:500;line-height:1.55;color:#1b1b1b;}
+.sit-context{font-size:12px;color:#b45309;background:#fff8e1;border-left:3px solid #f5a623;border-radius:0 5px 5px 0;padding:7px 10px;margin-top:10px;line-height:1.5;}
 
-/* ─── PUBLIC ─── */
-.pub-hero{padding:16px 18px 14px;background:linear-gradient(150deg,#1a4fba,#0d2e6e);color:#fff;}
-.pub-loc{font-size:20px;font-weight:800;}
-.pub-sub{font-size:12px;opacity:.7;margin-top:2px;}
-.pub-upd{font-size:11px;opacity:.5;margin-top:5px;}
+/* ─── CONDITIONS STRIP ─── */
+.cond-strip{
+  display:flex;overflow-x:auto;gap:0;
+  border-bottom:1px solid #eee;
+  scrollbar-width:none;
+}
+.cond-strip::-webkit-scrollbar{display:none;}
+.cond-pill{
+  flex-shrink:0;display:flex;flex-direction:column;align-items:center;
+  padding:10px 14px;gap:3px;border-right:1px solid #f0f0f0;
+  min-width:80px;cursor:default;
+}
+.cond-pill:last-child{border-right:none;}
+.cp-icon{font-size:18px;}
+.cp-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#888;}
+.cp-val{font-size:12px;font-weight:700;text-align:center;line-height:1.2;}
+.cv-good{color:#1a9850;} .cv-mod{color:#b45309;} .cv-high{color:#c62800;}
 
-.impact{margin:12px;border-radius:10px;padding:14px 16px;}
-.imp-none{background:#e8f5e9;border:1px solid #a5d6a7;color:#1b5e20;}
-.imp-low{background:#e3f2fd;border:1px solid #90caf9;color:#0d47a1;}
-.imp-mod{background:#fff8e1;border:1px solid #ffcc80;color:#b45309;}
-.imp-high{background:#fce4ec;border:1px solid #f48fb1;color:#880e4f;}
-.imp-icon{font-size:22px;margin-bottom:4px;}
-.imp-main{font-size:15px;font-weight:700;line-height:1.4;}
-.imp-sub{font-size:12px;margin-top:5px;opacity:.85;}
-
-/* Low bandwidth text mode */
-.lowbw{display:none;}
-.bwmode .lowbw{display:block;}
-.bwmode .richonly{display:none;}
-.bw-box{margin:12px;background:#f8f8f8;border:1px solid #ddd;border-radius:8px;padding:14px;font-size:14px;line-height:1.7;}
-
-/* Timeline */
-.tl{margin:0 12px 12px;display:flex;border-radius:8px;overflow:hidden;height:52px;}
-.tlseg{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;}
+/* ─── TIMELINE ─── */
+.tl-section{padding:12px 0 0;border-bottom:1px solid #eee;}
+.tl-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#888;padding:0 18px 8px;}
+.timeline{display:flex;margin:0 12px 12px;border-radius:8px;overflow:hidden;height:58px;}
+.tlseg{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:2px;cursor:pointer;
+  transition:filter .15s;position:relative;
+}
+.tlseg:hover{filter:brightness(1.08);}
+.tlseg.active::after{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:5px solid #fff;}
 .tlt{font-size:9px;opacity:.85;}
 .tlp{font-size:12px;font-weight:800;}
-
-/* Alert banner */
-.alert{margin:0 12px 10px;border-radius:8px;padding:11px 14px;font-size:13px;font-weight:700;}
-.ab-watch{background:#fff3cd;border-left:3px solid #f5a623;color:#92400e;}
-.ab-warn{background:#fce4ec;border-left:3px solid var(--red);color:#880e4f;}
-
-/* Forecast cards */
-.fc-list{padding:0 12px 16px;display:flex;flex-direction:column;gap:8px;}
-.fc{border:1px solid #e5e7eb;border-radius:8px;padding:12px 14px;}
-.fc.rain{border-left:3px solid var(--blue);}
-.fc-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;}
-.fc-name{font-size:14px;font-weight:700;}
-.chip{font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;}
-.c-none{background:#e8f5e9;color:#166534;}
-.c-low{background:#dbeafe;color:#1e40af;}
-.c-mod{background:#fef3c7;color:#92400e;}
-.c-high{background:#fce7f3;color:#831843;}
-.fc-short{font-size:13px;color:#444;margin-bottom:8px;}
-.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
-.bar-lbl{font-size:11px;color:#666;width:72px;flex-shrink:0;}
-.bar-track{flex:1;height:5px;background:#e5e7eb;border-radius:3px;overflow:hidden;}
-.bar-fill{height:100%;border-radius:3px;}
-.bar-val{font-size:11px;font-weight:700;min-width:28px;text-align:right;}
-.fc-action{font-size:12px;background:#eff6ff;color:#1d4ed8;border-radius:6px;padding:7px 10px;line-height:1.5;margin-top:2px;}
-.fc-critical{font-size:12px;background:#fce4ec;color:#9b2226;border-radius:6px;padding:7px 10px;line-height:1.5;margin-top:4px;font-weight:700;}
-
-/* Post-event context bar */
-.context-bar{
-  margin:0 12px 12px;background:linear-gradient(135deg,#fef3c7,#fff8e1);
-  border:1px solid #fbbf24;border-radius:8px;padding:11px 14px;
-  font-size:12px;color:#92400e;line-height:1.5;
+.tl-detail{
+  margin:0 12px 10px;padding:10px 12px;
+  background:#f8f9ff;border:1px solid #e0e8ff;border-radius:6px;
+  font-size:12px;display:none;
 }
-.ctx-title{font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;color:#b45309;}
+.tl-detail.show{display:block;}
+.tld-row{display:flex;align-items:center;gap:10px;margin-bottom:4px;}
+.tld-row:last-child{margin:0;}
+.tld-lbl{color:#666;width:80px;flex-shrink:0;font-size:11px;}
+.tld-val{font-weight:700;color:#1b1b1b;}
+.tld-bar{flex:1;height:4px;background:#e5e7eb;border-radius:2px;overflow:hidden;}
+.tld-bfill{height:100%;border-radius:2px;}
 
-/* Notification opt-in */
-.notif-box{
-  margin:0 12px 16px;border:1px dashed #93c5fd;border-radius:8px;
-  padding:11px 14px;display:flex;align-items:center;justify-content:space-between;
-  font-size:13px;background:#eff6ff;
+/* ─── STREAM GAUGES ─── */
+.gauges-section{padding:12px 0;border-bottom:1px solid #eee;}
+.gauges-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#888;padding:0 18px 8px;display:flex;align-items:center;justify-content:space-between;}
+.gauges-status{font-size:10px;font-weight:600;color:#1a9850;}
+.gauge-row{display:flex;align-items:center;gap:10px;padding:6px 18px;}
+.gr-name{font-size:12px;font-weight:600;color:#333;flex:1;min-width:0;}
+.gr-val{font-size:13px;font-weight:800;min-width:44px;text-align:right;}
+.gr-bar{flex:2;height:6px;background:#e5e7eb;border-radius:3px;overflow:hidden;position:relative;}
+.gr-fill{height:100%;border-radius:3px;transition:width .5s;}
+.gr-normal{color:#1a9850;}
+.gr-rising{color:#f5a623;}
+.gr-flood{color:#e52207;}
+
+/* ─── EM EXPANDER ─── */
+.em-expander{border-top:2px solid #e5e7eb;}
+.em-trigger{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 18px;cursor:pointer;background:#f8f9fa;
+  transition:background .15s;user-select:none;
 }
-.notif-btn{
-  background:var(--blue);color:#fff;border:none;border-radius:5px;
-  padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;
-}
+.em-trigger:hover{background:#f0f4ff;}
+.em-trigger-left{display:flex;align-items:center;gap:8px;}
+.em-trigger-icon{font-size:16px;}
+.em-trigger-title{font-size:13px;font-weight:700;color:#1b1b1b;}
+.em-trigger-sub{font-size:11px;color:#666;margin-top:1px;}
+.em-chevron{font-size:12px;color:#888;transition:transform .2s;}
+.em-chevron.open{transform:rotate(180deg);}
 
-/* ─── EMERGENCY MANAGER ─── */
-.pro-hdr{padding:14px 18px;background:linear-gradient(135deg,#0d1b2a,#112240);border-bottom:1px solid var(--border);}
-.pro-loc{font-size:16px;font-weight:800;color:var(--text);}
-.pro-sub{font-size:11px;color:var(--muted);margin-top:2px;}
-.pro-wfo{display:inline-block;font-family:monospace;font-size:11px;background:rgba(79,195,247,.15);color:#4fc3f7;padding:2px 6px;border-radius:3px;margin-top:6px;}
+.em-panel{display:none;background:var(--bg);}
+.em-panel.open{display:block;}
 
-/* AI summary */
-.ai-blk{margin:10px 12px;background:linear-gradient(135deg,rgba(79,195,247,.08),rgba(79,195,247,.03));border:1px solid rgba(79,195,247,.25);border-radius:8px;padding:12px 14px;}
-.ai-hdr{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#4fc3f7;margin-bottom:8px;display:flex;align-items:center;gap:7px;}
+/* EM panel internals */
+.emp-section{padding:14px 16px;border-bottom:1px solid var(--border);}
+.emp-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
 .nim-badge{background:rgba(79,195,247,.15);color:#4fc3f7;padding:2px 6px;border-radius:3px;font-size:9px;font-weight:600;}
-.ai-txt{font-size:13px;color:var(--text);line-height:1.7;}
+
+/* AI block */
+.ai-summary{font-size:13px;color:var(--text);line-height:1.7;background:rgba(79,195,247,.06);border:1px solid rgba(79,195,247,.2);border-radius:6px;padding:11px 13px;margin-bottom:10px;}
+.shareable-box{background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:10px 12px;}
+.share-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+.share-text{font-size:12px;color:var(--text);line-height:1.6;}
+.share-btn{margin-top:8px;background:rgba(79,195,247,.15);border:1px solid rgba(79,195,247,.3);color:#4fc3f7;font-size:11px;font-weight:700;padding:5px 12px;border-radius:4px;cursor:pointer;width:100%;}
+.share-btn:hover{background:rgba(79,195,247,.25);}
 
 /* Decision clock */
-.decision-clock{
-  margin:0 12px 10px;background:var(--card2);border:1px solid var(--border);
-  border-radius:8px;padding:12px 14px;
-}
-.dc-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:10px;}
-.dc-items{display:flex;flex-direction:column;gap:7px;}
-.dc-item{display:flex;align-items:center;gap:10px;}
-.dc-time{
-  font-size:13px;font-weight:800;color:#4fc3f7;
-  min-width:55px;font-variant-numeric:tabular-nums;
-}
-.dc-desc{font-size:12px;color:var(--text);line-height:1.4;}
-.dc-urgency{font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;flex-shrink:0;}
-.dc-now{background:rgba(229,34,7,.2);color:#ef5350;}
-.dc-soon{background:rgba(245,166,35,.2);color:#f5a623;}
-.dc-later{background:rgba(79,195,247,.15);color:#4fc3f7;}
+.dc-grid{display:flex;flex-direction:column;gap:8px;}
+.dc-item{display:flex;align-items:center;gap:10px;background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:9px 12px;}
+.dc-time{font-size:15px;font-weight:800;color:#4fc3f7;min-width:60px;font-variant-numeric:tabular-nums;}
+.dc-desc{font-size:12px;color:var(--text);flex:1;line-height:1.4;}
+.dc-tag{font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;flex-shrink:0;text-transform:uppercase;}
+.dt-now{background:rgba(229,34,7,.2);color:#ef5350;}
+.dt-soon{background:rgba(245,166,35,.2);color:#f5a623;}
+.dt-later{background:rgba(79,195,247,.15);color:#4fc3f7;}
 
-/* Stream gauges */
-.gauge-list{padding:0 12px;display:flex;flex-direction:column;gap:7px;margin-bottom:4px;}
-.gauge{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:11px 13px;}
-.gauge.gfl{border-left:3px solid var(--red);}
-.gauge.gmod{border-left:3px solid var(--yellow);}
-.gauge.gok{border-left:3px solid #4fc3f7;}
-.g-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
-.g-name{font-size:13px;font-weight:700;color:var(--text);}
-.g-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;text-transform:uppercase;letter-spacing:.4px;}
-.gb-flood{background:rgba(229,34,7,.2);color:#ef5350;border:1px solid rgba(229,34,7,.3);}
-.gb-near{background:rgba(245,166,35,.2);color:#f5a623;border:1px solid rgba(245,166,35,.3);}
-.gb-ok{background:rgba(79,195,247,.15);color:#4fc3f7;border:1px solid rgba(79,195,247,.3);}
-.g-level-row{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
-.g-level-val{font-size:18px;font-weight:800;color:var(--text);}
-.g-level-unit{font-size:11px;color:var(--muted);}
-.g-bar-wrap{flex:1;height:8px;background:#30363d;border-radius:4px;overflow:visible;position:relative;}
-.g-bar-fill{height:100%;border-radius:4px;transition:width .5s;}
-.g-flood-marker{
-  position:absolute;top:-3px;height:14px;width:2px;background:var(--red);
-  border-radius:1px;
-}
-.g-detail{font-size:11px;color:var(--muted);line-height:1.5;}
-.g-loading{font-size:12px;color:var(--muted);font-style:italic;}
-
-/* Zone threat cards */
-.threat-list{padding:0 12px;display:flex;flex-direction:column;gap:7px;margin-bottom:4px;}
-.threat{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:11px 13px;}
-.threat.th{border-left:3px solid var(--red);}
-.threat.tm{border-left:3px solid var(--yellow);}
-.threat.tl{border-left:3px solid #4fc3f7;}
-.thr-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;}
-.thr-name{font-size:13px;font-weight:700;color:var(--text);}
-.thr-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;text-transform:uppercase;letter-spacing:.4px;}
-.tb-watch{background:rgba(245,166,35,.2);color:#f5a623;border:1px solid rgba(245,166,35,.3);}
-.tb-adv{background:rgba(79,195,247,.15);color:#4fc3f7;border:1px solid rgba(79,195,247,.3);}
-.tb-ok{background:rgba(139,148,158,.12);color:var(--muted);border:1px solid var(--border);}
-.thr-detail{font-size:12px;color:var(--muted);line-height:1.5;}
-.thr-impact{font-size:12px;color:#f5a623;margin-top:4px;font-weight:600;}
+/* Gauge detail */
+.em-gauge{background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:11px 13px;margin-bottom:8px;}
+.em-gauge:last-child{margin:0;}
+.eg-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.eg-name{font-size:13px;font-weight:700;color:var(--text);}
+.eg-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;text-transform:uppercase;}
+.eb-ok{background:rgba(79,195,247,.15);color:#4fc3f7;border:1px solid rgba(79,195,247,.25);}
+.eb-near{background:rgba(245,166,35,.2);color:#f5a623;border:1px solid rgba(245,166,35,.3);}
+.eb-flood{background:rgba(229,34,7,.2);color:#ef5350;border:1px solid rgba(229,34,7,.3);}
+.eg-val-row{display:flex;align-items:baseline;gap:6px;margin-bottom:6px;}
+.eg-ft{font-size:20px;font-weight:800;color:var(--text);}
+.eg-unit{font-size:11px;color:var(--muted);}
+.eg-flow{font-size:12px;color:var(--muted);}
+.eg-bar{height:8px;background:#30363d;border-radius:4px;overflow:hidden;position:relative;margin-bottom:5px;}
+.eg-fill{height:100%;border-radius:4px;}
+.eg-meta{font-size:11px;color:var(--muted);}
 
 /* Prob table */
-.prob-wrap{padding:0 12px 10px;overflow-x:auto;}
 .prob-table{width:100%;border-collapse:collapse;font-size:12px;}
-.prob-table th{background:var(--card);padding:7px 10px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);border-bottom:1px solid var(--border);}
+.prob-table th{background:var(--card);padding:6px 10px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);border-bottom:1px solid var(--border);}
 .prob-table td{padding:7px 10px;border-bottom:1px solid rgba(48,54,61,.5);color:var(--text);vertical-align:middle;}
 .prob-table tr:hover td{background:rgba(255,255,255,.02);}
-.pop-c{display:flex;align-items:center;gap:7px;}
-.pop-tr{width:50px;height:5px;background:#30363d;border-radius:3px;overflow:hidden;flex-shrink:0;}
+.pop-c{display:flex;align-items:center;gap:6px;}
+.pop-tr{width:46px;height:5px;background:#30363d;border-radius:3px;overflow:hidden;flex-shrink:0;}
 .pop-b{height:100%;border-radius:3px;}
 .pop-v{font-weight:700;min-width:28px;}
 .conf{font-size:10px;padding:1px 5px;border-radius:3px;font-weight:700;}
@@ -218,39 +195,36 @@ header{
 .cm{background:rgba(245,166,35,.2);color:#f5a623;}
 .cl{background:rgba(229,34,7,.2);color:#ef5350;}
 
+/* Accum */
+.accum-row{display:flex;gap:0;border:1px solid var(--border);border-radius:6px;overflow:hidden;}
+.accum-cell{flex:1;text-align:center;padding:10px 8px;border-right:1px solid var(--border);}
+.accum-cell:last-child{border-right:none;}
+.ac-val{font-size:18px;font-weight:800;}
+.ac-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:2px;}
+
 /* Actions */
-.actions-wrap{padding:0 12px 16px;display:flex;flex-direction:column;gap:6px;}
-.action{display:flex;align-items:flex-start;gap:9px;background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:9px 12px;}
+.action-item{display:flex;align-items:flex-start;gap:9px;background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:9px 12px;margin-bottom:7px;}
+.action-item:last-child{margin:0;}
 .adot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:4px;}
-.ah{background:var(--red);}
-.am{background:var(--yellow);}
-.al{background:#4fc3f7;}
+.ah{background:var(--red);} .am{background:var(--yellow);} .al{background:#4fc3f7;}
 .abody{font-size:12px;color:var(--text);line-height:1.5;}
 .atime{font-size:10px;color:var(--muted);margin-top:2px;}
 
-/* Condition grid */
-.cond-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 12px 12px;}
-.cond-card{background:#f8faff;border:1px solid #e5e7eb;border-radius:8px;padding:10px 12px;}
-.pro .cond-card{background:var(--card2);border-color:var(--border);}
-.cond-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#888;margin-bottom:4px;}
-.pro .cond-label{color:var(--muted);}
-.cond-val{font-size:18px;font-weight:800;color:#1b1b1b;}
-.pro .cond-val{color:var(--text);}
-.cond-sub{font-size:11px;color:#777;margin-top:2px;}
-.pro .cond-sub{color:var(--muted);}
-.cond-risk{font-size:11px;font-weight:700;margin-top:3px;}
+/* QPF accumulation color */
+.qc-low{color:#4fc3f7;} .qc-mod{color:#f5a623;} .qc-high{color:#e52207;}
 
-/* UV color scale */
-.uv-low{color:#1a9850;} .uv-mod{color:#f5a623;} .uv-high{color:#e52207;}
-/* AQI */
-.aqi-good{color:#1a9850;} .aqi-mod{color:#f5a623;} .aqi-bad{color:#e52207;}
-/* Surf */
-.surf-low{color:#4fc3f7;} .surf-mod{color:#f5a623;} .surf-high{color:#e52207;}
+/* MAP OVERLAYS */
+.map-legend{position:absolute;bottom:20px;left:12px;z-index:500;background:rgba(255,255,255,.95);border-radius:8px;padding:10px 14px;box-shadow:0 2px 8px rgba(0,0,0,.15);font-size:12px;}
+.leg-title{font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:#777;margin-bottom:7px;}
+.leg-row{display:flex;align-items:center;gap:7px;margin-bottom:4px;font-size:11px;}
+.sw{width:12px;height:12px;border-radius:2px;flex-shrink:0;}
+.map-layers{position:absolute;top:12px;right:12px;z-index:500;background:rgba(255,255,255,.95);border-radius:8px;padding:10px 12px;box-shadow:0 2px 8px rgba(0,0,0,.15);font-size:12px;}
+.lyr-title{font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:#777;margin-bottom:7px;}
+.lyr-row{display:flex;align-items:center;gap:6px;margin-bottom:5px;cursor:pointer;font-size:12px;}
+.lyr-row:last-child{margin:0;}
+.lyr-row input{cursor:pointer;accent-color:var(--blue);}
 
-/* Share button */
-.share-bar{margin:0 12px 16px;display:flex;gap:8px;}
-.share-btn{flex:1;background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:9px;font-size:12px;font-weight:700;color:#4fc3f7;cursor:pointer;text-align:center;}
-.share-btn:hover{border-color:#4fc3f7;}
+.loading{padding:40px 20px;text-align:center;color:#999;font-size:14px;}
 </style>
 </head>
 <body>
@@ -260,30 +234,27 @@ header{
     <div class="logo"><div class="pulse"></div>weather.gov</div>
     <span class="proto">PROTOTYPE</span>
   </div>
-  <div style="display:flex;align-items:center;gap:12px;">
-    <button onclick="toggleBW()" id="bwBtn" style="background:rgba(255,255,255,.15);border:none;color:rgba(255,255,255,.8);font-size:11px;padding:4px 10px;border-radius:4px;cursor:pointer;" title="Low bandwidth / text mode">📶 Text Mode</button>
-    <div class="tabs">
-      <button class="tab on" id="tabPub" onclick="setMode('pub')">🌤 Public</button>
-      <button class="tab" id="tabEM" onclick="setMode('em')">📡 Emergency Manager</button>
-    </div>
+  <div class="hdr-actions">
+    <button class="hdr-btn" id="bwBtn" onclick="toggleBW()" title="Text-only mode for low bandwidth">📶 Text Only</button>
+    <button class="hdr-btn" onclick="window.print()">🖨 Print</button>
   </div>
 </header>
 
-<div class="shell" id="shell">
-  <div class="sidebar" id="sidebar">
-    <div id="pubView"><div class="loading">Loading…</div></div>
-    <div id="emView" style="display:none;"><div class="loading">Loading…</div></div>
+<div class="shell">
+  <div class="content" id="content">
+    <div class="loading">Loading weather data…</div>
   </div>
-  <div class="map-area" id="mapArea">
+
+  <div class="map-area">
     <div id="map"></div>
     <div class="map-legend" id="mapLegend">
       <div class="leg-title">Precip Risk</div>
-      <div class="leg-row"><div class="sw" style="background:#1a9850;opacity:.7"></div>None / Dry</div>
-      <div class="leg-row"><div class="sw" style="background:#4fc3f7;opacity:.8"></div>Low · 10–30%</div>
-      <div class="leg-row"><div class="sw" style="background:#f5a623;opacity:.85"></div>Moderate · 30–60%</div>
-      <div class="leg-row"><div class="sw" style="background:#e52207;opacity:.85"></div>High · 60%+</div>
+      <div class="leg-row"><div class="sw" style="background:#1a9850;opacity:.7"></div>None</div>
+      <div class="leg-row"><div class="sw" style="background:#4fc3f7;opacity:.8"></div>Low 10–30%</div>
+      <div class="leg-row"><div class="sw" style="background:#f5a623;opacity:.8"></div>Moderate 30–60%</div>
+      <div class="leg-row"><div class="sw" style="background:#e52207;opacity:.8"></div>High 60%+</div>
     </div>
-    <div class="map-layers" id="mapLayers">
+    <div class="map-layers">
       <div class="lyr-title">Layers</div>
       <label class="lyr-row"><input type="checkbox" id="lyrRisk" checked onchange="toggleLyr('risk')"> Risk Zones</label>
       <label class="lyr-row"><input type="checkbox" id="lyrGauges" checked onchange="toggleLyr('gauges')"> Stream Gauges</label>
@@ -294,7 +265,9 @@ header{
 
 <script>
 const LAT=21.3069,LON=-157.8583;
-let mode='pub', bwMode=false, map, riskLyr, gaugeLyr, stationsLyr, wd={}, gaugeData=[];
+let map,riskLyr,gaugeLyr,stationsLyr;
+let wd={},envData={},gauges=[];
+let bwMode=false, activeSeg=null;
 
 // ── Zone polygons ──
 const ZONES={
@@ -308,18 +281,16 @@ const ZONES={
   HIZ014:{name:'Ewa Plain',c:[[[-157.97,21.30],[-157.96,21.26],[-158.06,21.26],[-158.12,21.30],[-158.12,21.37],[-158.06,21.31],[-157.97,21.30]]]}
 };
 const ZONE_VAR={HIZ006:4,HIZ007:6,HIZ009:10,HIZ010:-6,HIZ011:2,HIZ012:8,HIZ013:-10,HIZ014:-5};
-
-// Stream gauges with flood stage thresholds (ft) — from USGS/AHPS
 const GAUGE_SITES=[
   {id:'16247100',name:'Manoa-Palolo Canal',short:'Manoa Canal',lat:21.295,lon:-157.826,flood:5.0,action:3.5},
-  {id:'16229000',name:'Kalihi Stream nr Honolulu',short:'Kalihi Stream',lat:21.37,lon:-157.875,flood:8.0,action:5.5},
-  {id:'16213000',name:'Waikele Stream at Waipahu',short:'Waikele Stream',lat:21.385,lon:-158.01,flood:12.0,action:8.0}
+  {id:'16229000',name:'Kalihi Stream',short:'Kalihi Stream',lat:21.37,lon:-157.875,flood:8.0,action:5.5},
+  {id:'16213000',name:'Waikele Stream',short:'Waikele Stream',lat:21.385,lon:-158.01,flood:12.0,action:8.0}
 ];
 
-// Pre-baked AI summary (NVIDIA NIM Llama 3.3 — generated 2026-03-28)
-const AI_SUMMARY="Oahu is recovering from a significant flooding event with multiple streams still elevated, although below flood stage: Kalihi Stream at 2.8ft, Manoa Canal at 1.2ft, and Waikele Stream at 3.7ft. Scattered showers are expected this afternoon with a 37% chance of precipitation, bringing a potential for renewed flooding concerns. Emergency managers should continue to monitor stream gauges and weather conditions closely, as the situation may deteriorate rapidly if heavy rainfall returns.";
-
-let envData={}; // UV, air quality, waves, wind from open-meteo
+// Pre-baked AI content (NVIDIA NIM Llama 3.3 — generated 2026-03-28)
+const PUBLIC_SUMMARY="Scattered showers are expected on Oahu today, but conditions should improve by tomorrow. Given last week's flooding, stay aware near streams and avoid driving through standing water.";
+const EM_SHAREABLE="Oahu is currently in post-flood recovery with scattered showers forecast today (37% PoP) and improving conditions expected tomorrow. Stream levels are below flood stage: Kalihi at 2.8ft (flood stage 8ft), Manoa Canal at 1.2ft (flood stage 5ft), Waikele at 3.7ft (flood stage 12ft). No active alerts are in effect — maintain monitoring posture and continue post-flood infrastructure inspection.";
+const EM_ANALYTICAL="Oahu is recovering from a significant flooding event with multiple streams still elevated but below flood stage. Scattered showers are expected this afternoon with 37% PoP, posing renewed flooding risk on saturated ground. Maintain heightened monitoring through tonight; conditions improve by Saturday morning.";
 
 // ── Helpers ──
 function popColor(p){
@@ -327,24 +298,6 @@ function popColor(p){
   if(p>=30)return{fill:'#f5a623',op:.28};
   if(p>=10)return{fill:'#4fc3f7',op:.24};
   return{fill:'#1a9850',op:.16};
-}
-function popBadge(p){
-  if(p>=60)return['high','High Risk'];
-  if(p>=30)return['mod','Moderate Risk'];
-  if(p>=10)return['low','Low Risk'];
-  return['none','Clear'];
-}
-function popChip(p){
-  if(p>=60)return['c-high','High'];
-  if(p>=30)return['c-mod','Moderate'];
-  if(p>=10)return['c-low','Low'];
-  return['c-none','Clear'];
-}
-function popAction(p){
-  if(p>=60)return{action:'Stay home if possible. Do not drive through flooded roads — even if they look shallow.',critical:true};
-  if(p>=30)return{action:'Rain likely. Roads near streams may flood quickly. Check conditions before driving.',critical:false};
-  if(p>=10)return{action:'Rain is possible. Carry an umbrella and allow extra travel time.',critical:false};
-  return{action:'No rain expected. Good conditions.',critical:false};
 }
 function barCol(p){return p>=60?'#e52207':p>=30?'#f5a623':p>=10?'#4fc3f7':'#aaa';}
 function segStyle(p){
@@ -368,89 +321,13 @@ function expand(vals){
   }
   return out;
 }
-function timeUntil(isoTime){
-  const diff=(new Date(isoTime)-new Date())/1000/60;
+function timeUntil(iso){
+  const diff=(new Date(iso)-new Date())/60000;
   if(diff<0)return'Now';
   if(diff<60)return`${Math.round(diff)}min`;
   return`${Math.round(diff/60)}hr ${Math.round(diff%60)}min`;
 }
-
-// ── Load environmental data (UV, AQI, waves, wind) ──
-async function loadEnvData(){
-  try{
-    const[wxR,marineR,aqR]=await Promise.all([
-      fetch('https://api.open-meteo.com/v1/forecast?latitude=21.3069&longitude=-157.8583&current=uv_index,wind_speed_10m,wind_direction_10m,wind_gusts_10m,relative_humidity_2m,apparent_temperature,visibility,precipitation&hourly=uv_index&timezone=Pacific/Honolulu&forecast_days=1'),
-      fetch('https://marine-api.open-meteo.com/v1/marine?latitude=21.3069&longitude=-157.8583&current=wave_height,wave_direction,wave_period,swell_wave_height,swell_wave_direction&timezone=Pacific/Honolulu'),
-      fetch('https://air-quality-api.open-meteo.com/v1/air-quality?latitude=21.3069&longitude=-157.8583&current=us_aqi,pm2_5&timezone=Pacific/Honolulu')
-    ]);
-    const[wx,marine,aq]=await Promise.all([wxR.json(),marineR.json(),aqR.json()]);
-    
-    const c=wx.current||{};
-    const m=marine.current||{};
-    const a=aq.current||{};
-    
-    // Convert units
-    const windMph=c.wind_speed_10m?(c.wind_speed_10m*0.621371).toFixed(0):null;
-    const gustMph=c.wind_gusts_10m?(c.wind_gusts_10m*0.621371).toFixed(0):null;
-    const feelsF=c.apparent_temperature!=null?Math.round(c.apparent_temperature*9/5+32):null;
-    const tempF=wd.periods?.[0]?.temperature||null;
-    const visibMiles=c.visibility?(c.visibility/1609.34).toFixed(0):null;
-    const wavesFt=m.wave_height?(m.wave_height*3.28084).toFixed(1):null;
-    const swellFt=m.swell_wave_height?(m.swell_wave_height*3.28084).toFixed(1):null;
-    const waveDir=m.wave_direction!=null?degToCompass(m.wave_direction):null;
-    const wavePeriod=m.wave_period?Math.round(m.wave_period):null;
-    
-    envData={
-      uv:c.uv_index!=null?Math.round(c.uv_index):null,
-      windMph,gustMph,
-      windDir:c.wind_direction_10m!=null?degToCompass(c.wind_direction_10m):null,
-      humidity:c.relative_humidity_2m!=null?Math.round(c.relative_humidity_2m):null,
-      feelsF,
-      visibMiles,
-      wavesFt,swellFt,waveDir,wavePeriod,
-      aqi:a.us_aqi!=null?Math.round(a.us_aqi):null,
-      pm25:a.pm2_5!=null?a.pm2_5.toFixed(1):null,
-      loaded:true
-    };
-    render(); // re-render with full data
-  }catch(e){console.error('Env data error:',e);}
-}
-
-function condCard(icon,label,val,sub,riskCls){
-  return`<div class="cond-card">
-    <div class="cond-label">${icon} ${label}</div>
-    <div class="cond-val ${riskCls}">${val}</div>
-    ${sub?`<div class="cond-sub">${sub}</div>`:''}
-  </div>`;
-}
-
-function degToCompass(deg){
-  const dirs=['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
-  return dirs[Math.round(deg/22.5)%16];
-}
-
-function uvLabel(uv){
-  if(uv===null) return{text:'—',cls:''};
-  if(uv<=2)return{text:`${uv} Low`,cls:'uv-low'};
-  if(uv<=5)return{text:`${uv} Moderate`,cls:'uv-mod'};
-  if(uv<=7)return{text:`${uv} High`,cls:'uv-mod'};
-  return{text:`${uv} Very High`,cls:'uv-high'};
-}
-
-function aqiLabel(aqi){
-  if(aqi===null)return{text:'—',cls:''};
-  if(aqi<=50)return{text:`${aqi} Good`,cls:'aqi-good'};
-  if(aqi<=100)return{text:`${aqi} Moderate`,cls:'aqi-mod'};
-  return{text:`${aqi} Unhealthy`,cls:'aqi-bad'};
-}
-
-function surfLabel(ft){
-  if(ft===null)return{text:'—',cls:''};
-  const n=parseFloat(ft);
-  if(n<2)return{text:`${ft}ft Calm`,cls:'surf-low'};
-  if(n<5)return{text:`${ft}ft Moderate`,cls:'surf-mod'};
-  return{text:`${ft}ft High`,cls:'surf-high'};
-}
+function degToCompass(d){const dirs=['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];return dirs[Math.round(d/22.5)%16];}
 
 // ── Load weather ──
 async function loadWeather(){
@@ -460,12 +337,9 @@ async function loadWeather(){
   ]);
   const pt=await ptR.json(),al=await alR.json();
   const pr=pt.properties;
-  const[fcR,grR,hrR]=await Promise.all([
-    fetch(pr.forecast),fetch(pr.forecastGridData),fetch(pr.forecastHourly)
-  ]);
+  const[fcR,grR,hrR]=await Promise.all([fetch(pr.forecast),fetch(pr.forecastGridData),fetch(pr.forecastHourly)]);
   const fc=await fcR.json(),gr=await grR.json(),hr=await hrR.json();
   const gp=gr.properties;
-
   wd={
     city:(pr.relativeLocation?.properties?.city||'Honolulu').replace(/^Urban /,''),
     state:pr.relativeLocation?.properties?.state||'HI',
@@ -475,432 +349,394 @@ async function loadWeather(){
     pop:expand(gp.probabilityOfPrecipitation?.values||[]),
     qpf:expand(gp.quantitativePrecipitation?.values||[]),
     wind:expand(gp.potentialOf35mphWinds?.values||[]),
-    alerts:al.features||[],
-    aiSummary:AI_SUMMARY
+    alerts:al.features||[]
   };
-
   const base=wd.pop[0]?.value||0;
   Object.keys(ZONES).forEach(z=>{
     const p=Math.max(0,Math.min(100,Math.round(base+(ZONE_VAR[z]||0))));
     ZONES[z].pop=p;const c=popColor(p);ZONES[z].fill=c.fill;ZONES[z].op=c.op;
   });
-
   render();
   drawMap();
 }
 
-// ── Load stream gauges ──
-async function loadGauges(){
-  const ids=GAUGE_SITES.map(g=>g.id).join(',');
+// ── Load env ──
+async function loadEnv(){
   try{
+    const[wxR,marR,aqR]=await Promise.all([
+      fetch('https://api.open-meteo.com/v1/forecast?latitude=21.3069&longitude=-157.8583&current=uv_index,wind_speed_10m,wind_direction_10m,wind_gusts_10m,relative_humidity_2m,apparent_temperature,visibility&timezone=Pacific/Honolulu&forecast_days=1'),
+      fetch('https://marine-api.open-meteo.com/v1/marine?latitude=21.3069&longitude=-157.8583&current=wave_height,wave_direction,wave_period,swell_wave_height&timezone=Pacific/Honolulu'),
+      fetch('https://air-quality-api.open-meteo.com/v1/air-quality?latitude=21.3069&longitude=-157.8583&current=us_aqi,pm2_5&timezone=Pacific/Honolulu')
+    ]);
+    const[wx,mar,aq]=await Promise.all([wxR.json(),marR.json(),aqR.json()]);
+    const c=wx.current||{},m=mar.current||{},a=aq.current||{};
+    envData={
+      windMph:c.wind_speed_10m?(c.wind_speed_10m*0.621371).toFixed(0):null,
+      gustMph:c.wind_gusts_10m?(c.wind_gusts_10m*0.621371).toFixed(0):null,
+      windDir:c.wind_direction_10m!=null?degToCompass(c.wind_direction_10m):null,
+      uv:c.uv_index!=null?Math.round(c.uv_index):null,
+      humidity:c.relative_humidity_2m!=null?Math.round(c.relative_humidity_2m):null,
+      feelsF:c.apparent_temperature!=null?Math.round(c.apparent_temperature*9/5+32):null,
+      visibMi:c.visibility?(c.visibility/1609.34).toFixed(0):null,
+      wavesFt:m.wave_height?(m.wave_height*3.28084).toFixed(1):null,
+      waveDir:m.wave_direction!=null?degToCompass(m.wave_direction):null,
+      wavePeriod:m.wave_period?Math.round(m.wave_period):null,
+      aqi:a.us_aqi!=null?Math.round(a.us_aqi):null,
+      pm25:a.pm2_5!=null?a.pm2_5.toFixed(1):null
+    };
+    render();
+  }catch(e){console.error('env error:',e);}
+}
+
+// ── Load gauges ──
+async function loadGauges(){
+  try{
+    const ids=GAUGE_SITES.map(g=>g.id).join(',');
     const r=await fetch(`https://waterservices.usgs.gov/nwis/iv/?format=json&sites=${ids}&parameterCd=00065,00060&siteStatus=active`);
     const d=await r.json();
     const ts=d.value.timeSeries;
     GAUGE_SITES.forEach(gs=>{
       const stage=ts.find(s=>s.sourceInfo.siteCode[0].value===gs.id&&s.variable.variableCode[0].value==='00065');
       const flow=ts.find(s=>s.sourceInfo.siteCode[0].value===gs.id&&s.variable.variableCode[0].value==='00060');
-      if(stage){
-        const v=stage.values[0].value;
-        gs.level=v.length?parseFloat(v[v.length-1].value):null;
-        gs.levelTime=v.length?v[v.length-1].dateTime:null;
-      }
-      if(flow){
-        const v=flow.values[0].value;
-        gs.flow=v.length?parseFloat(v[v.length-1].value):null;
-      }
+      if(stage){const v=stage.values[0].value;gs.level=v.length?parseFloat(v[v.length-1].value):null;gs.levelTime=v.length?v[v.length-1].dateTime:null;}
+      if(flow){const v=flow.values[0].value;gs.flow=v.length?parseFloat(v[v.length-1].value):null;}
     });
-    gaugeData=[...GAUGE_SITES];
-    renderEM(); // re-render EM with gauge data
+    gauges=[...GAUGE_SITES];
+    render();
     drawGaugeMarkers();
-  }catch(e){console.error('Gauge fetch error:',e);}
+  }catch(e){console.error('gauge error:',e);}
 }
 
 // ── Render ──
-function render(){renderPub();renderEM();}
-
-function renderPub(){
-  const{city,state,periods,hourly,alerts,pop}=wd;
+function render(){
+  if(!wd.pop) return;
+  const{city,state,periods,hourly,pop,qpf,wind,alerts}=wd;
   const pops=periods.map(p=>p.probabilityOfPrecipitation?.value||0);
   const maxPop=pops.length?Math.max(...pops):0;
-  const[rk]=popBadge(maxPop);
-  const rkcls={'high':'imp-high','mod':'imp-mod','low':'imp-low','none':'imp-none'}[rk]||'imp-none';
 
-  const impactMap={
-    none:{icon:'☀️',msg:'No rain expected across Oahu.',sub:'Clear skies through the day. Good time to be outdoors.'},
-    low:{icon:'🌤',msg:'Light rain possible but unlikely to affect your day.',sub:'An umbrella would not hurt, just in case.'},
-    mod:{icon:'🌦',msg:'Rain is likely today. Roads may be wet.',sub:'Given last week\'s flooding, avoid driving through standing water — depth is hard to judge.'},
-    high:{icon:'⛈',msg:'Significant rain expected. Flooding possible near streams.',sub:'Do not drive through flooded roads. Move valuables off ground floors if you live near Manoa, Kalihi, or Waikele streams.'}
-  };
-  const imp=impactMap[rk]||impactMap.none;
-
-  // Alert
-  let alertHtml='';
+  // Hazard bar
+  let hazardHtml='';
   if(alerts.length){
     const a=alerts[0].properties;
-    const cls=a.severity==='Extreme'||a.severity==='Severe'?'ab-warn':'ab-watch';
-    alertHtml=`<div class="alert ${cls}">⚠️ ${a.event} — ${(a.headline||'').slice(0,90)}</div>`;
+    const sev=a.severity;
+    const cls=sev==='Extreme'||sev==='Severe'?'hb-warning':sev==='Moderate'?'hb-watch':'hb-advisory';
+    const icon=sev==='Extreme'||sev==='Severe'?'🚨':sev==='Moderate'?'⚠️':'📢';
+    hazardHtml=`<div class="hazard-bar ${cls}"><span class="hb-icon">${icon}</span><div class="hb-text">${a.event}<div class="hb-detail">${(a.headline||'').slice(0,80)}</div></div><span class="hb-arrow">›</span></div>`;
+  } else {
+    hazardHtml=`<div class="hazard-bar hb-clear"><span class="hb-icon">✅</span><div class="hb-text">No active watches, warnings, or advisories<div class="hb-detail">Honolulu County · ${new Date().toLocaleTimeString()}</div></div></div>`;
   }
 
-  // Timeline
-  const tl=hourly.slice(0,8).map(p=>{
+  // Conditions strip
+  function cpill(icon,label,val,cls=''){
+    return`<div class="cond-pill"><div class="cp-icon">${icon}</div><div class="cp-label">${label}</div><div class="cp-val ${cls}">${val}</div></div>`;
+  }
+  const uvVal=envData.uv!=null?envData.uv:null;
+  const uvCls=uvVal==null?'':uvVal<=2?'cv-good':uvVal<=5?'cv-mod':'cv-high';
+  const uvTxt=uvVal!=null?(uvVal<=2?`${uvVal} Low`:uvVal<=5?`${uvVal} Mod`:uvVal<=7?`${uvVal} High`:`${uvVal} V.High`):'—';
+  const aqiCls=envData.aqi==null?'':envData.aqi<=50?'cv-good':envData.aqi<=100?'cv-mod':'cv-high';
+  const windTxt=envData.windMph?`${envData.windMph}mph`:periods[0]?.windSpeed||'—';
+  const windDir=envData.windDir||'';
+  const waveTxt=envData.wavesFt?`${envData.wavesFt}ft`:'—';
+  const waveCls=envData.wavesFt?(parseFloat(envData.wavesFt)<2?'cv-good':parseFloat(envData.wavesFt)<5?'cv-mod':'cv-high'):'';
+  const condStrip=`
+    ${cpill('🌡','Feels Like',envData.feelsF?`${envData.feelsF}°F`:`${periods[0]?.temperature||'—'}°F`,'')}
+    ${cpill('💨','Wind',windDir?`${windTxt} ${windDir}`:windTxt,'')}
+    ${cpill('☀️','UV',uvTxt,uvCls)}
+    ${cpill('🌫','AQI',envData.aqi!=null?`${envData.aqi}`:'—',aqiCls)}
+    ${cpill('🌊','Waves',waveTxt,waveCls)}
+    ${cpill('👁','Visibility',envData.visibMi?`${envData.visibMi}mi`:'—','')}
+  `;
+
+  // Timeline (8hr)
+  const tlSegs=hourly.slice(0,8).map((p,i)=>{
     const pp=p.probabilityOfPrecipitation?.value||0;
     const t=new Date(p.startTime).toLocaleString('en-US',{hour:'numeric',hour12:true});
     const{bg,txt}=segStyle(pp);
-    return`<div class="tlseg" style="background:${bg};color:${txt}"><span class="tlt">${t}</span><span class="tlp">${pp}%</span></div>`;
-  }).join('');
-
-  // Forecast cards
-  const cards=periods.map(p=>{
-    const pp=p.probabilityOfPrecipitation?.value||0;
-    const[chipCls,chipLbl]=popChip(pp);
-    const{action,critical}=popAction(pp);
-    const bc=barCol(pp);
-    return`<div class="fc${pp>=15?' rain':''}">
-      <div class="fc-row">
-        <span class="fc-name">${p.name}</span>
-        <span class="chip ${chipCls}">${chipLbl}</span>
-      </div>
-      <div class="fc-short">${p.shortForecast} · ${p.temperature}°${p.temperatureUnit}</div>
-      <div class="bar-row">
-        <span class="bar-lbl">💧 Rain chance</span>
-        <div class="bar-track"><div class="bar-fill" style="width:${pp}%;background:${bc}"></div></div>
-        <span class="bar-val" style="color:${bc}">${pp}%</span>
-      </div>
-      ${critical?`<div class="fc-critical">⚠️ ${action}</div>`:(pp>=10?`<div class="fc-action">${action}</div>`:'')}
+    return`<div class="tlseg" id="seg${i}" style="background:${bg};color:${txt}" onclick="showSegDetail(${i})" data-i="${i}">
+      <span class="tlt">${t}</span>
+      <span class="tlp">${pp}%</span>
     </div>`;
   }).join('');
 
-  // Low-bandwidth text version
-  const bwText=`<div class="bw-box">
-    <strong>${city}, ${state} — ${new Date().toLocaleDateString()}</strong><br><br>
-    ${imp.msg} ${imp.sub}<br><br>
-    ${periods.slice(0,4).map(p=>`• ${p.name}: ${p.shortForecast}, ${p.probabilityOfPrecipitation?.value||0}% rain, ${p.temperature}°${p.temperatureUnit}`).join('<br>')}
-    ${maxPop>=30?'<br><br><strong>SAFETY:</strong> Do not drive through flooded roads. Check stream levels before crossing bridges.':''}
-    <br><br><small>Source: NWS weather.gov · ${new Date().toLocaleTimeString()}</small>
-  </div>`;
+  // Build segment detail data
+  window._segData=hourly.slice(0,8).map((p,i)=>{
+    const pp=p.probabilityOfPrecipitation?.value||0;
+    const q=qpf[i]?mm2in(qpf[i].value):'0.00';
+    const w=wind[i]?Math.round(wind[i].value||0):0;
+    const t=new Date(p.startTime).toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'numeric',hour12:true});
+    const[cc,cl]=confLabel(pp);
+    const col=barCol(pp);
+    return{t,pp,q,w,cc,cl,col,short:p.shortForecast,temp:`${p.temperature}°${p.temperatureUnit}`,wind:p.windSpeed+' '+p.windDirection};
+  });
 
-  document.getElementById('pubView').innerHTML=`
-    <div class="pub-hero richonly">
-      <div class="pub-loc">${city}, ${state}</div>
-      <div class="pub-sub">${LAT.toFixed(4)}°N · ${Math.abs(LON).toFixed(4)}°W</div>
-      <div class="pub-upd">Updated ${new Date().toLocaleTimeString()}</div>
-    </div>
-    <div class="lowbw">${bwText}</div>
-    <div class="richonly">
-      <div class="impact ${rkcls}">
-        <div class="imp-icon">${imp.icon}</div>
-        <div class="imp-main">${imp.msg}</div>
-        <div class="imp-sub">${imp.sub}</div>
-      </div>
-      ${alertHtml}
-      <div class="context-bar">
-        <div class="ctx-title">📍 Post-Event Context</div>
-        Last week's flooding was one of the worst in 20 years for Oahu — Manoa, Kalihi, and Waikele streams overflowed. Today's forecast is moderate. Even light rain can cause flash flooding on saturated ground.
-      </div>
-      <div class="sec">Next 8 Hours</div>
-      <div class="tl">${tl}</div>
-      <div class="sec">Current Conditions</div>
-      <div class="cond-grid">
-        ${condCard('🌡','Feels Like', envData.feelsF!=null?`${envData.feelsF}°F`:'—', envData.humidity!=null?`Humidity: ${envData.humidity}%`:'', '')}
-        ${condCard('💨','Wind', envData.windMph!=null?`${envData.windMph}mph`:'—', envData.gustMph&&envData.windDir?`${envData.windDir} · Gusts ${envData.gustMph}mph`:'', '')}
-        ${(()=>{const{text,cls}=uvLabel(envData.uv);return condCard('☀️','UV Index',text,'',cls);})()}
-        ${(()=>{const{text,cls}=aqiLabel(envData.aqi);return condCard('🌫','Air Quality',text,envData.pm25?`PM2.5: ${envData.pm25} µg/m³`:'',cls);})()}
-        ${(()=>{const{text,cls}=surfLabel(envData.wavesFt);return condCard('🌊','Ocean Waves',text,envData.wavePeriod?`${envData.wavePeriod}s period · ${envData.waveDir||''}`:'' ,cls);})()}
-        ${condCard('👁','Visibility', envData.visibMiles!=null?`${envData.visibMiles} mi`:'—', envData.visibMiles&&parseInt(envData.visibMiles)<5?'Reduced visibility — use caution':'Clear visibility',parseInt(envData.visibMiles||99)<5?'uv-high':'')}
-      </div>
-      <div class="sec">Extended Forecast</div>
-      <div class="fc-list">${cards}</div>
-      <div class="notif-box">
-        <span>🔔 Get alerts if this changes</span>
-        <button class="notif-btn" onclick="alert('Alert subscription coming soon!')">Notify Me</button>
-      </div>
-    </div>
-  `;
-}
+  // Gauge summary (simple rows)
+  const gaugeRows=GAUGE_SITES.map(g=>{
+    const hasData=g.level!=null;
+    const pct=hasData?Math.min(100,(g.level/g.flood)*100):0;
+    const isFlood=hasData&&g.level>=g.flood;
+    const isNear=hasData&&g.level>=g.action&&!isFlood;
+    const col=isFlood?'#e52207':isNear?'#f5a623':'#4fc3f7';
+    const valCls=isFlood?'gr-flood':isNear?'gr-rising':'gr-normal';
+    return`<div class="gauge-row">
+      <span class="gr-name">${g.short}</span>
+      <div class="gr-bar"><div class="gr-fill" style="width:${pct}%;background:${col}"></div></div>
+      <span class="gr-val ${valCls}">${hasData?g.level.toFixed(2)+'ft':'—'}</span>
+    </div>`;
+  }).join('');
 
-function renderEM(){
-  if(!wd.pop) return;
-  const{city,state,office,gx,gy,pop,qpf,wind,alerts,aiSummary}=wd;
+  const allNormal=GAUGE_SITES.every(g=>!g.level||g.level<g.action);
+  const gaugeStatus=allNormal?'All Normal':'Monitor';
 
-  // Alert
-  let alertHtml='';
-  if(alerts.length){
-    const a=alerts[0].properties;
-    alertHtml=`<div style="margin:0 12px 8px;background:rgba(229,34,7,.14);border:1px solid rgba(229,34,7,.3);border-radius:6px;padding:10px 12px;font-size:12px;font-weight:700;color:#ef5350;">🚨 ACTIVE: ${a.event} — ${(a.headline||'').slice(0,80)}</div>`;
-  }
-
-  // Decision clock — when do conditions arrive?
+  // EM Decision clock
   const maxPopSeries=pop.slice(0,24);
-  let firstHigh=null, firstMod=null;
+  let firstHigh=null,firstMod=null;
   for(const e of maxPopSeries){
-    const p=Math.round(e.value||0);
-    if(p>=60&&!firstHigh){firstHigh=e.time;}
-    if(p>=30&&!firstMod){firstMod=e.time;}
+    if(Math.round(e.value||0)>=60&&!firstHigh)firstHigh=e.time;
+    if(Math.round(e.value||0)>=30&&!firstMod)firstMod=e.time;
   }
   const dcItems=[
-    firstHigh?{time:timeUntil(firstHigh),desc:'High rain probability arrives (60%+)',urgency:'dc-now'}:null,
-    firstMod?{time:timeUntil(firstMod),desc:'Elevated conditions begin (30%+)',urgency:'dc-soon'}:null,
-    {time:'48hr',desc:'Conditions expected to improve — monitoring required',urgency:'dc-later'}
+    firstHigh?{time:timeUntil(firstHigh),desc:'High rain probability (60%+)',tag:'dt-now',label:'NOW'}:null,
+    firstMod?{time:timeUntil(firstMod),desc:'Elevated conditions begin (30%+)',tag:'dt-soon',label:'SOON'}:null,
+    {time:'48hr',desc:'Conditions expected to improve',tag:'dt-later',label:'LATER'}
   ].filter(Boolean);
+  const dcHtml=dcItems.map(i=>`<div class="dc-item"><span class="dc-time">${i.time}</span><span class="dc-desc">${i.desc}</span><span class="dc-tag ${i.tag}">${i.label}</span></div>`).join('');
 
-  const dcHtml=dcItems.map(i=>`<div class="dc-item">
-    <span class="dc-time">${i.time}</span>
-    <span class="dc-desc">${i.desc}</span>
-    <span class="dc-urgency ${i.urgency}">${i.urgency==='dc-now'?'NOW':i.urgency==='dc-soon'?'SOON':'LATER'}</span>
-  </div>`).join('');
-
-  // Stream gauges
-  let gaugeHtml='';
-  if(gaugeData.length){
-    gaugeHtml=gaugeData.map(g=>{
-      if(g.level===null||g.level===undefined) return`<div class="gauge gok"><div class="g-name">${g.short}</div><div class="g-loading">Data unavailable</div></div>`;
-      const floodPct=Math.min(100,(g.level/g.flood)*100);
-      const isFlood=g.level>=g.flood;
-      const isNear=g.level>=g.action&&g.level<g.flood;
-      const cls=isFlood?'gfl':isNear?'gmod':'gok';
-      const badgeCls=isFlood?'gb-flood':isNear?'gb-near':'gb-ok';
-      const badgeLbl=isFlood?'FLOODING':isNear?'NEAR FLOOD':'NORMAL';
-      const markerPct=Math.min(98,(g.flood/g.flood)*100);
-      const fillColor=isFlood?'#e52207':isNear?'#f5a623':'#4fc3f7';
-      const lastUpdate=g.levelTime?new Date(g.levelTime).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true}):'—';
-      return`<div class="gauge ${cls}">
-        <div class="g-top">
-          <span class="g-name">${g.short}</span>
-          <span class="g-badge ${badgeCls}">${badgeLbl}</span>
-        </div>
-        <div class="g-level-row">
-          <span class="g-level-val">${g.level.toFixed(2)}</span>
-          <span class="g-level-unit">ft · ${g.flow?g.flow.toFixed(0)+' cfs':'—'}</span>
-        </div>
-        <div class="g-bar-wrap">
-          <div class="g-bar-fill" style="width:${floodPct}%;background:${fillColor}"></div>
-          <div class="g-flood-marker" style="left:${markerPct}%" title="Flood stage: ${g.flood}ft"></div>
-        </div>
-        <div class="g-detail">Flood stage: ${g.flood}ft · Action stage: ${g.action}ft · Updated: ${lastUpdate}</div>
-      </div>`;
-    }).join('');
-  } else {
-    gaugeHtml=GAUGE_SITES.map(g=>`<div class="gauge gok">
-      <div class="g-top"><span class="g-name">${g.short}</span><span class="g-badge gb-ok">LOADING</span></div>
-      <div class="g-loading">Fetching live stream data…</div>
-    </div>`).join('');
-  }
-
-  // Zone threats
-  const threats=Object.entries(ZONES).map(([id,z])=>{
-    const p=z.pop||0;
-    const cls=p>=60?'th':p>=30?'tm':'tl';
-    const[bc,bl]=p>=60?['tb-watch','Watch']:p>=30?['tb-adv','Advisory']:['tb-ok','Monitoring'];
-    const detail=p>=60?'Elevated flood risk — monitor stream gauges closely':p>=30?'Rain likely — standard precautions apply':'No significant weather threat at this time';
-    const impact=p>=60?`<div class="thr-impact">⚡ Pre-position flood response resources</div>`:p>=30?`<div class="thr-impact">⚡ Standby posture — monitor stream gauges</div>`:'';
-    return`<div class="threat ${cls}">
-      <div class="thr-top"><span class="thr-name">${z.name}</span><span class="thr-badge ${bc}">${bl}</span></div>
-      <div class="thr-detail">PoP: ${p}% · ${detail}</div>${impact}
+  // EM gauge detail
+  const emGauges=GAUGE_SITES.map(g=>{
+    const hasData=g.level!=null;
+    const isFlood=hasData&&g.level>=g.flood;
+    const isNear=hasData&&g.level>=g.action&&!isFlood;
+    const cls=isFlood?'eb-flood':isNear?'eb-near':'eb-ok';
+    const lbl=isFlood?'FLOODING':isNear?'NEAR FLOOD':'NORMAL';
+    const pct=hasData?Math.min(100,(g.level/g.flood)*100):0;
+    const col=isFlood?'#e52207':isNear?'#f5a623':'#4fc3f7';
+    const upd=g.levelTime?new Date(g.levelTime).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true}):'—';
+    return`<div class="em-gauge">
+      <div class="eg-top"><span class="eg-name">${g.short}</span><span class="eg-badge ${cls}">${lbl}</span></div>
+      <div class="eg-val-row"><span class="eg-ft">${hasData?g.level.toFixed(2):'—'}</span><span class="eg-unit">ft</span>${g.flow?`<span class="eg-flow">· ${g.flow.toFixed(0)} cfs</span>`:''}</div>
+      <div class="eg-bar"><div class="eg-fill" style="width:${pct}%;background:${col}"></div></div>
+      <div class="eg-meta">Flood: ${g.flood}ft · Action: ${g.action}ft · Updated: ${upd}</div>
     </div>`;
   }).join('');
 
-  // Prob table with accumulation
+  // Prob table
   const rows=pop.slice(0,8).map((e,i)=>{
     const p=Math.round(e.value||0);
     const q=qpf[i]?mm2in(qpf[i].value):'0.00';
     const w=wind[i]?Math.round(wind[i].value||0):0;
     const[cc,cl]=confLabel(p);
     const t=new Date(e.time).toLocaleString('en-US',{weekday:'short',hour:'numeric',hour12:true});
-    const col=p>=60?'#e52207':p>=30?'#f5a623':p>=10?'#4fc3f7':'#8b949e';
-    return`<tr>
-      <td style="color:var(--muted);white-space:nowrap">${t}</td>
+    const col=barCol(p);
+    return`<tr><td style="color:var(--muted);white-space:nowrap">${t}</td>
       <td><div class="pop-c"><div class="pop-tr"><div class="pop-b" style="width:${p}%;background:${col}"></div></div><span class="pop-v" style="color:${col}">${p}%</span></div></td>
       <td style="font-weight:700;color:#4fc3f7">${q}"</td>
       <td><span class="conf ${cc}">${cl}</span></td>
-      <td style="color:${w>40?'#e52207':'var(--muted)'}">${w>0?w+'%':'—'}</td>
-    </tr>`;
+      <td style="color:${w>40?'#e52207':'var(--muted)'}">${w>0?w+'%':'—'}</td></tr>`;
   }).join('');
 
-  // QPF accumulations
+  // Rainfall accumulation
   const qpf6=qpf.slice(0,6).reduce((a,e)=>a+(e.value||0),0);
   const qpf12=qpf.slice(0,12).reduce((a,e)=>a+(e.value||0),0);
   const qpf24=qpf.slice(0,24).reduce((a,e)=>a+(e.value||0),0);
+  const qColor=(mm)=>mm>25.4?'qc-high':mm>12.7?'qc-mod':'qc-low';
+  const accumHtml=`<div class="accum-row">
+    ${[['6hr',qpf6],['12hr',qpf12],['24hr',qpf24]].map(([l,v])=>`<div class="accum-cell"><div class="ac-val ${qColor(v)}">${mm2in(v)}"</div><div class="ac-lbl">${l}</div></div>`).join('')}
+  </div>`;
 
   // Actions
   const maxP=Math.max(...Object.values(ZONES).map(z=>z.pop||0));
   const actions=maxP>=60?[
-    {p:'h',t:'Pre-position flood response teams in Windward and North Shore zones',time:'Now'},
-    {p:'h',t:'Activate EOC monitoring — check stream gauges every 30 minutes',time:'Now'},
-    {p:'m',t:'Issue public advisory for Manoa, Kalihi, and Waikele stream corridors',time:'Within 1hr'},
-    {p:'m',t:'Alert school districts and transit about potential road closures',time:'Within 1hr'},
-    {p:'l',t:'Review evacuation route accessibility across Oahu',time:'Today'}
+    {p:'h',t:'Pre-position flood response teams — Windward and North Shore zones',time:'Now'},
+    {p:'h',t:'Monitor stream gauges every 15 minutes — alert at action stage',time:'Now'},
+    {p:'m',t:'Issue public advisory for Manoa, Kalihi, Waikele stream corridors',time:'Within 1hr'},
+    {p:'l',t:'Review evacuation route accessibility',time:'Today'}
   ]:maxP>=30?[
-    {p:'m',t:'Monitor stream gauge levels — set alert thresholds at action stage',time:'Ongoing'},
-    {p:'m',t:'Brief response teams — maintain standby posture',time:'Within 2hr'},
-    {p:'l',t:'Review road closure protocols for flood-prone corridors',time:'Today'}
+    {p:'m',t:'Set stream gauge alert thresholds at action stage',time:'Ongoing'},
+    {p:'m',t:'Brief response teams — standby posture',time:'Within 2hr'},
+    {p:'l',t:'Continue post-flood infrastructure inspection',time:'Today'}
   ]:[
-    {p:'l',t:'No immediate action required — standard monitoring protocols',time:'Ongoing'},
-    {p:'l',t:'Continue post-flood recovery operations and infrastructure inspection',time:'Ongoing'}
+    {p:'l',t:'Standard monitoring — no immediate action required',time:'Ongoing'},
+    {p:'l',t:'Continue post-flood recovery operations',time:'Ongoing'}
   ];
-
-  const actionsHtml=actions.map(a=>`<div class="action">
+  const actionsHtml=actions.map(a=>`<div class="action-item">
     <div class="adot ${{'h':'ah','m':'am','l':'al'}[a.p]}"></div>
     <div><div class="abody">${a.t}</div><div class="atime">${a.time}</div></div>
   </div>`).join('');
 
-  document.getElementById('emView').innerHTML=`
-    <div class="pro-hdr">
-      <div class="pro-loc">${city}, ${state}</div>
-      <div class="pro-sub">Emergency Operations Center · Situational Awareness</div>
-      <span class="pro-wfo">WFO ${office} · ${gx},${gy}</span>
+  document.getElementById('content').innerHTML=`
+    ${hazardHtml}
+
+    <div class="situation">
+      <div class="sit-meta">
+        <span>📍 ${city}, ${state}</span>·
+        <span>Updated ${new Date().toLocaleTimeString()}</span>·
+        <span class="nim-tag">AI · Llama 3.3</span>
+      </div>
+      <div class="sit-public">${PUBLIC_SUMMARY}</div>
+      <div class="sit-context">📍 <strong>Post-flood context:</strong> Last week's flooding was one of Oahu's worst in 20 years. Saturated ground means even moderate rain can cause rapid stream rises and road flooding.</div>
     </div>
-    ${alertHtml}
-    <div class="ai-blk">
-      <div class="ai-hdr">⚡ AI Situation Summary <span class="nim-badge">Llama 3.3 · NVIDIA NIM</span></div>
-      <div class="ai-txt">${aiSummary}</div>
+
+    <div class="cond-strip">${condStrip}</div>
+
+    <div class="tl-section">
+      <div class="tl-label">Next 8 Hours — tap for details</div>
+      <div class="timeline" id="timeline">${tlSegs}</div>
+      <div class="tl-detail" id="tlDetail"></div>
     </div>
-    <div class="sec">Operational Conditions</div>
-    <div class="cond-grid" style="padding:0 12px 10px;">
-      ${condCard('💨','Wind',envData.windMph?`${envData.windMph}mph ${envData.windDir||''}`:wd.periods?.[0]?.windSpeed||'—',envData.gustMph?`Gusts: ${envData.gustMph}mph`:'',' ')}
-      ${condCard('🌊','Wave Height',envData.wavesFt?`${envData.wavesFt}ft`:'—',envData.wavePeriod?`${envData.wavePeriod}s · ${envData.waveDir||''}`:'',surfLabel(envData.wavesFt).cls)}
-      ${condCard('👁','Visibility',envData.visibMiles?`${envData.visibMiles}mi`:'—',parseInt(envData.visibMiles||99)<5?'⚠️ Reduced — aviation/road impact':'Roads/aviation clear',parseInt(envData.visibMiles||99)<5?'uv-high':'')}
-      ${(()=>{const{text,cls}=aqiLabel(envData.aqi);return condCard('🌫','AQI / Air',text,envData.pm25?`PM2.5: ${envData.pm25} µg/m³`:'',cls);})()}
-      ${condCard('💧','Humidity',envData.humidity?`${envData.humidity}%`:'—',envData.feelsF?`Feels like ${envData.feelsF}°F`:'','')}
-      ${condCard('⚡','Lightning',wd.pop?.[0]?.value>=30?'Possible':'Low','Check lightningactivitylevel for ops','')}
+
+    <div class="gauges-section">
+      <div class="gauges-label">💧 Stream Gauges · Live <span class="gauges-status">${gaugeStatus}</span></div>
+      ${gaugeRows}
     </div>
-    <div class="sec">Decision Window</div>
-    <div class="decision-clock" style="margin:0 12px 10px;">
-      <div class="dc-title">⏱ Time Until Threshold Conditions</div>
-      <div class="dc-items">${dcHtml}</div>
-    </div>
-    <div class="sec">Stream Gauges · Live</div>
-    <div class="gauge-list">${gaugeHtml}</div>
-    <div class="sec">Rainfall Accumulation Forecast</div>
-    <div style="margin:0 12px 10px;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;display:flex;gap:16px;">
-      ${[['6hr',qpf6],['12hr',qpf12],['24hr',qpf24]].map(([lbl,v])=>{
-        const inches=mm2in(v);
-        const col=v>25.4?'#e52207':v>12.7?'#f5a623':'#4fc3f7';
-        return`<div style="flex:1;text-align:center;">
-          <div style="font-size:18px;font-weight:800;color:${col}">${inches}"</div>
-          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:2px">${lbl} total</div>
-        </div>`;
-      }).join('')}
-    </div>
-    <div class="sec">Zone Threat Assessment</div>
-    <div class="threat-list">${threats}</div>
-    <div class="sec">Probabilistic Forecast Table</div>
-    <div class="prob-wrap">
-      <table class="prob-table">
-        <thead><tr><th>Time</th><th>PoP</th><th>QPF</th><th>Conf.</th><th>35mph Winds</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-    </div>
-    <div class="sec">Recommended Actions</div>
-    <div class="actions-wrap">${actionsHtml}</div>
-    <div class="share-bar">
-      <button class="share-btn" onclick="alert('Share link copied to clipboard! (coming soon)')">📤 Share Situation Report</button>
-      <button class="share-btn" onclick="window.print()">🖨 Print EOC Briefing</button>
+
+    <div class="em-expander">
+      <div class="em-trigger" onclick="toggleEM()">
+        <div class="em-trigger-left">
+          <span class="em-trigger-icon">📡</span>
+          <div>
+            <div class="em-trigger-title">Operations & Emergency Management</div>
+            <div class="em-trigger-sub">Full probabilistic data · Stream gauges · Decision support · Shareable briefing</div>
+          </div>
+        </div>
+        <span class="em-chevron" id="emChevron">▼</span>
+      </div>
+
+      <div class="em-panel" id="emPanel">
+        <div class="emp-section">
+          <div class="emp-label">⚡ AI Situation Analysis <span class="nim-badge">Llama 3.3 · NVIDIA NIM</span></div>
+          <div class="ai-summary">${EM_ANALYTICAL}</div>
+          <div class="shareable-box">
+            <div class="share-label">📤 Ready-to-share briefing</div>
+            <div class="share-text">${EM_SHAREABLE}</div>
+            <button class="share-btn" onclick="navigator.clipboard?.writeText(document.querySelector('.share-text').textContent).then(()=>alert('Copied to clipboard!'))">Copy for distribution</button>
+          </div>
+        </div>
+
+        <div class="emp-section">
+          <div class="emp-label">⏱ Decision Window</div>
+          <div class="dc-grid">${dcHtml}</div>
+        </div>
+
+        <div class="emp-section">
+          <div class="emp-label">💧 Stream Gauge Detail · USGS Live</div>
+          ${emGauges}
+        </div>
+
+        <div class="emp-section">
+          <div class="emp-label">☁️ Rainfall Accumulation Forecast</div>
+          ${accumHtml}
+        </div>
+
+        <div class="emp-section">
+          <div class="emp-label">📊 Probabilistic Forecast Table</div>
+          <div style="overflow-x:auto">
+            <table class="prob-table">
+              <thead><tr><th>Time</th><th>PoP</th><th>QPF</th><th>Conf.</th><th>35mph Winds</th></tr></thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="emp-section">
+          <div class="emp-label">✅ Recommended Actions</div>
+          ${actionsHtml}
+        </div>
+      </div>
     </div>
   `;
+}
+
+function showSegDetail(i){
+  const seg=window._segData[i];
+  if(!seg) return;
+  const detail=document.getElementById('tlDetail');
+  if(activeSeg===i){
+    detail.classList.remove('show');
+    activeSeg=null;
+    return;
+  }
+  activeSeg=i;
+  const col=barCol(seg.pp);
+  const[cc,cl]=confLabel(seg.pp);
+  detail.innerHTML=`
+    <div style="font-weight:700;margin-bottom:8px;color:#1b1b1b">${seg.t} — ${seg.short}</div>
+    <div class="tld-row"><span class="tld-lbl">Rain chance</span><div class="tld-bar"><div class="tld-bfill" style="width:${seg.pp}%;background:${col}"></div></div><span class="tld-val" style="color:${col}">${seg.pp}%</span></div>
+    <div class="tld-row"><span class="tld-lbl">Precip (QPF)</span><span class="tld-val">${seg.q}"</span></div>
+    <div class="tld-row"><span class="tld-lbl">Temperature</span><span class="tld-val">${seg.temp}</span></div>
+    <div class="tld-row"><span class="tld-lbl">Wind</span><span class="tld-val">${seg.wind}</span></div>
+    <div class="tld-row"><span class="tld-lbl">Confidence</span><span class="conf ${cc}" style="font-size:12px">${cl}</span></div>
+  `;
+  detail.classList.add('show');
+}
+
+function toggleEM(){
+  const panel=document.getElementById('emPanel');
+  const chevron=document.getElementById('emChevron');
+  panel.classList.toggle('open');
+  chevron.classList.toggle('open');
+}
+
+function toggleBW(){
+  bwMode=!bwMode;
+  document.getElementById('bwBtn').classList.toggle('active',bwMode);
+  document.getElementById('mapArea')?.style && (document.getElementById('mapArea').style.display=bwMode?'none':'');
+  document.querySelector('.map-area').style.display=bwMode?'none':'';
 }
 
 // ── Map ──
 function initMap(){
   map=L.map('map',{zoomControl:true}).setView([21.47,-157.97],11);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-    attribution:'© OpenStreetMap contributors',maxZoom:18
-  }).addTo(map);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap contributors',maxZoom:18}).addTo(map);
   setTimeout(()=>map.invalidateSize(),250);
 }
-
 function drawMap(){
-  // Risk zones
-  if(riskLyr) riskLyr.remove();
+  if(riskLyr)riskLyr.remove();
   riskLyr=L.layerGroup();
   Object.entries(ZONES).forEach(([id,z])=>{
-    const p=z.pop||0;
-    L.polygon(z.c[0].map(c=>[c[1],c[0]]),{
-      fillColor:z.fill,fillOpacity:z.op,color:z.fill,weight:1.5,opacity:.6
-    }).bindTooltip(`<b>${z.name}</b><br>PoP: ${p}%<br>${popBadge(p)[1]}`,{sticky:true})
-      .addTo(riskLyr);
+    L.polygon(z.c[0].map(c=>[c[1],c[0]]),{fillColor:z.fill,fillOpacity:z.op,color:z.fill,weight:1.5,opacity:.6})
+      .bindTooltip(`<b>${z.name}</b><br>PoP: ${z.pop||0}%`,{sticky:true}).addTo(riskLyr);
   });
-  if(document.getElementById('lyrRisk').checked) riskLyr.addTo(map);
-
-  // Obs stations
-  if(stationsLyr) stationsLyr.remove();
+  if(document.getElementById('lyrRisk').checked)riskLyr.addTo(map);
+  if(stationsLyr)stationsLyr.remove();
   stationsLyr=L.layerGroup();
   const base=wd.pop?.[0]?.value||0;
-  [{lat:21.3069,lon:-157.8583,name:'Honolulu Intl (PHNL)',temp:'77°F',wind:'12mph NE',pop:Math.max(0,base-8)},
-   {lat:21.448,lon:-158.045,name:'Wheeler Army Airfield',temp:'74°F',wind:'8mph N',pop:Math.max(0,base+3)},
-   {lat:21.534,lon:-157.992,name:'Haleiwa (North Shore)',temp:'75°F',wind:'15mph NE',pop:Math.max(0,base+10)},
-   {lat:21.393,lon:-157.739,name:'Kaneohe MCAS (PHNG)',temp:'77°F',wind:'10mph E',pop:Math.max(0,base+13)}
+  [{lat:21.3069,lon:-157.8583,name:'Honolulu Intl',pop:Math.max(0,base-8)},
+   {lat:21.448,lon:-158.045,name:'Wheeler AAF',pop:Math.max(0,base+3)},
+   {lat:21.534,lon:-157.992,name:'North Shore',pop:Math.max(0,base+10)},
+   {lat:21.393,lon:-157.739,name:'Kaneohe MCAS',pop:Math.max(0,base+13)}
   ].forEach(s=>{
-    L.circleMarker([s.lat,s.lon],{
-      radius:6,fillColor:barCol(s.pop),fillOpacity:.9,
-      color:'#fff',weight:2,opacity:1
-    }).bindTooltip(`<b>${s.name}</b><br>${s.temp} · ${s.wind}<br>PoP: ${s.pop}%`,{sticky:true})
-      .addTo(stationsLyr);
+    L.circleMarker([s.lat,s.lon],{radius:6,fillColor:barCol(s.pop),fillOpacity:.9,color:'#fff',weight:2,opacity:1})
+      .bindTooltip(`<b>${s.name}</b><br>PoP: ${s.pop}%`,{sticky:true}).addTo(stationsLyr);
   });
-  if(document.getElementById('lyrStations').checked) stationsLyr.addTo(map);
+  if(document.getElementById('lyrStations').checked)stationsLyr.addTo(map);
 }
-
 function drawGaugeMarkers(){
-  if(gaugeLyr) gaugeLyr.remove();
+  if(gaugeLyr)gaugeLyr.remove();
   gaugeLyr=L.layerGroup();
   GAUGE_SITES.forEach(g=>{
-    if(g.level===undefined) return;
-    const isFlood=g.level>=g.flood;
-    const isNear=g.level>=g.action;
+    if(g.level==null)return;
+    const isFlood=g.level>=g.flood,isNear=g.level>=g.action;
     const col=isFlood?'#e52207':isNear?'#f5a623':'#4fc3f7';
-    L.circleMarker([g.lat,g.lon],{
-      radius:8,fillColor:col,fillOpacity:.95,
-      color:'#fff',weight:2.5,opacity:1
-    }).bindTooltip(
-      `<b>💧 ${g.short}</b><br>${g.level?.toFixed(2)}ft · ${g.flow?.toFixed(0)||'—'} cfs<br>Flood stage: ${g.flood}ft`,
-      {sticky:true}
-    ).addTo(gaugeLyr);
+    L.circleMarker([g.lat,g.lon],{radius:9,fillColor:col,fillOpacity:.95,color:'#fff',weight:2.5,opacity:1})
+      .bindTooltip(`<b>💧 ${g.short}</b><br>${g.level.toFixed(2)}ft · ${g.flow?.toFixed(0)||'—'} cfs<br>Flood stage: ${g.flood}ft`,{sticky:true})
+      .addTo(gaugeLyr);
   });
-  if(document.getElementById('lyrGauges').checked) gaugeLyr.addTo(map);
+  if(document.getElementById('lyrGauges').checked)gaugeLyr.addTo(map);
 }
-
 function toggleLyr(name){
-  const map_lyr={'risk':riskLyr,'gauges':gaugeLyr,'stations':stationsLyr}[name];
-  const checked=document.getElementById({risk:'lyrRisk',gauges:'lyrGauges',stations:'lyrStations'}[name]).checked;
-  if(map_lyr){checked?map_lyr.addTo(map):map_lyr.remove();}
+  const lyr={risk:riskLyr,gauges:gaugeLyr,stations:stationsLyr}[name];
+  const chk=document.getElementById({risk:'lyrRisk',gauges:'lyrGauges',stations:'lyrStations'}[name]).checked;
+  if(lyr){chk?lyr.addTo(map):lyr.remove();}
 }
 
-// ── Mode switch ──
-function setMode(m){
-  mode=m;
-  const shell=document.getElementById('shell');
-  document.getElementById('tabPub').className='tab'+(m==='pub'?' on':'');
-  document.getElementById('tabEM').className='tab'+(m==='em'?' on':'');
-  document.getElementById('pubView').style.display=m==='pub'?'block':'none';
-  document.getElementById('emView').style.display=m==='em'?'block':'none';
-  if(m==='em'){
-    shell.classList.add('pro');
-    map?.eachLayer(l=>{if(l._url?.includes('openstreetmap'))map.removeLayer(l);});
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{attribution:'© CARTO © OpenStreetMap',maxZoom:19}).addTo(map);
-  }else{
-    shell.classList.remove('pro');
-    map?.eachLayer(l=>{if(l._url?.includes('carto'))map.removeLayer(l);});
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap contributors',maxZoom:18}).addTo(map);
-  }
-  setTimeout(()=>map?.invalidateSize(),50);
-}
-
-// ── Text/low-bandwidth mode ──
-function toggleBW(){
-  bwMode=!bwMode;
-  document.getElementById('sidebar').classList.toggle('bwmode',bwMode);
-  document.getElementById('bwBtn').style.background=bwMode?'rgba(255,200,0,.3)':'rgba(255,255,255,.15)';
-  document.getElementById('mapArea').style.display=bwMode?'none':'flex';
-}
-
-// ── Init ──
 window.addEventListener('DOMContentLoaded',()=>{
   initMap();
-  loadWeather().then(()=>Promise.all([loadGauges(),loadEnvData()])).catch(e=>{
-    const err=`<div class="loading">⚠️ ${e.message}</div>`;
-    document.getElementById('pubView').innerHTML=err;
-    document.getElementById('emView').innerHTML=err;
-    console.error(e);
-  });
+  loadWeather()
+    .then(()=>Promise.all([loadEnv(),loadGauges()]))
+    .catch(e=>{
+      document.getElementById('content').innerHTML=`<div class="loading">⚠️ ${e.message}</div>`;
+      console.error(e);
+    });
 });
 </script>
 </body>
