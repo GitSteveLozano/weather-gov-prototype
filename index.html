@@ -446,7 +446,7 @@ header{
 <script>
 const LAT=21.3069,LON=-157.8583;
 let map,riskLyr,gaugeLyr,stationsLyr,eqLyr;
-let wd={},envData={},gauges=[],hazards={};
+let wd={},envData={},gauges=[],hazards={radar:{},soilMoisture:null,fireWeather:null,forecasterDiscussion:null,fim:null,lightning:null};
 let bwMode=false, activeSeg=null, activeIntent='home', hazardMode=false;
 let shelterLyr=null;
 
@@ -1168,7 +1168,7 @@ function render(){
             false)}
 
           ${emCollapse('wahiawa','🏔 Wahiawa Reservoir',
-            WAHIAWA_RESERVOIR.level>=WAHIAWA_RESERVOIR.prepare?'warning':WAHIAWA_RESERVOIR.level>=(WAHIAWA_RESERVOIR.prepare-8)?'watch':'ok',
+            (WAHIAWA_RESERVOIR.level!=null&&WAHIAWA_RESERVOIR.level>=WAHIAWA_RESERVOIR.prepare)?'warning':(WAHIAWA_RESERVOIR.level!=null&&WAHIAWA_RESERVOIR.level>=(WAHIAWA_RESERVOIR.prepare-8))?'watch':'ok',
             WAHIAWA_RESERVOIR.level!=null?`${WAHIAWA_RESERVOIR.level.toFixed(1)}ft current · Prep-evac at ${WAHIAWA_RESERVOIR.prepare}ft`:'Loading…',
             renderWahiawaReservoir(true), false)}
 
@@ -1317,7 +1317,7 @@ function renderWahiawaReservoir(bare=false){
   if(r.level==null) return`<div class="emp-section"><div class="emp-label">💧 Wahiawa Reservoir</div><div style="font-size:12px;color:var(--muted);">Level data unavailable</div></div>`;
   const pctPrepare=Math.min(100,(r.level/r.prepare)*100);
   const pctCritical=Math.min(100,(r.level/r.critical)*100);
-  const status=r.level>=r.prepare?'warning':r.level>=(r.prepare-8)?'watch':'ok';
+  const status=r.level!=null&&r.level>=r.prepare?'warning':r.level!=null&&r.level>=(r.prepare-8)?'watch':'ok';
   const preparePos=Math.min(98,(r.prepare/r.critical)*100);
   const barColor=status==='warning'?'#ef5350':status==='watch'?'#f5a623':'#4fc3f7';
   const upd=r.levelTime?new Date(r.levelTime).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true}):'—';
@@ -1358,7 +1358,7 @@ function renderRadarStatus(bare=false){
       <div style="font-size:10px;font-weight:700;color:${online?'#4caf50':'#ef5350'};">${online?'ONLINE':'⚠️ OFFLINE'}</div>
     </div>`;
   }).join('');
-  const anyOffline=Object.values(hazards.radar).some(r=>r.status!=='ok');
+  const anyOffline=Object.values(hazards.radar||{}).some(r=>r.status!=='ok');
   return`<div class="emp-section">
     <div class="emp-label">📡 Radar Network Status ${anyOffline?'<span style="background:rgba(229,34,7,.2);color:#ef5350;padding:1px 6px;border-radius:3px;font-size:9px;margin-left:4px;">DEGRADED</span>':''}</div>
     ${anyOffline?`<div style="background:rgba(229,34,7,.08);border:1px solid rgba(229,34,7,.3);border-radius:6px;padding:9px 12px;font-size:12px;color:#ef5350;margin-bottom:10px;line-height:1.5;">⚠️ Radar coverage gap detected. NWS forecast accuracy may be degraded. Verify conditions against USGS stream gauges and field reports.</div>`:''}
@@ -1392,7 +1392,7 @@ function renderChecklist(bare=false){
 
 function renderSoilSaturation(bare=false){
   const sm=hazards.soilMoisture;
-  if(!sm||sm.surface==null) return'';
+  if(!sm||sm.surface==null) return bare?'<div style="padding:12px 14px;font-size:12px;color:var(--muted);">Soil data loading…</div>':'';
   const pct=Math.min(100,(parseFloat(sm.surface)/0.45)*100);
   const color=sm.status==='warning'?'#ef5350':sm.status==='watch'?'#f5a623':'#4caf50';
   const label=sm.status==='warning'?'SATURATED':sm.status==='watch'?'Elevated':'Normal';
@@ -1414,7 +1414,7 @@ function renderSoilSaturation(bare=false){
 
 function renderForecasterDiscussion(bare=false){
   const disc=hazards.forecasterDiscussion;
-  if(!disc) return'';
+  if(!disc) return bare?'<div style="padding:12px 14px;font-size:12px;color:var(--muted);">Forecaster discussion loading…</div>':'';
   const age=disc.issuanceTime?Math.round((Date.now()-new Date(disc.issuanceTime).getTime())/3600000):null;
   const ageStr=age!=null?`${age}h ago`:'—';
   const stale=age!=null&&age>6;
@@ -1520,7 +1520,7 @@ function renderFireWindLightning(bare=false){
   const cards=[
     {
       icon:'🔥', name:'Fire / Red Flag',
-      status:rfAlert?hazards.fireWeather.status:hazards.fire?.status||'ok',
+      status:rfAlert?(hazards.fireWeather?.status||'watch'):hazards.fire?.status||'ok',
       val:rfAlert?'⚠️ ALERT':`${humidity}% RH`,
       detail:rfAlert?hazards.fireWeather.detail||'Red Flag Warning in effect':`Wind ${windMph}mph · RH ${humidity}% · ${windMph>20&&humidity<40?'Elevated risk':'Low risk'}`
     },
@@ -1576,7 +1576,7 @@ function renderFireWindLightning(bare=false){
 function renderLifelines(bare=false){
   const wind=envData.windMph||0;
   const gust=envData.gustMph||0;
-  const pop=maxPop||0;
+  const pop=(typeof maxPop!=='undefined'?maxPop:0);
   const aqi=envData.aqi||0;
   const gaugeElevated=GAUGE_SITES.filter(g=>g.level&&g.level>=(g.action||99));
   const gaugeNearFlood=GAUGE_SITES.filter(g=>g.level&&g.level>=(g.flood*0.7));
