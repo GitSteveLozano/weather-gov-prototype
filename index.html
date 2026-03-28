@@ -86,6 +86,37 @@ header{
 .cp-val{font-size:13px;font-weight:700;text-align:center;line-height:1.3;color:#111827;}
 .cv-good{color:#059669;} .cv-mod{color:#d97706;} .cv-high{color:#dc2626;}
 
+/* ─── INTENT SELECTOR ─── */
+.intent-bar{
+  display:flex;gap:6px;padding:12px 20px;
+  border-bottom:1px solid #eef0f3;background:#fafbfc;
+  overflow-x:auto;scrollbar-width:none;
+}
+.intent-bar::-webkit-scrollbar{display:none;}
+.intent-tile{
+  flex-shrink:0;display:flex;flex-direction:column;align-items:center;
+  gap:4px;padding:8px 12px;border-radius:10px;cursor:pointer;
+  border:1.5px solid #e5e7eb;background:#fff;
+  transition:all .15s;min-width:68px;
+}
+.intent-tile:hover{border-color:#93c5fd;background:#eff6ff;}
+.intent-tile.active{border-color:#1d4ed8;background:#dbeafe;box-shadow:0 0 0 3px rgba(29,78,216,.12);}
+.intent-tile.active .it-label{color:#1d4ed8;}
+.it-icon{font-size:20px;}
+.it-label{font-size:10px;font-weight:700;text-align:center;color:#6b7280;line-height:1.2;text-transform:uppercase;letter-spacing:.3px;}
+
+/* ─── ACTIVE HAZARD MODE ─── */
+.hazard-takeover{
+  display:none;padding:16px 20px;
+  background:linear-gradient(135deg,#991b1b,#7f1d1d);
+  color:#fff;border-bottom:2px solid #ef4444;
+}
+.hazard-takeover.show{display:block;}
+.ht-event{font-size:20px;font-weight:800;margin-bottom:4px;display:flex;align-items:center;gap:8px;}
+.ht-action{font-size:14px;line-height:1.5;opacity:.95;margin-bottom:10px;}
+.ht-steps{display:flex;flex-direction:column;gap:6px;}
+.ht-step{background:rgba(255,255,255,.12);border-radius:6px;padding:8px 12px;font-size:13px;font-weight:600;border-left:3px solid #fca5a5;}
+
 /* ─── TIMELINE ─── */
 .tl-section{padding:12px 0 0;border-bottom:1px solid #eee;}
 .tl-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#888;padding:0 20px 8px;}
@@ -289,7 +320,16 @@ header{
 const LAT=21.3069,LON=-157.8583;
 let map,riskLyr,gaugeLyr,stationsLyr,eqLyr;
 let wd={},envData={},gauges=[],hazards={};
-let bwMode=false, activeSeg=null;
+let bwMode=false, activeSeg=null, activeIntent='home', hazardMode=false;
+
+const INTENTS=[
+  {id:'home',   icon:'🏠', label:'At Home'},
+  {id:'commute',icon:'🚗', label:'Commuting'},
+  {id:'surf',   icon:'🏄', label:'Beach/Surf'},
+  {id:'outdoor',icon:'🏕', label:'Outdoors'},
+  {id:'em',     icon:'🚨', label:'Operations'},
+  {id:'hazard', icon:'⚠️', label:'Demo Alert'},
+];
 
 // ── Zone polygons ──
 const ZONES={
@@ -678,7 +718,44 @@ function render(){
     <div><div class="abody">${a.t}</div><div class="atime">${a.time}</div></div>
   </div>`).join('');
 
+  // Intent selector
+  const intentBar=`<div class="intent-bar">${INTENTS.map(i=>`
+    <div class="intent-tile${activeIntent===i.id?' active':''}" onclick="setIntent('${i.id}')">
+      <span class="it-icon">${i.icon}</span>
+      <span class="it-label">${i.label}</span>
+    </div>`).join('')}</div>`;
+
+  // Intent-specific headline + content insert
+  const intentContent=(()=>{
+    switch(activeIntent){
+      case 'commute': return`<div style="margin:12px 20px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:12px 14px;font-size:13px;color:#1e3a8a;line-height:1.6;">
+        🚗 <strong>For your commute:</strong> H-1 and Likelike Highway may have standing water if rain arrives between noon–3pm. Manoa Valley on-ramps are especially prone to pooling after last week's flooding. Give yourself extra time and avoid underpasses.
+      </div>`;
+      case 'surf': return`<div style="margin:12px 20px;background:#ecfeff;border:1px solid #a5f3fc;border-radius:8px;padding:12px 14px;font-size:13px;color:#164e63;line-height:1.6;">
+        🏄 <strong>Surf conditions:</strong> ${envData.wavesFt?`${envData.wavesFt}ft`:'~6ft'} / ${envData.wavePeriod?envData.wavePeriod+'s':'11s'} ${envData.waveDir||'NE'} swell at Buoy 51202. North Shore is ${parseFloat(envData.wavesFt||6)>=8?'running large — experienced surfers only':'moderate — suitable for intermediate surfers'}. Check NWS surf zone forecast before paddling out.
+      </div>`;
+      case 'outdoor': return`<div style="margin:12px 20px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:12px 14px;font-size:13px;color:#14532d;line-height:1.6;">
+        🏕 <strong>For outdoor plans:</strong> UV is ${uvWord||'low'} — ${(uvVal||0)<=3?'sunscreen optional but recommended':'apply SPF 30+ and reapply every 2 hours'}. Winds ${windWord||'breezy'} at 15–25mph. Rain window is narrow — noon to 6pm. Morning and evening activities should be unaffected.
+      </div>`;
+      case 'em': return''; // EM view handled separately
+      default: return''; // home = default view
+    }
+  })();
+
+  // Active hazard takeover (demo mode for 🚨)
+  const hazardTakeover=hazardMode?`<div class="hazard-takeover show">
+    <div class="ht-event">🚨 Flash Flood Warning</div>
+    <div class="ht-action">Dangerous flooding is occurring or imminent in Honolulu County. This is a life-threatening situation.</div>
+    <div class="ht-steps">
+      <div class="ht-step">🚫 Do NOT attempt to drive through flooded roads — turn around, don't drown</div>
+      <div class="ht-step">🏠 Move to higher ground or upper floors immediately if near Manoa, Kalihi, or Waikele streams</div>
+      <div class="ht-step">📱 Monitor HNL Alert for evacuation orders</div>
+      <div class="ht-step">⏰ Warning in effect until 8:00 PM HST</div>
+    </div>
+  </div>`:'';
+
   document.getElementById('content').innerHTML=`
+    ${hazardTakeover}
     ${hazardHtml}
 
     <div class="situation">
@@ -695,6 +772,8 @@ function render(){
       <div class="sit-context">⚠️ <strong>Post-flood context:</strong> ${CREDIBILITY_STMT}</div>
     </div>
 
+    ${intentBar}
+    ${intentContent}
     <div class="cond-strip">${condStrip}</div>
 
     <div class="tl-section">
@@ -892,6 +971,33 @@ function toggleEM(){
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap contributors',maxZoom:18}).addTo(map);
   }
   setTimeout(()=>map?.invalidateSize(),50);
+}
+
+function setIntent(id){
+  activeIntent=id;
+  if(id==='em'){
+    hazardMode=false;
+    render();
+    // auto-open EM panel and switch map
+    setTimeout(()=>{
+      const panel=document.getElementById('emPanel');
+      const chevron=document.getElementById('emChevron');
+      if(panel&&!panel.classList.contains('open')){
+        panel.classList.add('open');
+        chevron.classList.add('open');
+        map?.eachLayer(l=>{if(l._url?.includes('openstreetmap'))map.removeLayer(l);});
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{attribution:'© CARTO © OpenStreetMap',maxZoom:19}).addTo(map);
+        setTimeout(()=>map?.invalidateSize(),50);
+        document.getElementById('emPanel')?.scrollIntoView({behavior:'smooth',block:'start'});
+      }
+    },50);
+  } else if(id==='hazard'){
+    hazardMode=true;
+    render();
+  } else {
+    hazardMode=false;
+    render();
+  }
 }
 
 function toggleBW(){
