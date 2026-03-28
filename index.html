@@ -228,6 +228,25 @@ header{
 .abody{font-size:12px;color:var(--text);line-height:1.5;}
 .atime{font-size:10px;color:var(--muted);margin-top:2px;}
 
+/* Condition grid */
+.cond-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 12px 12px;}
+.cond-card{background:#f8faff;border:1px solid #e5e7eb;border-radius:8px;padding:10px 12px;}
+.pro .cond-card{background:var(--card2);border-color:var(--border);}
+.cond-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#888;margin-bottom:4px;}
+.pro .cond-label{color:var(--muted);}
+.cond-val{font-size:18px;font-weight:800;color:#1b1b1b;}
+.pro .cond-val{color:var(--text);}
+.cond-sub{font-size:11px;color:#777;margin-top:2px;}
+.pro .cond-sub{color:var(--muted);}
+.cond-risk{font-size:11px;font-weight:700;margin-top:3px;}
+
+/* UV color scale */
+.uv-low{color:#1a9850;} .uv-mod{color:#f5a623;} .uv-high{color:#e52207;}
+/* AQI */
+.aqi-good{color:#1a9850;} .aqi-mod{color:#f5a623;} .aqi-bad{color:#e52207;}
+/* Surf */
+.surf-low{color:#4fc3f7;} .surf-mod{color:#f5a623;} .surf-high{color:#e52207;}
+
 /* Share button */
 .share-bar{margin:0 12px 16px;display:flex;gap:8px;}
 .share-btn{flex:1;background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:9px;font-size:12px;font-weight:700;color:#4fc3f7;cursor:pointer;text-align:center;}
@@ -298,7 +317,9 @@ const GAUGE_SITES=[
 ];
 
 // Pre-baked AI summary (NVIDIA NIM Llama 3.3 — generated 2026-03-28)
-const AI_SUMMARY="Oahu remains in a vulnerable state following last week's severe flooding, with multiple areas still recovering from stream overflows and road closures. Scattered rain showers are expected this afternoon, posing a potential threat to already saturated grounds, with a 37% chance of precipitation. Emergency managers should maintain a heightened state of alertness through tonight, as isolated showers may still impact sensitive areas, before conditions are expected to improve by Saturday morning.";
+const AI_SUMMARY="Oahu is recovering from a significant flooding event with multiple streams still elevated, although below flood stage: Kalihi Stream at 2.8ft, Manoa Canal at 1.2ft, and Waikele Stream at 3.7ft. Scattered showers are expected this afternoon with a 37% chance of precipitation, bringing a potential for renewed flooding concerns. Emergency managers should continue to monitor stream gauges and weather conditions closely, as the situation may deteriorate rapidly if heavy rainfall returns.";
+
+let envData={}; // UV, air quality, waves, wind from open-meteo
 
 // ── Helpers ──
 function popColor(p){
@@ -352,6 +373,83 @@ function timeUntil(isoTime){
   if(diff<0)return'Now';
   if(diff<60)return`${Math.round(diff)}min`;
   return`${Math.round(diff/60)}hr ${Math.round(diff%60)}min`;
+}
+
+// ── Load environmental data (UV, AQI, waves, wind) ──
+async function loadEnvData(){
+  try{
+    const[wxR,marineR,aqR]=await Promise.all([
+      fetch('https://api.open-meteo.com/v1/forecast?latitude=21.3069&longitude=-157.8583&current=uv_index,wind_speed_10m,wind_direction_10m,wind_gusts_10m,relative_humidity_2m,apparent_temperature,visibility,precipitation&hourly=uv_index&timezone=Pacific/Honolulu&forecast_days=1'),
+      fetch('https://marine-api.open-meteo.com/v1/marine?latitude=21.3069&longitude=-157.8583&current=wave_height,wave_direction,wave_period,swell_wave_height,swell_wave_direction&timezone=Pacific/Honolulu'),
+      fetch('https://air-quality-api.open-meteo.com/v1/air-quality?latitude=21.3069&longitude=-157.8583&current=us_aqi,pm2_5&timezone=Pacific/Honolulu')
+    ]);
+    const[wx,marine,aq]=await Promise.all([wxR.json(),marineR.json(),aqR.json()]);
+    
+    const c=wx.current||{};
+    const m=marine.current||{};
+    const a=aq.current||{};
+    
+    // Convert units
+    const windMph=c.wind_speed_10m?(c.wind_speed_10m*0.621371).toFixed(0):null;
+    const gustMph=c.wind_gusts_10m?(c.wind_gusts_10m*0.621371).toFixed(0):null;
+    const feelsF=c.apparent_temperature!=null?Math.round(c.apparent_temperature*9/5+32):null;
+    const tempF=wd.periods?.[0]?.temperature||null;
+    const visibMiles=c.visibility?(c.visibility/1609.34).toFixed(0):null;
+    const wavesFt=m.wave_height?(m.wave_height*3.28084).toFixed(1):null;
+    const swellFt=m.swell_wave_height?(m.swell_wave_height*3.28084).toFixed(1):null;
+    const waveDir=m.wave_direction!=null?degToCompass(m.wave_direction):null;
+    const wavePeriod=m.wave_period?Math.round(m.wave_period):null;
+    
+    envData={
+      uv:c.uv_index!=null?Math.round(c.uv_index):null,
+      windMph,gustMph,
+      windDir:c.wind_direction_10m!=null?degToCompass(c.wind_direction_10m):null,
+      humidity:c.relative_humidity_2m!=null?Math.round(c.relative_humidity_2m):null,
+      feelsF,
+      visibMiles,
+      wavesFt,swellFt,waveDir,wavePeriod,
+      aqi:a.us_aqi!=null?Math.round(a.us_aqi):null,
+      pm25:a.pm2_5!=null?a.pm2_5.toFixed(1):null,
+      loaded:true
+    };
+    render(); // re-render with full data
+  }catch(e){console.error('Env data error:',e);}
+}
+
+function condCard(icon,label,val,sub,riskCls){
+  return`<div class="cond-card">
+    <div class="cond-label">${icon} ${label}</div>
+    <div class="cond-val ${riskCls}">${val}</div>
+    ${sub?`<div class="cond-sub">${sub}</div>`:''}
+  </div>`;
+}
+
+function degToCompass(deg){
+  const dirs=['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+  return dirs[Math.round(deg/22.5)%16];
+}
+
+function uvLabel(uv){
+  if(uv===null) return{text:'—',cls:''};
+  if(uv<=2)return{text:`${uv} Low`,cls:'uv-low'};
+  if(uv<=5)return{text:`${uv} Moderate`,cls:'uv-mod'};
+  if(uv<=7)return{text:`${uv} High`,cls:'uv-mod'};
+  return{text:`${uv} Very High`,cls:'uv-high'};
+}
+
+function aqiLabel(aqi){
+  if(aqi===null)return{text:'—',cls:''};
+  if(aqi<=50)return{text:`${aqi} Good`,cls:'aqi-good'};
+  if(aqi<=100)return{text:`${aqi} Moderate`,cls:'aqi-mod'};
+  return{text:`${aqi} Unhealthy`,cls:'aqi-bad'};
+}
+
+function surfLabel(ft){
+  if(ft===null)return{text:'—',cls:''};
+  const n=parseFloat(ft);
+  if(n<2)return{text:`${ft}ft Calm`,cls:'surf-low'};
+  if(n<5)return{text:`${ft}ft Moderate`,cls:'surf-mod'};
+  return{text:`${ft}ft High`,cls:'surf-high'};
 }
 
 // ── Load weather ──
@@ -503,6 +601,15 @@ function renderPub(){
       <div class="tl">${tl}</div>
       <div class="sec">Extended Forecast</div>
       <div class="fc-list">${cards}</div>
+      <div class="sec">Current Conditions</div>
+      <div class="cond-grid">
+        ${condCard('🌡','Feels Like', envData.feelsF!=null?`${envData.feelsF}°F`:'—', envData.humidity!=null?`Humidity: ${envData.humidity}%`:'', '')}
+        ${condCard('💨','Wind', envData.windMph!=null?`${envData.windMph}mph`:'—', envData.gustMph&&envData.windDir?`${envData.windDir} · Gusts ${envData.gustMph}mph`:'', '')}
+        ${(()=>{const{text,cls}=uvLabel(envData.uv);return condCard('☀️','UV Index',text,'',cls);})()}
+        ${(()=>{const{text,cls}=aqiLabel(envData.aqi);return condCard('🌫','Air Quality',text,envData.pm25?`PM2.5: ${envData.pm25} µg/m³`:'',cls);})()}
+        ${(()=>{const{text,cls}=surfLabel(envData.wavesFt);return condCard('🌊','Ocean Waves',text,envData.wavePeriod?`${envData.wavePeriod}s period · ${envData.waveDir||''}`:'' ,cls);})()}
+        ${condCard('👁','Visibility', envData.visibMiles!=null?`${envData.visibMiles} mi`:'—', envData.visibMiles&&parseInt(envData.visibMiles)<5?'Reduced visibility — use caution':'Clear visibility',parseInt(envData.visibMiles||99)<5?'uv-high':'')}
+      </div>
       <div class="notif-box">
         <span>🔔 Get alerts if this changes</span>
         <button class="notif-btn" onclick="alert('Alert subscription coming soon!')">Notify Me</button>
@@ -647,6 +754,15 @@ function renderEM(){
       <div class="ai-hdr">⚡ AI Situation Summary <span class="nim-badge">Llama 3.3 · NVIDIA NIM</span></div>
       <div class="ai-txt">${aiSummary}</div>
     </div>
+    <div class="sec">Operational Conditions</div>
+    <div class="cond-grid" style="padding:0 12px 10px;">
+      ${condCard('💨','Wind',envData.windMph?`${envData.windMph}mph ${envData.windDir||''}`:wd.periods?.[0]?.windSpeed||'—',envData.gustMph?`Gusts: ${envData.gustMph}mph`:'',' ')}
+      ${condCard('🌊','Wave Height',envData.wavesFt?`${envData.wavesFt}ft`:'—',envData.wavePeriod?`${envData.wavePeriod}s · ${envData.waveDir||''}`:'',surfLabel(envData.wavesFt).cls)}
+      ${condCard('👁','Visibility',envData.visibMiles?`${envData.visibMiles}mi`:'—',parseInt(envData.visibMiles||99)<5?'⚠️ Reduced — aviation/road impact':'Roads/aviation clear',parseInt(envData.visibMiles||99)<5?'uv-high':'')}
+      ${(()=>{const{text,cls}=aqiLabel(envData.aqi);return condCard('🌫','AQI / Air',text,envData.pm25?`PM2.5: ${envData.pm25} µg/m³`:'',cls);})()}
+      ${condCard('💧','Humidity',envData.humidity?`${envData.humidity}%`:'—',envData.feelsF?`Feels like ${envData.feelsF}°F`:'','')}
+      ${condCard('⚡','Lightning',wd.pop?.[0]?.value>=30?'Possible':'Low','Check lightningactivitylevel for ops','')}
+    </div>
     <div class="sec">Decision Window</div>
     <div class="decision-clock" style="margin:0 12px 10px;">
       <div class="dc-title">⏱ Time Until Threshold Conditions</div>
@@ -779,7 +895,7 @@ function toggleBW(){
 // ── Init ──
 window.addEventListener('DOMContentLoaded',()=>{
   initMap();
-  loadWeather().then(()=>loadGauges()).catch(e=>{
+  loadWeather().then(()=>Promise.all([loadGauges(),loadEnvData()])).catch(e=>{
     const err=`<div class="loading">⚠️ ${e.message}</div>`;
     document.getElementById('pubView').innerHTML=err;
     document.getElementById('emView').innerHTML=err;
