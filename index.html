@@ -3,717 +3,799 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>weather.gov — Probabilistic Display Prototype</title>
+<title>weather.gov — Prototype</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  
-  :root {
-    --blue: #0050d8;
-    --blue-light: #d9e8fb;
-    --green: #00a91c;
-    --yellow: #f5a623;
-    --orange: #e66000;
-    --red: #e52207;
-    --gray-light: #f0f0f0;
-    --gray: #757575;
-    --dark: #1b1b1b;
-    --white: #ffffff;
-  }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --blue: #0050d8;
+  --blue-dark: #002868;
+  --green: #00a91c;
+  --yellow: #f5a623;
+  --orange: #e66000;
+  --red: #e52207;
+  --bg-dark: #0d1117;
+  --bg-card: #161b22;
+  --bg-card2: #1c2430;
+  --border: #30363d;
+  --text: #e6edf3;
+  --text-muted: #8b949e;
+  --white: #ffffff;
+}
 
-  body {
-    font-family: 'Source Sans Pro', 'Public Sans', system-ui, sans-serif;
-    background: #f0f4f8;
-    color: var(--dark);
-    min-height: 100vh;
-  }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f5f7fa; color: #1b1b1b; min-height: 100vh; }
 
-  header {
-    background: var(--blue);
-    color: white;
-    padding: 12px 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 12px;
-  }
+/* ── HEADER ── */
+header {
+  background: var(--blue-dark);
+  color: white;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 52px;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+.logo { font-size: 18px; font-weight: 800; letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px; }
+.logo-dot { width: 8px; height: 8px; border-radius: 50%; background: #4fc3f7; }
+.proto-badge { background: rgba(229,34,7,0.85); font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 3px; letter-spacing: 0.5px; }
 
-  .logo { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
-  .logo span { font-weight: 300; }
+.mode-tabs { display: flex; gap: 2px; background: rgba(255,255,255,0.1); border-radius: 6px; padding: 3px; }
+.tab-btn {
+  padding: 5px 14px; border: none; border-radius: 4px; cursor: pointer;
+  font-size: 13px; font-weight: 600; transition: all 0.15s; color: rgba(255,255,255,0.7);
+  background: transparent;
+}
+.tab-btn.active { background: white; color: var(--blue-dark); }
+.tab-btn:not(.active):hover { background: rgba(255,255,255,0.15); color: white; }
 
-  .mode-toggle {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: rgba(255,255,255,0.15);
-    border-radius: 24px;
-    padding: 4px 6px;
-  }
+/* ── LAYOUT ── */
+.app { display: flex; height: calc(100vh - 52px); }
 
-  .mode-btn {
-    padding: 6px 16px;
-    border: none;
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 600;
-    transition: all 0.2s;
-  }
+/* ── SIDEBAR ── */
+.sidebar {
+  width: 360px;
+  flex-shrink: 0;
+  overflow-y: auto;
+  border-right: 1px solid #dde1e7;
+  background: white;
+  display: flex;
+  flex-direction: column;
+}
+.sidebar-public { display: flex; flex-direction: column; }
+.sidebar-pro { display: none; flex-direction: column; }
+.mode-pro .sidebar-public { display: none; }
+.mode-pro .sidebar-pro { display: flex; }
+.mode-pro .sidebar { background: var(--bg-dark); border-right-color: var(--border); }
+.mode-pro body { background: var(--bg-dark); }
+.mode-pro .map-wrap { filter: brightness(0.9); }
 
-  .mode-btn.active {
-    background: white;
-    color: var(--blue);
-  }
+/* ── MAP ── */
+.map-wrap { flex: 1; position: relative; }
+#map { width: 100%; height: 100%; }
 
-  .mode-btn:not(.active) {
-    background: transparent;
-    color: white;
-  }
+.map-overlay {
+  position: absolute;
+  top: 12px; right: 12px;
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 
-  .container {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 24px 16px;
-  }
+.map-legend {
+  background: rgba(255,255,255,0.95);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  min-width: 150px;
+}
+.mode-pro .map-legend { background: rgba(22,27,34,0.95); color: var(--text); }
 
-  .location-bar {
-    background: white;
-    border-radius: 8px;
-    padding: 16px 20px;
-    margin-bottom: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  }
+.legend-title { font-weight: 700; margin-bottom: 8px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #555; }
+.mode-pro .legend-title { color: var(--text-muted); }
+.legend-row { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; }
+.legend-swatch { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; }
 
-  .location-name { font-size: 22px; font-weight: 700; }
-  .location-sub { font-size: 14px; color: var(--gray); margin-top: 2px; }
+.map-layer-ctrl {
+  background: rgba(255,255,255,0.95);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.mode-pro .map-layer-ctrl { background: rgba(22,27,34,0.95); color: var(--text); }
 
-  .last-updated { font-size: 12px; color: var(--gray); }
+.layer-opt { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; cursor: pointer; }
+.layer-opt:last-child { margin: 0; }
+.layer-opt input { cursor: pointer; }
 
-  /* PUBLIC VIEW */
-  .public-view { display: block; }
-  .pro-view { display: none; }
+/* ── PUBLIC SIDEBAR ── */
+.location-hero {
+  padding: 16px 18px;
+  background: linear-gradient(135deg, #1a56db 0%, #0d3b8e 100%);
+  color: white;
+}
+.location-name { font-size: 20px; font-weight: 800; }
+.location-sub { font-size: 12px; opacity: 0.8; margin-top: 2px; }
+.last-updated { font-size: 11px; opacity: 0.6; margin-top: 6px; }
 
-  .mode-pro .public-view { display: none; }
-  .mode-pro .pro-view { display: block; }
+.impact-hero {
+  margin: 12px;
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-weight: 700;
+  font-size: 15px;
+  line-height: 1.4;
+}
+.impact-none { background: #e8f5e9; color: #1b5e20; border: 1px solid #a5d6a7; }
+.impact-low { background: #e3f2fd; color: #0d47a1; border: 1px solid #90caf9; }
+.impact-moderate { background: #fff8e1; color: #e65100; border: 1px solid #ffcc80; }
+.impact-high { background: #fce4ec; color: #880e4f; border: 1px solid #f48fb1; }
+.impact-extreme { background: #fce4ec; color: #b71c1c; border: 1px solid #ef9a9a; animation: pulse 2s infinite; }
 
-  /* Condition card */
-  .condition-card {
-    background: white;
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 16px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.85} }
 
-  .condition-card h2 {
-    font-size: 16px;
-    color: var(--gray);
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 12px;
-  }
+.impact-icon { font-size: 20px; margin-bottom: 4px; }
+.impact-sub { font-size: 12px; font-weight: 400; margin-top: 4px; opacity: 0.85; }
 
-  /* Risk indicator */
-  .risk-row {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin-bottom: 16px;
-  }
+/* Timeline */
+.section-label {
+  padding: 10px 18px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #666;
+}
+.mode-pro .section-label { color: var(--text-muted); }
 
-  .risk-pill {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 16px;
-    border-radius: 8px;
-    font-weight: 700;
-    font-size: 15px;
-  }
+.timeline-bar {
+  margin: 0 12px 12px;
+  display: flex;
+  border-radius: 8px;
+  overflow: hidden;
+  height: 48px;
+}
+.tl-seg {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter 0.15s;
+  gap: 2px;
+}
+.tl-seg:hover { filter: brightness(1.1); }
+.tl-seg .tl-time { font-size: 9px; font-weight: 400; opacity: 0.85; }
+.tl-seg .tl-pct { font-size: 11px; font-weight: 800; }
 
-  .risk-low { background: #e8f5e9; color: #1b5e20; }
-  .risk-moderate { background: #fff8e1; color: #e65100; }
-  .risk-high { background: #fce4ec; color: #880e4f; }
-  .risk-none { background: var(--gray-light); color: var(--gray); }
+/* Forecast cards */
+.forecast-scroll {
+  padding: 0 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 12px;
+}
+.fc-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.fc-card:hover { border-color: var(--blue); box-shadow: 0 0 0 2px rgba(0,80,216,0.1); }
+.fc-card.fc-has-rain { border-left: 3px solid var(--blue); }
+.fc-card.fc-has-warning { border-left: 3px solid var(--orange); }
+.fc-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.fc-name { font-weight: 700; font-size: 14px; }
+.fc-badge {
+  font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 4px;
+}
+.badge-dry { background: #e8f5e9; color: #1b5e20; }
+.badge-low { background: #e3f2fd; color: #0d47a1; }
+.badge-moderate { background: #fff8e1; color: #b45309; }
+.badge-high { background: #fce4ec; color: #9b2226; }
+.fc-short { font-size: 13px; color: #444; margin-bottom: 8px; }
+.fc-rain-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.fc-rain-label { font-size: 12px; color: #555; width: 80px; flex-shrink: 0; }
+.mini-bar-wrap { flex: 1; height: 6px; background: #e5e7eb; border-radius: 3px; overflow: hidden; }
+.mini-bar { height: 100%; border-radius: 3px; }
+.fc-rain-val { font-size: 12px; font-weight: 700; min-width: 32px; text-align: right; }
+.fc-action { font-size: 12px; background: #f0f4ff; color: #1a56db; border-radius: 6px; padding: 7px 10px; line-height: 1.4; }
 
-  .risk-dot {
-    width: 10px; height: 10px;
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
+/* ── PRO SIDEBAR ── */
+.pro-location {
+  padding: 14px 18px;
+  background: linear-gradient(135deg, #0d1b2a, #112240);
+  border-bottom: 1px solid var(--border);
+}
+.pro-loc-name { font-size: 16px; font-weight: 800; color: var(--text); }
+.pro-loc-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.pro-wfo { font-family: monospace; font-size: 11px; background: rgba(79,195,247,0.15); color: #4fc3f7; padding: 2px 6px; border-radius: 3px; margin-top: 6px; display: inline-block; }
 
-  .dot-low { background: var(--green); }
-  .dot-moderate { background: var(--yellow); }
-  .dot-high { background: var(--red); }
-  .dot-none { background: #ccc; }
+.threat-cards { padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
 
-  /* Public forecast periods */
-  .forecast-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 12px;
-  }
+.threat-card {
+  background: var(--bg-card2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+.threat-card.active-alert { border-color: var(--red); }
+.threat-card.moderate { border-left: 3px solid var(--yellow); }
+.threat-card.low { border-left: 3px solid #4fc3f7; }
+.threat-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.threat-name { font-size: 13px; font-weight: 700; color: var(--text); }
+.threat-badge {
+  font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 3px;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.tb-watch { background: rgba(245,166,35,0.2); color: #f5a623; border: 1px solid rgba(245,166,35,0.3); }
+.tb-advisory { background: rgba(79,195,247,0.15); color: #4fc3f7; border: 1px solid rgba(79,195,247,0.3); }
+.tb-none { background: rgba(139,148,158,0.15); color: var(--text-muted); border: 1px solid var(--border); }
+.threat-detail { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+.threat-impact { font-size: 12px; color: #f5a623; margin-top: 4px; font-weight: 600; }
 
-  .period-card {
-    background: var(--gray-light);
-    border-radius: 8px;
-    padding: 14px;
-    border-left: 4px solid transparent;
-  }
+/* Prob table pro */
+.prob-section { padding: 0 12px 12px; }
+.prob-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.prob-table th {
+  background: var(--bg-card);
+  padding: 7px 10px;
+  text-align: left;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+}
+.prob-table td { padding: 7px 10px; border-bottom: 1px solid rgba(48,54,61,0.5); color: var(--text); }
+.prob-table tr:hover td { background: rgba(255,255,255,0.03); }
+.pop-cell { display: flex; align-items: center; gap: 6px; }
+.pop-bar-wrap { width: 52px; height: 6px; background: #30363d; border-radius: 3px; overflow: hidden; }
+.pop-bar { height: 100%; border-radius: 3px; }
+.pop-val { font-weight: 700; min-width: 28px; font-size: 12px; }
+.conf-chip { font-size: 10px; padding: 1px 5px; border-radius: 3px; font-weight: 700; }
+.cc-high { background: rgba(0,169,28,0.2); color: #4caf50; }
+.cc-mod { background: rgba(245,166,35,0.2); color: #f5a623; }
+.cc-low { background: rgba(229,34,7,0.2); color: #ef5350; }
 
-  .period-card.has-rain { border-left-color: var(--blue); }
+/* Actions panel */
+.actions-panel { margin: 0 12px 12px; }
+.action-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  background: var(--bg-card2); border: 1px solid var(--border);
+  border-radius: 6px; padding: 10px 12px; margin-bottom: 6px;
+  font-size: 12px; color: var(--text);
+}
+.action-priority {
+  width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 4px;
+}
+.ap-high { background: var(--red); }
+.ap-mod { background: var(--yellow); }
+.ap-low { background: #4fc3f7; }
+.action-text { line-height: 1.5; }
+.action-time { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
 
-  .period-name { font-weight: 700; font-size: 15px; margin-bottom: 6px; }
-  .period-short { font-size: 14px; color: #333; margin-bottom: 8px; }
+/* Scrollbar */
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-track { background: transparent; }
+.sidebar::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+.mode-pro .sidebar::-webkit-scrollbar-thumb { background: var(--border); }
 
-  .rain-chance {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 14px;
-    font-weight: 600;
-  }
+.loading-state { padding: 40px 20px; text-align: center; color: #999; font-size: 14px; }
 
-  .rain-bar-wrap {
-    height: 6px;
-    background: #ddd;
-    border-radius: 3px;
-    margin-top: 4px;
-    overflow: hidden;
-  }
-
-  .rain-bar {
-    height: 100%;
-    border-radius: 3px;
-    background: var(--blue);
-  }
-
-  .plain-language {
-    font-size: 14px;
-    color: #333;
-    line-height: 1.5;
-    margin-top: 8px;
-    padding: 8px 12px;
-    background: #e8f0fb;
-    border-radius: 6px;
-  }
-
-  /* Alert banner */
-  .alert-banner {
-    background: #fff3cd;
-    border-left: 4px solid var(--yellow);
-    border-radius: 8px;
-    padding: 14px 18px;
-    margin-bottom: 16px;
-    font-size: 15px;
-    font-weight: 600;
-  }
-
-  .alert-banner.watch { border-color: var(--orange); background: #fff0e6; }
-  .alert-banner.warning { border-color: var(--red); background: #fce4ec; }
-  .alert-banner.none { display: none; }
-
-  /* PRO VIEW */
-  .pro-header {
-    background: #1b2a3b;
-    color: white;
-    border-radius: 8px 8px 0 0;
-    padding: 12px 18px;
-    font-size: 13px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .pro-badge {
-    background: #f5a623;
-    color: #1b1b1b;
-    font-size: 10px;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-weight: 800;
-  }
-
-  .pro-card {
-    background: white;
-    border-radius: 0 0 8px 8px;
-    padding: 20px;
-    margin-bottom: 16px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  }
-
-  .prob-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
-  }
-
-  .prob-table th {
-    background: #f0f4f8;
-    padding: 8px 12px;
-    text-align: left;
-    font-weight: 700;
-    color: var(--gray);
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border-bottom: 2px solid #ddd;
-  }
-
-  .prob-table td {
-    padding: 9px 12px;
-    border-bottom: 1px solid #f0f0f0;
-    vertical-align: middle;
-  }
-
-  .prob-table tr:hover td { background: #f8f9ff; }
-
-  .prob-cell {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .prob-bar-wrap {
-    width: 80px;
-    height: 8px;
-    background: #ddd;
-    border-radius: 4px;
-    overflow: hidden;
-    flex-shrink: 0;
-  }
-
-  .prob-bar {
-    height: 100%;
-    border-radius: 4px;
-  }
-
-  .prob-val { font-weight: 700; min-width: 36px; }
-
-  .conf-badge {
-    display: inline-block;
-    font-size: 11px;
-    font-weight: 700;
-    padding: 2px 7px;
-    border-radius: 4px;
-  }
-
-  .conf-high { background: #e8f5e9; color: #1b5e20; }
-  .conf-moderate { background: #fff8e1; color: #c62800; }
-  .conf-low { background: #fce4ec; color: #880e4f; }
-
-  .qpf-cell { font-weight: 700; color: var(--blue); }
-
-  /* Probability chart */
-  .chart-wrap {
-    margin-top: 16px;
-    overflow-x: auto;
-  }
-
-  .chart-title {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--gray);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 8px;
-  }
-
-  .bar-chart {
-    display: flex;
-    align-items: flex-end;
-    gap: 6px;
-    height: 120px;
-    padding-bottom: 24px;
-    position: relative;
-  }
-
-  .bar-chart::after {
-    content: '';
-    position: absolute;
-    left: 0; right: 0; bottom: 24px;
-    height: 1px;
-    background: #ddd;
-  }
-
-  .bar-col {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    height: 100%;
-    justify-content: flex-end;
-    min-width: 32px;
-  }
-
-  .bar {
-    width: 100%;
-    background: var(--blue);
-    border-radius: 3px 3px 0 0;
-    min-height: 2px;
-    position: relative;
-    transition: all 0.3s;
-  }
-
-  .bar:hover::after {
-    content: attr(data-val);
-    position: absolute;
-    top: -22px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--dark);
-    color: white;
-    font-size: 11px;
-    padding: 2px 5px;
-    border-radius: 3px;
-    white-space: nowrap;
-  }
-
-  .bar-label {
-    font-size: 10px;
-    color: var(--gray);
-    margin-top: 4px;
-    text-align: center;
-    white-space: nowrap;
-  }
-
-  .pro-note {
-    font-size: 12px;
-    color: var(--gray);
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid #eee;
-  }
-
-  .wfo-tag {
-    display: inline-block;
-    background: #1b2a3b;
-    color: #7ec8e3;
-    font-size: 12px;
-    font-weight: 700;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-family: monospace;
-  }
-
-  /* Loading state */
-  .loading {
-    text-align: center;
-    padding: 40px;
-    color: var(--gray);
-    font-size: 16px;
-  }
-
-  .prototype-badge {
-    background: #fce4ec;
-    color: #880e4f;
-    font-size: 11px;
-    font-weight: 800;
-    padding: 3px 8px;
-    border-radius: 4px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  .view-label {
-    font-size: 12px;
-    color: rgba(255,255,255,0.7);
-    margin-right: 4px;
-  }
 </style>
 </head>
 <body>
 
 <header>
-  <div style="display:flex;align-items:center;gap:12px;">
-    <div class="logo">weather<span>.gov</span></div>
-    <span class="prototype-badge">Prototype</span>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div class="logo"><div class="logo-dot"></div>weather.gov</div>
+    <span class="proto-badge">PROTOTYPE</span>
   </div>
-  <div class="mode-toggle" id="modeToggle">
-    <span class="view-label">View:</span>
-    <button class="mode-btn active" id="btnPublic" onclick="setMode('public')">🌤 Public</button>
-    <button class="mode-btn" id="btnPro" onclick="setMode('pro')">📊 Emergency Manager</button>
+  <div class="mode-tabs">
+    <button class="tab-btn active" id="btnPublic" onclick="setMode('public')">🌤 Public</button>
+    <button class="tab-btn" id="btnEM" onclick="setMode('pro')">📡 Emergency Manager</button>
   </div>
 </header>
 
-<div class="container" id="app">
-  <div class="loading">Loading weather data...</div>
+<div class="app" id="appRoot">
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+
+    <!-- PUBLIC -->
+    <div class="sidebar-public" id="sidebarPublic">
+      <div class="loading-state">Loading weather data…</div>
+    </div>
+
+    <!-- PRO -->
+    <div class="sidebar-pro" id="sidebarPro">
+      <div class="loading-state">Loading…</div>
+    </div>
+
+  </div>
+
+  <!-- MAP -->
+  <div class="map-wrap">
+    <div id="map"></div>
+
+    <div class="map-overlay">
+      <div class="map-legend" id="mapLegend">
+        <div class="legend-title">Precipitation Risk</div>
+        <div class="legend-row"><div class="legend-swatch" style="background:#1a9850;opacity:0.6"></div> None / Minimal</div>
+        <div class="legend-row"><div class="legend-swatch" style="background:#4fc3f7;opacity:0.7"></div> Low (10–30%)</div>
+        <div class="legend-row"><div class="legend-swatch" style="background:#f5a623;opacity:0.8"></div> Moderate (30–60%)</div>
+        <div class="legend-row"><div class="legend-swatch" style="background:#e52207;opacity:0.8"></div> High (60%+)</div>
+      </div>
+      <div class="map-layer-ctrl" id="layerCtrl">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#666;margin-bottom:6px;">Map Layers</div>
+        <label class="layer-opt"><input type="checkbox" id="layerRisk" checked onchange="toggleLayer('risk')"> Risk Zones</label>
+        <label class="layer-opt"><input type="checkbox" id="layerAlerts" checked onchange="toggleLayer('alerts')"> Active Alerts</label>
+        <label class="layer-opt"><input type="checkbox" id="layerStations" onchange="toggleLayer('stations')"> Obs Stations</label>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
-const NWS_USER_AGENT = 'weather-gov-prototype-demo@tinybison.io';
-const LAT = 21.3069;
-const LON = -157.8583;
-
+const UA = 'weather-gov-prototype-demo@tinybison.io';
+const LAT = 21.3069, LON = -157.8583;
 let currentMode = 'public';
+let map, riskLayer, alertsLayer, stationsLayer;
 let weatherData = {};
 
-function setMode(mode) {
-  currentMode = mode;
-  document.getElementById('btnPublic').className = 'mode-btn' + (mode === 'public' ? ' active' : '');
-  document.getElementById('btnPro').className = 'mode-btn' + (mode === 'pro' ? ' active' : '');
-  
-  const app = document.getElementById('app');
-  if (mode === 'pro') {
-    app.classList.add('mode-pro');
-  } else {
-    app.classList.remove('mode-pro');
+// ── NWS Zone boundaries (approximate GeoJSON for Oahu zones) ──
+const OAHU_ZONES = {
+  'HIZ006': {
+    name: 'Waianae Coast', color: null,
+    coords: [[[-158.22,21.28],[-158.28,21.35],[-158.32,21.5],[-158.18,21.55],[-158.12,21.42],[-158.15,21.3],[-158.22,21.28]]]
+  },
+  'HIZ007': {
+    name: 'Oahu North Shore', color: null,
+    coords: [[[-157.95,21.56],[-158.0,21.58],[-158.1,21.65],[-158.18,21.55],[-158.08,21.48],[-157.98,21.5],[-157.95,21.56]]]
+  },
+  'HIZ009': {
+    name: 'Olomana (Windward)', color: null,
+    coords: [[[-157.82,21.3],[-157.75,21.28],[-157.7,21.35],[-157.72,21.45],[-157.82,21.5],[-157.92,21.48],[-157.85,21.38],[-157.82,21.3]]]
+  },
+  'HIZ010': {
+    name: 'Central Oahu', color: null,
+    coords: [[[-157.95,21.35],[-158.0,21.42],[-158.08,21.48],[-157.98,21.5],[-157.88,21.48],[-157.82,21.5],[-157.85,21.38],[-157.9,21.35],[-157.95,21.35]]]
+  },
+  'HIZ011': {
+    name: 'Waianae Mountains', color: null,
+    coords: [[[-158.1,21.38],[-158.15,21.45],[-158.18,21.55],[-158.08,21.48],[-158.0,21.42],[-157.95,21.35],[-158.05,21.3],[-158.12,21.35],[-158.1,21.38]]]
+  },
+  'HIZ012': {
+    name: 'Koolau Mountains', color: null,
+    coords: [[[-157.88,21.35],[-157.85,21.3],[-157.82,21.22],[-157.9,21.2],[-157.95,21.25],[-157.95,21.35],[-157.88,21.35]]]
+  },
+  'HIZ013': {
+    name: 'Honolulu', color: null,
+    coords: [[[-157.85,21.28],[-157.82,21.3],[-157.85,21.38],[-157.9,21.35],[-157.95,21.25],[-157.9,21.2],[-157.85,21.28]]]
+  },
+  'HIZ014': {
+    name: 'Ewa Plain', color: null,
+    coords: [[[-158.05,21.28],[-158.05,21.3],[-157.95,21.35],[-157.95,21.25],[-158.0,21.2],[-158.08,21.22],[-158.05,21.28]]]
   }
+};
+
+function popToColor(pop) {
+  if (pop >= 60) return { fill: '#e52207', opacity: 0.45 };
+  if (pop >= 30) return { fill: '#f5a623', opacity: 0.38 };
+  if (pop >= 10) return { fill: '#4fc3f7', opacity: 0.32 };
+  return { fill: '#1a9850', opacity: 0.2 };
 }
 
-function getPlainLanguage(pop, shortForecast) {
-  if (pop >= 70) return "High chance of rain — plan for wet conditions";
-  if (pop >= 50) return "Likely to rain — bring an umbrella";
-  if (pop >= 30) return "Rain possible — keep an eye on conditions";
-  if (pop >= 10) return "Small chance of rain — mostly good weather";
-  return "Dry conditions expected";
+function popToBadge(pop) {
+  if (pop >= 60) return ['high','High'];
+  if (pop >= 30) return ['moderate','Moderate'];
+  if (pop >= 10) return ['low','Low'];
+  return ['dry','None'];
 }
 
-function getRiskLevel(pop) {
-  if (pop >= 70) return 'high';
-  if (pop >= 40) return 'moderate';
-  if (pop >= 10) return 'low';
-  return 'none';
+function getAction(pop, name) {
+  if (pop >= 60) return `⚠️ Consider sheltering in place. Monitor streams and low-lying roads near ${name}.`;
+  if (pop >= 30) return `🌧 Rain likely. Keep emergency contacts ready. Check road conditions.`;
+  if (pop >= 10) return `☁️ Carry rain gear. Conditions may change quickly.`;
+  return `✅ No significant weather concerns expected.`;
 }
 
-function getRiskLabel(pop) {
-  if (pop >= 70) return '🌧 High Rain Risk';
-  if (pop >= 40) return '🌦 Moderate Rain Risk';
-  if (pop >= 10) return '🌤 Low Rain Risk';
-  return '☀️ No Rain Expected';
+function getEMAction(pop, name) {
+  if (pop >= 60) return {
+    actions: [
+      { p:'high', text:`Pre-position flood response teams in ${name}`, time:'Now' },
+      { p:'high', text:'Activate EOC monitoring protocols', time:'Now' },
+      { p:'mod', text:'Issue public advisory for low-lying areas', time:'Within 1hr' },
+      { p:'mod', text:'Check stream gauges and drainage capacity', time:'Within 2hr' }
+    ]
+  };
+  if (pop >= 30) return {
+    actions: [
+      { p:'mod', text:`Monitor rainfall accumulation in ${name}`, time:'Ongoing' },
+      { p:'mod', text:'Brief response teams — standby posture', time:'Within 2hr' },
+      { p:'low', text:'Review evacuation route accessibility', time:'Today' }
+    ]
+  };
+  return {
+    actions: [
+      { p:'low', text:'No immediate action required', time:'—' },
+      { p:'low', text:'Maintain standard monitoring protocols', time:'Ongoing' }
+    ]
+  };
 }
 
 function getConfidence(pop) {
-  // Simulated confidence — in real world would come from ensemble spread
-  if (pop >= 60 || pop <= 20) return { label: 'High', cls: 'conf-high' };
-  if (pop >= 40) return { label: 'Moderate', cls: 'conf-moderate' };
-  return { label: 'Low', cls: 'conf-low' };
+  if (pop >= 65 || pop <= 15) return ['cc-high','High'];
+  if (pop >= 40) return ['cc-mod','Moderate'];
+  return ['cc-low','Low'];
 }
 
-function mmToInches(mm) {
-  return (mm / 25.4).toFixed(2);
+function mmToIn(mm) { return (mm/25.4).toFixed(2); }
+
+function segColor(pop) {
+  if (pop >= 60) return '#e52207';
+  if (pop >= 30) return '#f5a623';
+  if (pop >= 10) return '#4fc3f7';
+  return '#1a9850';
 }
 
-function formatTime(isoStr) {
-  const d = new Date(isoStr);
-  return d.toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', hour12: true });
-}
-
-function parseISO8601Duration(duration) {
-  // e.g. PT6H -> 6 hours
-  const match = duration.match(/PT(\d+)H/);
-  if (match) return parseInt(match[1]);
-  const dayMatch = duration.match(/P(\d+)D/);
-  if (dayMatch) return parseInt(dayMatch[1]) * 24;
+function parseISO8601(dur) {
+  const m = dur.match(/PT(\d+)H/); if(m) return +m[1];
+  const d = dur.match(/P(\d+)D/); if(d) return +d[1]*24;
   return 6;
 }
 
-function expandTimeSeries(values) {
-  // Expand ISO8601 interval values to individual hourly entries
-  const result = [];
-  for (const entry of values) {
-    const [start, duration] = entry.validTime.split('/');
-    const hours = parseISO8601Duration(duration);
-    const startMs = new Date(start).getTime();
-    for (let h = 0; h < hours; h += (hours > 6 ? 6 : hours)) {
-      result.push({
-        time: new Date(startMs + h * 3600000).toISOString(),
-        value: entry.value
-      });
+function expandSeries(vals) {
+  const out = [];
+  for(const e of vals) {
+    const [start, dur] = e.validTime.split('/');
+    const h = parseISO8601(dur);
+    const ms = new Date(start).getTime();
+    for(let i=0;i<h;i+=(h>6?6:h)) {
+      out.push({ time: new Date(ms+i*3600000).toISOString(), value: e.value||0 });
     }
   }
-  return result;
+  return out;
 }
 
 async function fetchWeather() {
-  try {
-    const headers = { 'User-Agent': NWS_USER_AGENT };
-    
-    // Get grid info
-    const pointRes = await fetch(`https://api.weather.gov/points/${LAT},${LON}`, { headers });
-    const pointData = await pointRes.json();
-    const props = pointData.properties;
-    
-    const office = props.cwa;
-    const gridX = props.gridX;
-    const gridY = props.gridY;
-    const city = props.relativeLocation?.properties?.city || 'Honolulu';
-    const state = props.relativeLocation?.properties?.state || 'HI';
+  const h = { 'User-Agent': UA };
+  const [ptRes, alertRes] = await Promise.all([
+    fetch(`https://api.weather.gov/points/${LAT},${LON}`, {headers:h}),
+    fetch(`https://api.weather.gov/alerts/active?area=HI`, {headers:h})
+  ]);
+  const ptData = await ptRes.json();
+  const alertData = await alertRes.json();
+  const props = ptData.properties;
 
-    // Fetch forecast, grid data, and alerts in parallel
-    const [forecastRes, gridRes, alertsRes] = await Promise.all([
-      fetch(props.forecast, { headers }),
-      fetch(props.forecastGridData, { headers }),
-      fetch(`https://api.weather.gov/alerts/active?point=${LAT},${LON}`, { headers })
-    ]);
+  const [fcRes, gridRes, hourlyRes] = await Promise.all([
+    fetch(props.forecast, {headers:h}),
+    fetch(props.forecastGridData, {headers:h}),
+    fetch(props.forecastHourly, {headers:h})
+  ]);
+  const fc = await fcRes.json();
+  const grid = await gridRes.json();
+  const hourly = await hourlyRes.json();
 
-    const forecastData = await forecastRes.json();
-    const gridData = await gridRes.json();
-    const alertsData = await alertsRes.json();
+  const gp = grid.properties;
+  weatherData = {
+    city: props.relativeLocation?.properties?.city || 'Honolulu',
+    state: props.relativeLocation?.properties?.state || 'HI',
+    office: props.cwa, gridX: props.gridX, gridY: props.gridY,
+    periods: fc.properties.periods.slice(0,8),
+    hourlyPeriods: hourly.properties.periods.slice(0,12),
+    popSeries: expandSeries(gp.probabilityOfPrecipitation?.values||[]),
+    qpfSeries: expandSeries(gp.quantitativePrecipitation?.values||[]),
+    windSeries: expandSeries(gp.potentialOf35mphWinds?.values||[]),
+    alerts: alertData.features||[]
+  };
 
-    const periods = forecastData.properties.periods.slice(0, 6);
-    const gridProps = gridData.properties;
-    
-    const popSeries = expandTimeSeries(gridProps.probabilityOfPrecipitation?.values || []);
-    const qpfSeries = expandTimeSeries(gridProps.quantitativePrecipitation?.values || []);
-    const windSeries = expandTimeSeries(gridProps.potentialOf35mphWinds?.values || []);
-    const alerts = alertsData.features || [];
+  // Assign risk per zone (simulate per-zone using series + slight variation)
+  const basePop = weatherData.popSeries[0]?.value || 0;
+  const zoneVariance = { HIZ006:5, HIZ007:8, HIZ009:12, HIZ010:-5, HIZ011:3, HIZ012:10, HIZ013:-8, HIZ014:-3 };
+  Object.keys(OAHU_ZONES).forEach(z => {
+    const pop = Math.max(0, Math.min(100, Math.round(basePop + (zoneVariance[z]||0))));
+    OAHU_ZONES[z].pop = pop;
+    const c = popToColor(pop);
+    OAHU_ZONES[z].color = c.fill;
+    OAHU_ZONES[z].opacity = c.opacity;
+  });
 
-    weatherData = { city, state, office, gridX, gridY, periods, popSeries, qpfSeries, windSeries, alerts };
-    render();
-  } catch (err) {
-    document.getElementById('app').innerHTML = `<div class="loading">⚠️ Could not load weather data: ${err.message}</div>`;
-  }
+  render();
+  renderMap();
 }
 
 function render() {
-  const { city, state, office, gridX, gridY, periods, popSeries, qpfSeries, windSeries, alerts } = weatherData;
-
-  const now = new Date();
-  const maxPop = Math.max(...periods.map(p => p.probabilityOfPrecipitation?.value || 0));
-  const riskLevel = getRiskLevel(maxPop);
-
-  // Alert banner
-  let alertHTML = '';
-  if (alerts.length > 0) {
-    const a = alerts[0].properties;
-    const cls = a.severity === 'Extreme' || a.severity === 'Severe' ? 'warning' : 'watch';
-    alertHTML = `<div class="alert-banner ${cls}">⚠️ ${a.event} — ${a.headline || a.description?.slice(0, 100)}</div>`;
-  }
-
-  // Public forecast periods
-  const periodCards = periods.map(p => {
-    const pop = p.probabilityOfPrecipitation?.value || 0;
-    const risk = getRiskLevel(pop);
-    const plain = getPlainLanguage(pop, p.shortForecast);
-    return `
-      <div class="period-card ${pop >= 20 ? 'has-rain' : ''}">
-        <div class="period-name">${p.name}</div>
-        <div class="period-short">${p.shortForecast}</div>
-        <div class="rain-chance">
-          💧 ${pop}% chance of rain
-        </div>
-        <div class="rain-bar-wrap">
-          <div class="rain-bar" style="width:${pop}%"></div>
-        </div>
-        <div class="plain-language">${plain}</div>
-      </div>`;
-  }).join('');
-
-  // Pro table — next 8 time periods from grid data
-  const proRows = popSeries.slice(0, 8).map((entry, i) => {
-    const pop = Math.round(entry.value || 0);
-    const qpf = qpfSeries[i] ? mmToInches(qpfSeries[i].value) : '0.00';
-    const wind = windSeries[i] ? Math.round(windSeries[i].value || 0) : 0;
-    const conf = getConfidence(pop);
-    const color = pop >= 70 ? '#e52207' : pop >= 40 ? '#f5a623' : pop >= 20 ? '#0050d8' : '#aaa';
-    const t = new Date(entry.time);
-    const label = t.toLocaleString('en-US', { weekday: 'short', hour: 'numeric', hour12: true });
-    return `
-      <tr>
-        <td><strong>${label}</strong></td>
-        <td>
-          <div class="prob-cell">
-            <div class="prob-bar-wrap">
-              <div class="prob-bar" style="width:${pop}%;background:${color}"></div>
-            </div>
-            <span class="prob-val" style="color:${color}">${pop}%</span>
-          </div>
-        </td>
-        <td class="qpf-cell">${qpf}"</td>
-        <td><span class="conf-badge ${conf.cls}">${conf.label}</span></td>
-        <td>${wind > 0 ? `<span style="color:${wind>50?'#e52207':'#666'}">${wind}% chance</span>` : '<span style="color:#aaa">—</span>'}</td>
-      </tr>`;
-  }).join('');
-
-  // Bar chart data for PoP
-  const chartBars = popSeries.slice(0, 12).map(entry => {
-    const pop = Math.round(entry.value || 0);
-    const t = new Date(entry.time);
-    const label = t.toLocaleString('en-US', { hour: 'numeric', hour12: true });
-    const h = Math.max(2, pop);
-    const color = pop >= 70 ? '#e52207' : pop >= 40 ? '#f5a623' : pop >= 20 ? '#0050d8' : '#ccc';
-    return `
-      <div class="bar-col">
-        <div class="bar" style="height:${h}%;background:${color}" data-val="${pop}%"></div>
-        <div class="bar-label">${label}</div>
-      </div>`;
-  }).join('');
-
-  const html = `
-    <div class="location-bar">
-      <div>
-        <div class="location-name">${city}, ${state}</div>
-        <div class="location-sub">${LAT.toFixed(4)}°N, ${Math.abs(LON).toFixed(4)}°W</div>
-      </div>
-      <div class="last-updated">Updated ${now.toLocaleTimeString()}</div>
-    </div>
-
-    ${alertHTML}
-
-    <!-- PUBLIC VIEW -->
-    <div class="public-view">
-      <div class="condition-card">
-        <h2>Current Conditions</h2>
-        <div class="risk-row">
-          <div class="risk-pill risk-${riskLevel}">
-            <div class="risk-dot dot-${riskLevel}"></div>
-            ${getRiskLabel(maxPop)}
-          </div>
-        </div>
-        <div class="forecast-grid">${periodCards}</div>
-      </div>
-    </div>
-
-    <!-- PRO VIEW -->
-    <div class="pro-view">
-      <div class="pro-header">
-        <span>Emergency Manager View</span>
-        <span class="pro-badge">EM</span>
-        <span style="margin-left:auto;font-weight:400;font-size:11px;opacity:0.7">WFO: <span class="wfo-tag">${office} ${gridX},${gridY}</span></span>
-      </div>
-      <div class="pro-card">
-        <div class="chart-title">Precipitation Probability (PoP) — Next 12 Hours</div>
-        <div class="chart-wrap">
-          <div class="bar-chart">${chartBars}</div>
-        </div>
-
-        <div class="chart-title" style="margin-top:20px">Probabilistic Forecast Table</div>
-        <div style="overflow-x:auto">
-          <table class="prob-table">
-            <thead>
-              <tr>
-                <th>Valid Time</th>
-                <th>PoP</th>
-                <th>QPF (in.)</th>
-                <th>Confidence</th>
-                <th>35+ mph Winds</th>
-              </tr>
-            </thead>
-            <tbody>${proRows}</tbody>
-          </table>
-        </div>
-
-        <div class="pro-note">
-          ⚠️ Confidence estimates are simulated in this prototype — production would derive from ensemble spread data.<br>
-          Data source: NWS API · Gridpoint: ${office}/${gridX},${gridY} · Location: ${LAT}, ${LON}
-        </div>
-      </div>
-    </div>
-  `;
-
-  document.getElementById('app').innerHTML = html;
-  document.getElementById('app').className = currentMode === 'pro' ? 'container mode-pro' : 'container';
+  renderPublic();
+  renderPro();
 }
 
-fetchWeather();
+function renderPublic() {
+  const { city, state, periods, hourlyPeriods, popSeries, alerts } = weatherData;
+  const now = new Date();
+  const maxPop = Math.max(...(periods.map(p=>p.probabilityOfPrecipitation?.value||0)));
+  const [riskKey] = popToBadge(maxPop);
+
+  const impactMsg = {
+    dry: { icon:'☀️', msg:`Clear conditions expected. No weather hazards in the forecast.`, sub:'Good time to be outdoors.' },
+    low: { icon:'🌤', msg:`Light rain possible. Not enough to disrupt daily plans for most people.`, sub:'An umbrella wouldn't hurt.' },
+    moderate: { icon:'🌧', msg:`Rain is likely today. Expect wet roads and reduced visibility at times.`, sub:'Avoid unnecessary travel if flooding is common in your area.' },
+    high: { icon:'⛈', msg:`Significant rain expected. Flooding is possible in low-lying areas and near streams.`, sub:'Stay informed. Move valuables off the ground if you live near flood-prone areas.' },
+    extreme: { icon:'🚨', msg:`Dangerous flooding conditions. Take immediate protective action.`, sub:'Do not attempt to cross flooded roads.' }
+  }[riskKey] || { icon:'☀️', msg:'Clear conditions.', sub:'' };
+
+  // Timeline
+  const timelineSegs = hourlyPeriods.slice(0,8).map(p => {
+    const pop = p.probabilityOfPrecipitation?.value || 0;
+    const t = new Date(p.startTime).toLocaleTimeString('en-US',{hour:'numeric',hour12:true});
+    const bg = segColor(pop);
+    const textCol = pop >= 30 ? 'white' : '#333';
+    return `<div class="tl-seg" style="background:${bg};color:${textCol}">
+      <span class="tl-time">${t}</span>
+      <span class="tl-pct">${pop}%</span>
+    </div>`;
+  }).join('');
+
+  // Forecast cards
+  const fcCards = periods.map(p => {
+    const pop = p.probabilityOfPrecipitation?.value || 0;
+    const [bk, bl] = popToBadge(pop);
+    const action = getAction(pop, city);
+    const rainColor = pop >= 60 ? '#e52207' : pop >= 30 ? '#f5a623' : '#1a9850';
+    const hasRain = pop >= 20;
+    return `
+    <div class="fc-card ${hasRain?'fc-has-rain':''}">
+      <div class="fc-top">
+        <span class="fc-name">${p.name}</span>
+        <span class="fc-badge badge-${bk}">${bl}</span>
+      </div>
+      <div class="fc-short">${p.shortForecast}</div>
+      <div class="fc-rain-row">
+        <span class="fc-rain-label">💧 Rain chance</span>
+        <div class="mini-bar-wrap"><div class="mini-bar" style="width:${pop}%;background:${rainColor}"></div></div>
+        <span class="fc-rain-val" style="color:${rainColor}">${pop}%</span>
+      </div>
+      ${pop >= 10 ? `<div class="fc-action">${action}</div>` : ''}
+    </div>`;
+  }).join('');
+
+  const alertBanner = alerts.length > 0 ? (() => {
+    const a = alerts[0].properties;
+    return `<div style="margin:0 12px 10px;background:#fce4ec;border-left:3px solid #e52207;border-radius:6px;padding:10px 12px;font-size:13px;font-weight:700;color:#880e4f">
+      ⚠️ ${a.event} — ${(a.headline||'').slice(0,80)}${(a.headline||'').length>80?'…':''}
+    </div>`;
+  })() : '';
+
+  document.getElementById('sidebarPublic').innerHTML = `
+    <div class="location-hero">
+      <div class="location-name">${city}, ${state}</div>
+      <div class="location-sub">${LAT.toFixed(4)}°N, ${Math.abs(LON).toFixed(4)}°W</div>
+      <div class="last-updated">Updated ${now.toLocaleTimeString()}</div>
+    </div>
+    <div class="impact-hero impact-${riskKey}">
+      <div class="impact-icon">${impactMsg.icon}</div>
+      ${impactMsg.msg}
+      <div class="impact-sub">${impactMsg.sub}</div>
+    </div>
+    ${alertBanner}
+    <div class="section-label">Next 8 Hours</div>
+    <div class="timeline-bar">${timelineSegs}</div>
+    <div class="section-label">Forecast</div>
+    <div class="forecast-scroll">${fcCards}</div>
+  `;
+}
+
+function renderPro() {
+  const { city, state, office, gridX, gridY, popSeries, qpfSeries, windSeries, alerts, periods } = weatherData;
+  const now = new Date();
+
+  // Threat assessment per zone
+  const zoneThreats = Object.entries(OAHU_ZONES).map(([id, z]) => {
+    const [bk, bl] = popToBadge(z.pop||0);
+    const tbClass = z.pop>=60?'tb-watch':z.pop>=30?'tb-advisory':'tb-none';
+    const tbLabel = z.pop>=60?'Watch':z.pop>=30?'Advisory':'Monitoring';
+    const cardClass = z.pop>=60?'active-alert':z.pop>=30?'moderate':'low';
+    return `
+    <div class="threat-card ${cardClass}">
+      <div class="threat-header">
+        <span class="threat-name">${z.name}</span>
+        <span class="threat-badge ${tbClass}">${tbLabel}</span>
+      </div>
+      <div class="threat-detail">PoP: ${z.pop}% · ${tbLabel === 'Watch' ? 'Elevated flood risk — monitor stream levels' : tbLabel === 'Advisory' ? 'Rain likely — normal precautions apply' : 'No significant weather threat'}</div>
+      ${z.pop >= 30 ? `<div class="threat-impact">⚡ ${z.pop>=60?'Flooding possible':'Elevated precip — pre-position resources'}</div>` : ''}
+    </div>`;
+  }).join('');
+
+  // Prob table
+  const proRows = popSeries.slice(0,8).map((e,i) => {
+    const pop = Math.round(e.value||0);
+    const qpf = qpfSeries[i] ? mmToIn(qpfSeries[i].value) : '0.00';
+    const wind = windSeries[i] ? Math.round(windSeries[i].value||0) : 0;
+    const [cc, cl] = getConfidence(pop);
+    const t = new Date(e.time).toLocaleString('en-US',{weekday:'short',hour:'numeric',hour12:true});
+    const col = pop>=60?'#e52207':pop>=30?'#f5a623':pop>=10?'#4fc3f7':'#8b949e';
+    return `<tr>
+      <td style="color:var(--text-muted)">${t}</td>
+      <td><div class="pop-cell">
+        <div class="pop-bar-wrap"><div class="pop-bar" style="width:${pop}%;background:${col}"></div></div>
+        <span class="pop-val" style="color:${col}">${pop}%</span>
+      </div></td>
+      <td style="font-weight:700;color:#4fc3f7">${qpf}"</td>
+      <td><span class="conf-chip ${cc}">${cl}</span></td>
+      <td style="color:${wind>40?'#e52207':'var(--text-muted)'}">${wind>0?wind+'%':'—'}</td>
+    </tr>`;
+  }).join('');
+
+  // High-risk zone actions
+  const highZone = Object.values(OAHU_ZONES).sort((a,b)=>(b.pop||0)-(a.pop||0))[0];
+  const { actions } = getEMAction(highZone?.pop||0, highZone?.name||city);
+  const actionsHTML = actions.map(a=>`
+    <div class="action-item">
+      <div class="action-priority ap-${a.p}"></div>
+      <div><div class="action-text">${a.text}</div><div class="action-time">${a.time}</div></div>
+    </div>`).join('');
+
+  const alertBanner = alerts.length > 0 ? (() => {
+    const a = alerts[0].properties;
+    return `<div style="margin:0 12px 8px;background:rgba(229,34,7,0.15);border:1px solid rgba(229,34,7,0.3);border-radius:6px;padding:10px 12px;font-size:12px;font-weight:700;color:#ef5350">
+      🚨 ACTIVE: ${a.event} — ${(a.headline||'').slice(0,80)}
+    </div>`;
+  })() : '';
+
+  document.getElementById('sidebarPro').innerHTML = `
+    <div class="pro-location">
+      <div class="pro-loc-name">${city}, ${state}</div>
+      <div class="pro-loc-sub">Emergency Manager Situational Awareness</div>
+      <span class="pro-wfo">WFO ${office} · ${gridX},${gridY}</span>
+    </div>
+    ${alertBanner}
+    <div class="section-label" style="color:var(--text-muted)">Zone Threat Assessment</div>
+    <div class="threat-cards">${zoneThreats}</div>
+    <div class="section-label" style="color:var(--text-muted)">Probabilistic Forecast</div>
+    <div class="prob-section">
+      <table class="prob-table">
+        <thead><tr>
+          <th>Valid Time</th><th>PoP</th><th>QPF</th><th>Conf.</th><th>35mph Winds</th>
+        </tr></thead>
+        <tbody>${proRows}</tbody>
+      </table>
+    </div>
+    <div class="section-label" style="color:var(--text-muted)">Recommended Actions</div>
+    <div class="actions-panel">${actionsHTML}</div>
+  `;
+}
+
+function renderMap() {
+  if (!map) {
+    map = L.map('map', { zoomControl: true }).setView([21.45, -158.0], 10);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors',
+      maxZoom: 18
+    }).addTo(map);
+  }
+
+  if (riskLayer) riskLayer.remove();
+  riskLayer = L.layerGroup();
+
+  Object.entries(OAHU_ZONES).forEach(([id, z]) => {
+    const [bk] = popToBadge(z.pop||0);
+    const poly = L.polygon(
+      z.coords[0].map(c => [c[1], c[0]]),
+      {
+        fillColor: z.color||'#1a9850',
+        fillOpacity: z.opacity||0.2,
+        color: z.color||'#1a9850',
+        weight: 1.5,
+        opacity: 0.7
+      }
+    );
+
+    poly.bindTooltip(`
+      <strong>${z.name}</strong><br>
+      Precip chance: <b>${z.pop}%</b><br>
+      Risk: <b>${bk.charAt(0).toUpperCase()+bk.slice(1)}</b>
+    `, { sticky: true });
+
+    poly.on('click', () => {
+      if (currentMode === 'public') {
+        document.getElementById('sidebarPublic').scrollTop = 0;
+      }
+    });
+
+    riskLayer.addLayer(poly);
+  });
+
+  if (document.getElementById('layerRisk').checked) {
+    riskLayer.addTo(map);
+  }
+
+  // Stations layer (mock observation points)
+  if (stationsLayer) stationsLayer.remove();
+  stationsLayer = L.layerGroup();
+  const stations = [
+    { lat:21.3069, lon:-157.8583, name:'Honolulu Intl', temp:'76°F', wind:'12mph NE', pop: weatherData.popSeries[0]?.value||0 },
+    { lat:21.448, lon:-158.045, name:'Wheeler Army', temp:'74°F', wind:'8mph N', pop: weatherData.popSeries[0]?.value||0 + 5 },
+    { lat:21.534, lon:-157.992, name:'North Shore', temp:'75°F', wind:'15mph NE', pop: weatherData.popSeries[0]?.value||0 + 10 },
+    { lat:21.355, lon:-157.725, name:'Kaneohe MCAS', temp:'77°F', wind:'10mph E', pop: weatherData.popSeries[0]?.value||0 + 12 }
+  ];
+  stations.forEach(s => {
+    const col = segColor(s.pop);
+    const icon = L.divIcon({
+      className: '',
+      html: `<div style="background:${col};border:2px solid white;width:10px;height:10px;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,0.3)"></div>`,
+      iconSize:[10,10], iconAnchor:[5,5]
+    });
+    L.marker([s.lat,s.lon], { icon })
+      .bindTooltip(`<strong>${s.name}</strong><br>Temp: ${s.temp}<br>Wind: ${s.wind}<br>PoP: ${s.pop}%`, { sticky:true })
+      .addTo(stationsLayer);
+  });
+
+  if (document.getElementById('layerStations').checked) {
+    stationsLayer.addTo(map);
+  }
+}
+
+function toggleLayer(name) {
+  if (name === 'risk') {
+    if (document.getElementById('layerRisk').checked) riskLayer?.addTo(map);
+    else riskLayer?.remove();
+  }
+  if (name === 'alerts') {
+    // alertsLayer toggle (no active alerts right now)
+  }
+  if (name === 'stations') {
+    if (document.getElementById('layerStations').checked) stationsLayer?.addTo(map);
+    else stationsLayer?.remove();
+  }
+}
+
+function setMode(mode) {
+  currentMode = mode;
+  document.getElementById('btnPublic').className = 'tab-btn' + (mode==='public'?' active':'');
+  document.getElementById('btnEM').className = 'tab-btn' + (mode==='pro'?' active':'');
+  const root = document.getElementById('appRoot');
+  if (mode === 'pro') {
+    root.classList.add('mode-pro');
+    document.body.classList.add('mode-pro');
+    // Switch to dark tiles
+    if (map) {
+      map.eachLayer(l => { if(l._url && l._url.includes('openstreetmap')) map.removeLayer(l); });
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '© CARTO © OpenStreetMap',
+        maxZoom: 19
+      }).addTo(map);
+    }
+  } else {
+    root.classList.remove('mode-pro');
+    document.body.classList.remove('mode-pro');
+    if (map) {
+      map.eachLayer(l => { if(l._url && l._url.includes('carto')) map.removeLayer(l); });
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 18
+      }).addTo(map);
+    }
+  }
+  setTimeout(()=>map?.invalidateSize(), 50);
+}
+
+// Init
+fetchWeather().catch(e => {
+  document.getElementById('sidebarPublic').innerHTML = `<div class="loading-state">⚠️ Failed to load: ${e.message}</div>`;
+});
 </script>
 </body>
 </html>
