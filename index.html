@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>weather.gov — Prototype</title>
+<title>weather.gov — Oahu Prototype</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{
-  --blue:#0050d8;--blue-dark:#002868;--green:#1a9850;
+  --blue:#0050d8;--bd:#002868;--green:#1a9850;
   --yellow:#f5a623;--orange:#e66000;--red:#e52207;
   --bg:#0d1117;--card:#161b22;--card2:#1c2430;
   --border:#30363d;--text:#e6edf3;--muted:#8b949e;
@@ -19,195 +19,200 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f4f8;color:#1b1b1
 
 /* ─── HEADER ─── */
 header{
-  background:var(--blue-dark);color:#fff;
-  padding:0 20px;display:flex;align-items:center;
-  justify-content:space-between;height:50px;
-  box-shadow:0 2px 8px rgba(0,0,0,.35);position:relative;z-index:900;
+  background:var(--bd);color:#fff;padding:0 20px;
+  display:flex;align-items:center;justify-content:space-between;
+  height:50px;box-shadow:0 2px 8px rgba(0,0,0,.35);
+  position:relative;z-index:900;
 }
 .logo{font-size:18px;font-weight:800;letter-spacing:-.5px;display:flex;align-items:center;gap:8px;}
-.logo-pulse{width:8px;height:8px;border-radius:50%;background:#4fc3f7;animation:blink 2s ease-in-out infinite;}
+.pulse{width:8px;height:8px;border-radius:50%;background:#4fc3f7;animation:blink 2s ease-in-out infinite;}
 @keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
 .proto{background:rgba(229,34,7,.85);font-size:10px;font-weight:800;padding:2px 7px;border-radius:3px;letter-spacing:.5px;}
 .tabs{display:flex;gap:2px;background:rgba(255,255,255,.12);border-radius:6px;padding:3px;}
-.tab{
-  padding:5px 16px;border:none;border-radius:4px;cursor:pointer;
-  font-size:13px;font-weight:600;color:rgba(255,255,255,.65);
-  background:transparent;transition:all .15s;white-space:nowrap;
-}
-.tab.on{background:#fff;color:var(--blue-dark);}
+.tab{padding:5px 16px;border:none;border-radius:4px;cursor:pointer;font-size:13px;font-weight:600;color:rgba(255,255,255,.65);background:transparent;transition:all .15s;white-space:nowrap;}
+.tab.on{background:#fff;color:var(--bd);}
 .tab:not(.on):hover{background:rgba(255,255,255,.18);color:#fff;}
 
 /* ─── LAYOUT ─── */
 .shell{display:flex;height:calc(100vh - 50px);}
-.sidebar{width:340px;flex-shrink:0;overflow-y:auto;overflow-x:hidden;background:#fff;border-right:1px solid #dde1e7;}
+.sidebar{width:340px;flex-shrink:0;overflow-y:auto;background:#fff;border-right:1px solid #dde1e7;}
 .sidebar::-webkit-scrollbar{width:4px;}
 .sidebar::-webkit-scrollbar-thumb{background:#d0d5dd;border-radius:4px;}
 .map-area{flex:1;position:relative;min-width:0;}
 #map{width:100%;height:100%;}
-
-/* ─── PRO MODE ─── */
 .pro .sidebar{background:var(--bg);border-right-color:var(--border);}
 .pro .sidebar::-webkit-scrollbar-thumb{background:var(--border);}
 
-/* ─── MAP OVERLAYS ─── */
-.map-legend{
-  position:absolute;bottom:20px;left:12px;z-index:500;
-  background:rgba(255,255,255,.95);border-radius:8px;
-  padding:10px 14px;box-shadow:0 2px 8px rgba(0,0,0,.15);
-  font-size:12px;min-width:150px;
-}
+/* ─── MAP CONTROLS ─── */
+.map-legend{position:absolute;bottom:20px;left:12px;z-index:500;background:rgba(255,255,255,.95);border-radius:8px;padding:10px 14px;box-shadow:0 2px 8px rgba(0,0,0,.15);font-size:12px;}
 .pro .map-legend{background:rgba(22,27,34,.95);color:var(--text);}
-.legend-title{font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#666;margin-bottom:7px;}
-.pro .legend-title{color:var(--muted);}
-.legend-row{display:flex;align-items:center;gap:7px;margin-bottom:4px;font-size:11px;}
-.swatch{width:12px;height:12px;border-radius:2px;flex-shrink:0;}
-
-.map-layers{
-  position:absolute;top:12px;right:12px;z-index:500;
-  background:rgba(255,255,255,.95);border-radius:8px;
-  padding:10px 12px;box-shadow:0 2px 8px rgba(0,0,0,.15);
-  font-size:12px;
-}
+.leg-title{font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:#777;margin-bottom:7px;}
+.pro .leg-title{color:var(--muted);}
+.leg-row{display:flex;align-items:center;gap:7px;margin-bottom:4px;font-size:11px;}
+.sw{width:12px;height:12px;border-radius:2px;flex-shrink:0;}
+.map-layers{position:absolute;top:12px;right:12px;z-index:500;background:rgba(255,255,255,.95);border-radius:8px;padding:10px 12px;box-shadow:0 2px 8px rgba(0,0,0,.15);font-size:12px;}
 .pro .map-layers{background:rgba(22,27,34,.95);color:var(--text);}
-.layer-title{font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:#777;margin-bottom:7px;}
-.pro .layer-title{color:var(--muted);}
-.layer-row{display:flex;align-items:center;gap:6px;margin-bottom:5px;cursor:pointer;font-size:12px;}
-.layer-row:last-child{margin:0;}
-.layer-row input{cursor:pointer;accent-color:var(--blue);}
+.lyr-title{font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:#777;margin-bottom:7px;}
+.pro .lyr-title{color:var(--muted);}
+.lyr-row{display:flex;align-items:center;gap:6px;margin-bottom:5px;cursor:pointer;font-size:12px;}
+.lyr-row:last-child{margin:0;}
+.lyr-row input{cursor:pointer;accent-color:var(--blue);}
 
-/* ─── PUBLIC VIEW ─── */
-.pub-hero{
-  padding:16px 18px 14px;
-  background:linear-gradient(150deg,#1a4fba,#0d2e6e);color:#fff;
-}
+/* ─── SHARED ─── */
+.sec{padding:10px 18px 5px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#888;}
+.pro .sec{color:var(--muted);}
+.loading{padding:40px 20px;text-align:center;color:#999;font-size:14px;}
+
+/* ─── PUBLIC ─── */
+.pub-hero{padding:16px 18px 14px;background:linear-gradient(150deg,#1a4fba,#0d2e6e);color:#fff;}
 .pub-loc{font-size:20px;font-weight:800;}
-.pub-loc-sub{font-size:12px;opacity:.7;margin-top:2px;}
-.pub-updated{font-size:11px;opacity:.5;margin-top:5px;}
+.pub-sub{font-size:12px;opacity:.7;margin-top:2px;}
+.pub-upd{font-size:11px;opacity:.5;margin-top:5px;}
 
-.impact-card{margin:12px;border-radius:10px;padding:14px 16px;}
-.ic-none{background:#e8f5e9;border:1px solid #a5d6a7;color:#1b5e20;}
-.ic-low{background:#e3f2fd;border:1px solid #90caf9;color:#0d47a1;}
-.ic-moderate{background:#fff8e1;border:1px solid #ffcc80;color:#b45309;}
-.ic-high{background:#fce4ec;border:1px solid #f48fb1;color:#880e4f;}
-.ic-icon{font-size:22px;margin-bottom:4px;}
-.ic-main{font-size:15px;font-weight:700;line-height:1.4;}
-.ic-sub{font-size:12px;margin-top:5px;opacity:.85;font-weight:400;}
+.impact{margin:12px;border-radius:10px;padding:14px 16px;}
+.imp-none{background:#e8f5e9;border:1px solid #a5d6a7;color:#1b5e20;}
+.imp-low{background:#e3f2fd;border:1px solid #90caf9;color:#0d47a1;}
+.imp-mod{background:#fff8e1;border:1px solid #ffcc80;color:#b45309;}
+.imp-high{background:#fce4ec;border:1px solid #f48fb1;color:#880e4f;}
+.imp-icon{font-size:22px;margin-bottom:4px;}
+.imp-main{font-size:15px;font-weight:700;line-height:1.4;}
+.imp-sub{font-size:12px;margin-top:5px;opacity:.85;}
 
-.sec-label{
-  padding:10px 18px 5px;font-size:10px;font-weight:700;
-  text-transform:uppercase;letter-spacing:.8px;color:#888;
-}
+/* Low bandwidth text mode */
+.lowbw{display:none;}
+.bwmode .lowbw{display:block;}
+.bwmode .richonly{display:none;}
+.bw-box{margin:12px;background:#f8f8f8;border:1px solid #ddd;border-radius:8px;padding:14px;font-size:14px;line-height:1.7;}
 
-/* 8-hour timeline */
-.timeline{margin:0 12px 12px;display:flex;border-radius:8px;overflow:hidden;height:52px;}
-.tl-seg{
-  flex:1;display:flex;flex-direction:column;align-items:center;
-  justify-content:center;font-size:9px;gap:3px;cursor:default;
-  transition:filter .15s;
-}
-.tl-seg:hover{filter:brightness(1.08);}
-.tl-time{font-size:9px;opacity:.85;}
-.tl-pop{font-size:12px;font-weight:800;}
+/* Timeline */
+.tl{margin:0 12px 12px;display:flex;border-radius:8px;overflow:hidden;height:52px;}
+.tlseg{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;}
+.tlt{font-size:9px;opacity:.85;}
+.tlp{font-size:12px;font-weight:800;}
+
+/* Alert banner */
+.alert{margin:0 12px 10px;border-radius:8px;padding:11px 14px;font-size:13px;font-weight:700;}
+.ab-watch{background:#fff3cd;border-left:3px solid #f5a623;color:#92400e;}
+.ab-warn{background:#fce4ec;border-left:3px solid var(--red);color:#880e4f;}
 
 /* Forecast cards */
 .fc-list{padding:0 12px 16px;display:flex;flex-direction:column;gap:8px;}
-.fc{
-  border:1px solid #e5e7eb;border-radius:8px;padding:12px 14px;
-  cursor:default;transition:border-color .15s;
-}
-.fc:hover{border-color:#bfcfe8;}
-.fc.fc-rain{border-left:3px solid #0050d8;}
+.fc{border:1px solid #e5e7eb;border-radius:8px;padding:12px 14px;}
+.fc.rain{border-left:3px solid var(--blue);}
 .fc-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;}
 .fc-name{font-size:14px;font-weight:700;}
 .chip{font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;}
-.chip-none{background:#e8f5e9;color:#166534;}
-.chip-low{background:#dbeafe;color:#1e40af;}
-.chip-moderate{background:#fef3c7;color:#92400e;}
-.chip-high{background:#fce7f3;color:#831843;}
+.c-none{background:#e8f5e9;color:#166534;}
+.c-low{background:#dbeafe;color:#1e40af;}
+.c-mod{background:#fef3c7;color:#92400e;}
+.c-high{background:#fce7f3;color:#831843;}
 .fc-short{font-size:13px;color:#444;margin-bottom:8px;}
-.fc-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
-.fc-bar-label{font-size:11px;color:#666;width:72px;flex-shrink:0;}
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.bar-lbl{font-size:11px;color:#666;width:72px;flex-shrink:0;}
 .bar-track{flex:1;height:5px;background:#e5e7eb;border-radius:3px;overflow:hidden;}
-.bar-fill{height:100%;border-radius:3px;transition:width .3s;}
-.fc-bar-val{font-size:11px;font-weight:700;min-width:28px;text-align:right;}
-.fc-action{
-  font-size:12px;background:#eff6ff;color:#1d4ed8;
-  border-radius:6px;padding:7px 10px;line-height:1.5;
+.bar-fill{height:100%;border-radius:3px;}
+.bar-val{font-size:11px;font-weight:700;min-width:28px;text-align:right;}
+.fc-action{font-size:12px;background:#eff6ff;color:#1d4ed8;border-radius:6px;padding:7px 10px;line-height:1.5;margin-top:2px;}
+.fc-critical{font-size:12px;background:#fce4ec;color:#9b2226;border-radius:6px;padding:7px 10px;line-height:1.5;margin-top:4px;font-weight:700;}
+
+/* Post-event context bar */
+.context-bar{
+  margin:0 12px 12px;background:linear-gradient(135deg,#fef3c7,#fff8e1);
+  border:1px solid #fbbf24;border-radius:8px;padding:11px 14px;
+  font-size:12px;color:#92400e;line-height:1.5;
+}
+.ctx-title{font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;color:#b45309;}
+
+/* Notification opt-in */
+.notif-box{
+  margin:0 12px 16px;border:1px dashed #93c5fd;border-radius:8px;
+  padding:11px 14px;display:flex;align-items:center;justify-content:space-between;
+  font-size:13px;background:#eff6ff;
+}
+.notif-btn{
+  background:var(--blue);color:#fff;border:none;border-radius:5px;
+  padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;
 }
 
-/* Alert banner */
-.alert-banner{
-  margin:0 12px 10px;border-radius:8px;padding:11px 14px;
-  font-size:13px;font-weight:700;
-}
-.ab-watch{background:#fff3cd;border-left:3px solid #f5a623;color:#92400e;}
-.ab-warning{background:#fce4ec;border-left:3px solid #e52207;color:#880e4f;}
-
-/* ─── PRO VIEW ─── */
-.pro-header{
-  padding:14px 18px;
-  background:linear-gradient(135deg,#0d1b2a,#112240);
-  border-bottom:1px solid var(--border);
-}
+/* ─── EMERGENCY MANAGER ─── */
+.pro-hdr{padding:14px 18px;background:linear-gradient(135deg,#0d1b2a,#112240);border-bottom:1px solid var(--border);}
 .pro-loc{font-size:16px;font-weight:800;color:var(--text);}
-.pro-loc-sub{font-size:11px;color:var(--muted);margin-top:2px;}
-.pro-wfo{
-  display:inline-block;font-family:monospace;font-size:11px;
-  background:rgba(79,195,247,.15);color:#4fc3f7;
-  padding:2px 6px;border-radius:3px;margin-top:6px;
-}
+.pro-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.pro-wfo{display:inline-block;font-family:monospace;font-size:11px;background:rgba(79,195,247,.15);color:#4fc3f7;padding:2px 6px;border-radius:3px;margin-top:6px;}
 
-.ai-block{
-  margin:10px 12px;
-  background:linear-gradient(135deg,rgba(79,195,247,.08),rgba(79,195,247,.03));
-  border:1px solid rgba(79,195,247,.25);border-radius:8px;padding:12px 14px;
-}
-.ai-header{
-  font-size:10px;font-weight:700;text-transform:uppercase;
-  letter-spacing:.8px;color:#4fc3f7;margin-bottom:8px;
-  display:flex;align-items:center;gap:7px;
-}
-.nim-badge{
-  background:rgba(79,195,247,.15);color:#4fc3f7;
-  padding:2px 6px;border-radius:3px;font-size:9px;font-weight:600;
-}
-.ai-text{font-size:13px;color:var(--text);line-height:1.7;}
+/* AI summary */
+.ai-blk{margin:10px 12px;background:linear-gradient(135deg,rgba(79,195,247,.08),rgba(79,195,247,.03));border:1px solid rgba(79,195,247,.25);border-radius:8px;padding:12px 14px;}
+.ai-hdr{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#4fc3f7;margin-bottom:8px;display:flex;align-items:center;gap:7px;}
+.nim-badge{background:rgba(79,195,247,.15);color:#4fc3f7;padding:2px 6px;border-radius:3px;font-size:9px;font-weight:600;}
+.ai-txt{font-size:13px;color:var(--text);line-height:1.7;}
 
+/* Decision clock */
+.decision-clock{
+  margin:0 12px 10px;background:var(--card2);border:1px solid var(--border);
+  border-radius:8px;padding:12px 14px;
+}
+.dc-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:10px;}
+.dc-items{display:flex;flex-direction:column;gap:7px;}
+.dc-item{display:flex;align-items:center;gap:10px;}
+.dc-time{
+  font-size:13px;font-weight:800;color:#4fc3f7;
+  min-width:55px;font-variant-numeric:tabular-nums;
+}
+.dc-desc{font-size:12px;color:var(--text);line-height:1.4;}
+.dc-urgency{font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;flex-shrink:0;}
+.dc-now{background:rgba(229,34,7,.2);color:#ef5350;}
+.dc-soon{background:rgba(245,166,35,.2);color:#f5a623;}
+.dc-later{background:rgba(79,195,247,.15);color:#4fc3f7;}
+
+/* Stream gauges */
+.gauge-list{padding:0 12px;display:flex;flex-direction:column;gap:7px;margin-bottom:4px;}
+.gauge{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:11px 13px;}
+.gauge.gfl{border-left:3px solid var(--red);}
+.gauge.gmod{border-left:3px solid var(--yellow);}
+.gauge.gok{border-left:3px solid #4fc3f7;}
+.g-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.g-name{font-size:13px;font-weight:700;color:var(--text);}
+.g-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;text-transform:uppercase;letter-spacing:.4px;}
+.gb-flood{background:rgba(229,34,7,.2);color:#ef5350;border:1px solid rgba(229,34,7,.3);}
+.gb-near{background:rgba(245,166,35,.2);color:#f5a623;border:1px solid rgba(245,166,35,.3);}
+.gb-ok{background:rgba(79,195,247,.15);color:#4fc3f7;border:1px solid rgba(79,195,247,.3);}
+.g-level-row{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
+.g-level-val{font-size:18px;font-weight:800;color:var(--text);}
+.g-level-unit{font-size:11px;color:var(--muted);}
+.g-bar-wrap{flex:1;height:8px;background:#30363d;border-radius:4px;overflow:visible;position:relative;}
+.g-bar-fill{height:100%;border-radius:4px;transition:width .5s;}
+.g-flood-marker{
+  position:absolute;top:-3px;height:14px;width:2px;background:var(--red);
+  border-radius:1px;
+}
+.g-detail{font-size:11px;color:var(--muted);line-height:1.5;}
+.g-loading{font-size:12px;color:var(--muted);font-style:italic;}
+
+/* Zone threat cards */
 .threat-list{padding:0 12px;display:flex;flex-direction:column;gap:7px;margin-bottom:4px;}
-.threat{
-  background:var(--card2);border:1px solid var(--border);
-  border-radius:8px;padding:11px 13px;
-}
-.threat.t-high{border-left:3px solid var(--red);}
-.threat.t-mod{border-left:3px solid var(--yellow);}
-.threat.t-low{border-left:3px solid #4fc3f7;}
-.threat-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;}
-.threat-name{font-size:13px;font-weight:700;color:var(--text);}
-.threat-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;text-transform:uppercase;letter-spacing:.4px;}
+.threat{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:11px 13px;}
+.threat.th{border-left:3px solid var(--red);}
+.threat.tm{border-left:3px solid var(--yellow);}
+.threat.tl{border-left:3px solid #4fc3f7;}
+.thr-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;}
+.thr-name{font-size:13px;font-weight:700;color:var(--text);}
+.thr-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;text-transform:uppercase;letter-spacing:.4px;}
 .tb-watch{background:rgba(245,166,35,.2);color:#f5a623;border:1px solid rgba(245,166,35,.3);}
 .tb-adv{background:rgba(79,195,247,.15);color:#4fc3f7;border:1px solid rgba(79,195,247,.3);}
 .tb-ok{background:rgba(139,148,158,.12);color:var(--muted);border:1px solid var(--border);}
-.threat-detail{font-size:12px;color:var(--muted);line-height:1.5;}
-.threat-impact{font-size:12px;color:#f5a623;margin-top:4px;font-weight:600;}
+.thr-detail{font-size:12px;color:var(--muted);line-height:1.5;}
+.thr-impact{font-size:12px;color:#f5a623;margin-top:4px;font-weight:600;}
 
 /* Prob table */
-.prob-wrap{padding:0 12px 12px;overflow-x:auto;}
+.prob-wrap{padding:0 12px 10px;overflow-x:auto;}
 .prob-table{width:100%;border-collapse:collapse;font-size:12px;}
-.prob-table th{
-  background:var(--card);padding:7px 10px;text-align:left;
-  font-size:10px;font-weight:700;text-transform:uppercase;
-  letter-spacing:.5px;color:var(--muted);
-  border-bottom:1px solid var(--border);
-}
-.prob-table td{
-  padding:7px 10px;border-bottom:1px solid rgba(48,54,61,.5);
-  color:var(--text);vertical-align:middle;
-}
+.prob-table th{background:var(--card);padding:7px 10px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);border-bottom:1px solid var(--border);}
+.prob-table td{padding:7px 10px;border-bottom:1px solid rgba(48,54,61,.5);color:var(--text);vertical-align:middle;}
 .prob-table tr:hover td{background:rgba(255,255,255,.02);}
-.pop-cell{display:flex;align-items:center;gap:7px;}
-.pop-track{width:50px;height:5px;background:#30363d;border-radius:3px;overflow:hidden;flex-shrink:0;}
-.pop-bar{height:100%;border-radius:3px;}
-.pop-val{font-weight:700;min-width:28px;}
+.pop-c{display:flex;align-items:center;gap:7px;}
+.pop-tr{width:50px;height:5px;background:#30363d;border-radius:3px;overflow:hidden;flex-shrink:0;}
+.pop-b{height:100%;border-radius:3px;}
+.pop-v{font-weight:700;min-width:28px;}
 .conf{font-size:10px;padding:1px 5px;border-radius:3px;font-weight:700;}
 .ch{background:rgba(0,169,28,.2);color:#4caf50;}
 .cm{background:rgba(245,166,35,.2);color:#f5a623;}
@@ -215,163 +220,158 @@ header{
 
 /* Actions */
 .actions-wrap{padding:0 12px 16px;display:flex;flex-direction:column;gap:6px;}
-.action{
-  display:flex;align-items:flex-start;gap:9px;
-  background:var(--card2);border:1px solid var(--border);
-  border-radius:6px;padding:9px 12px;
-}
-.action-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:4px;}
-.ad-high{background:var(--red);}
-.ad-mod{background:var(--yellow);}
-.ad-low{background:#4fc3f7;}
-.action-body{font-size:12px;color:var(--text);line-height:1.5;}
-.action-time{font-size:10px;color:var(--muted);margin-top:2px;}
+.action{display:flex;align-items:flex-start;gap:9px;background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:9px 12px;}
+.adot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+.ah{background:var(--red);}
+.am{background:var(--yellow);}
+.al{background:#4fc3f7;}
+.abody{font-size:12px;color:var(--text);line-height:1.5;}
+.atime{font-size:10px;color:var(--muted);margin-top:2px;}
 
-.loading-state{padding:40px 20px;text-align:center;color:#999;font-size:14px;}
-.station-marker{background:none!important;border:none!important;}
-
-/* Scrollbar for pro */
-.pro .sidebar::-webkit-scrollbar-track{background:var(--bg);}
+/* Share button */
+.share-bar{margin:0 12px 16px;display:flex;gap:8px;}
+.share-btn{flex:1;background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:9px;font-size:12px;font-weight:700;color:#4fc3f7;cursor:pointer;text-align:center;}
+.share-btn:hover{border-color:#4fc3f7;}
 </style>
 </head>
 <body>
 
 <header>
   <div style="display:flex;align-items:center;gap:10px;">
-    <div class="logo"><div class="logo-pulse"></div>weather.gov</div>
+    <div class="logo"><div class="pulse"></div>weather.gov</div>
     <span class="proto">PROTOTYPE</span>
   </div>
-  <div class="tabs">
-    <button class="tab on" id="tabPub" onclick="setMode('pub')">🌤 Public</button>
-    <button class="tab" id="tabEM" onclick="setMode('em')">📡 Emergency Manager</button>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <button onclick="toggleBW()" id="bwBtn" style="background:rgba(255,255,255,.15);border:none;color:rgba(255,255,255,.8);font-size:11px;padding:4px 10px;border-radius:4px;cursor:pointer;" title="Low bandwidth / text mode">📶 Text Mode</button>
+    <div class="tabs">
+      <button class="tab on" id="tabPub" onclick="setMode('pub')">🌤 Public</button>
+      <button class="tab" id="tabEM" onclick="setMode('em')">📡 Emergency Manager</button>
+    </div>
   </div>
 </header>
 
 <div class="shell" id="shell">
   <div class="sidebar" id="sidebar">
-    <div id="pubView"><div class="loading-state">Loading…</div></div>
-    <div id="emView" style="display:none;"><div class="loading-state">Loading…</div></div>
+    <div id="pubView"><div class="loading">Loading…</div></div>
+    <div id="emView" style="display:none;"><div class="loading">Loading…</div></div>
   </div>
-  <div class="map-area">
+  <div class="map-area" id="mapArea">
     <div id="map"></div>
-
     <div class="map-legend" id="mapLegend">
-      <div class="legend-title">Precip Risk</div>
-      <div class="legend-row"><div class="swatch" style="background:#1a9850;opacity:.7"></div>None</div>
-      <div class="legend-row"><div class="swatch" style="background:#4fc3f7;opacity:.8"></div>Low (10–30%)</div>
-      <div class="legend-row"><div class="swatch" style="background:#f5a623;opacity:.85"></div>Moderate (30–60%)</div>
-      <div class="legend-row"><div class="swatch" style="background:#e52207;opacity:.85"></div>High (60%+)</div>
+      <div class="leg-title">Precip Risk</div>
+      <div class="leg-row"><div class="sw" style="background:#1a9850;opacity:.7"></div>None / Dry</div>
+      <div class="leg-row"><div class="sw" style="background:#4fc3f7;opacity:.8"></div>Low · 10–30%</div>
+      <div class="leg-row"><div class="sw" style="background:#f5a623;opacity:.85"></div>Moderate · 30–60%</div>
+      <div class="leg-row"><div class="sw" style="background:#e52207;opacity:.85"></div>High · 60%+</div>
     </div>
-
     <div class="map-layers" id="mapLayers">
-      <div class="layer-title">Layers</div>
-      <label class="layer-row"><input type="checkbox" id="lyrRisk" checked onchange="toggleLayer('risk')"> Risk Zones</label>
-      <label class="layer-row"><input type="checkbox" id="lyrStations" checked onchange="toggleLayer('stations')"> Obs Stations</label>
+      <div class="lyr-title">Layers</div>
+      <label class="lyr-row"><input type="checkbox" id="lyrRisk" checked onchange="toggleLyr('risk')"> Risk Zones</label>
+      <label class="lyr-row"><input type="checkbox" id="lyrGauges" checked onchange="toggleLyr('gauges')"> Stream Gauges</label>
+      <label class="lyr-row"><input type="checkbox" id="lyrStations" checked onchange="toggleLyr('stations')"> Obs Stations</label>
     </div>
   </div>
 </div>
 
 <script>
-const LAT=21.3069, LON=-157.8583;
-let mode='pub', map, riskLyr, stationsLyr, wd={};
+const LAT=21.3069,LON=-157.8583;
+let mode='pub', bwMode=false, map, riskLyr, gaugeLyr, stationsLyr, wd={}, gaugeData=[];
 
-// ── Zone polygons — compact, non-overlapping, on Oahu ──
-// Reference: Honolulu 21.307,-157.858 | Wahiawa 21.503,-158.024
-//            Haleiwa 21.593,-158.110 | Kaneohe 21.409,-157.801
-//            Waianae 21.444,-158.180 | Pearl City 21.397,-157.974
-// [lon,lat] order
+// ── Zone polygons ──
 const ZONES={
-  HIZ006:{name:'Waianae Coast',   // narrow west-coast strip
-    c:[[[-158.16,21.37],[-158.20,21.43],[-158.19,21.52],[-158.15,21.56],[-158.12,21.52],[-158.12,21.41],[-158.16,21.37]]]},
-  HIZ007:{name:'North Shore',     // band across top, inside island bounds
-    c:[[[-158.10,21.57],[-158.03,21.62],[-157.92,21.65],[-157.82,21.63],[-157.78,21.59],[-157.86,21.56],[-157.98,21.55],[-158.10,21.57]]]},
-  HIZ009:{name:'Windward Coast',  // east side — Kaneohe/Kailua coastal strip
-    c:[[[-157.80,21.56],[-157.76,21.58],[-157.71,21.53],[-157.72,21.40],[-157.76,21.31],[-157.81,21.34],[-157.83,21.44],[-157.82,21.54],[-157.80,21.56]]]},
-  HIZ010:{name:'Central Oahu',    // Wahiawa plateau
-    c:[[[-157.95,21.51],[-157.87,21.50],[-157.83,21.44],[-157.88,21.38],[-157.96,21.36],[-158.03,21.39],[-158.07,21.47],[-157.95,21.51]]]},
-  HIZ011:{name:'Waianae Mountains', // interior ridge, west
-    c:[[[-158.12,21.41],[-158.11,21.51],[-158.04,21.48],[-158.03,21.39],[-157.96,21.36],[-157.97,21.30],[-158.06,21.31],[-158.12,21.37],[-158.12,21.41]]]},
-  HIZ012:{name:'Koolau Mountains',  // interior ridge, east
-    c:[[[-157.83,21.44],[-157.80,21.54],[-157.80,21.56],[-157.76,21.54],[-157.73,21.45],[-157.76,21.37],[-157.81,21.34],[-157.83,21.44]]]},
-  HIZ013:{name:'Honolulu',          // south shore urban
-    c:[[[-157.83,21.34],[-157.81,21.34],[-157.76,21.31],[-157.76,21.26],[-157.85,21.25],[-157.96,21.26],[-157.97,21.30],[-157.88,21.38],[-157.83,21.34]]]},
-  HIZ014:{name:'Ewa Plain',         // west of Pearl, flat area
-    c:[[[-157.97,21.30],[-157.96,21.26],[-158.06,21.26],[-158.12,21.30],[-158.12,21.37],[-158.06,21.31],[-157.97,21.30]]]}
+  HIZ006:{name:'Waianae Coast',c:[[[-158.16,21.37],[-158.20,21.43],[-158.19,21.52],[-158.15,21.56],[-158.12,21.52],[-158.12,21.41],[-158.16,21.37]]]},
+  HIZ007:{name:'North Shore',c:[[[-158.10,21.57],[-158.03,21.62],[-157.92,21.65],[-157.82,21.63],[-157.78,21.59],[-157.86,21.56],[-157.98,21.55],[-158.10,21.57]]]},
+  HIZ009:{name:'Windward Coast',c:[[[-157.80,21.56],[-157.76,21.58],[-157.71,21.53],[-157.72,21.40],[-157.76,21.31],[-157.81,21.34],[-157.83,21.44],[-157.82,21.54],[-157.80,21.56]]]},
+  HIZ010:{name:'Central Oahu',c:[[[-157.95,21.51],[-157.87,21.50],[-157.83,21.44],[-157.88,21.38],[-157.96,21.36],[-158.03,21.39],[-158.07,21.47],[-157.95,21.51]]]},
+  HIZ011:{name:'Waianae Mountains',c:[[[-158.12,21.41],[-158.11,21.51],[-158.04,21.48],[-158.03,21.39],[-157.96,21.36],[-157.97,21.30],[-158.06,21.31],[-158.12,21.37],[-158.12,21.41]]]},
+  HIZ012:{name:'Koolau Mountains',c:[[[-157.83,21.44],[-157.80,21.54],[-157.80,21.56],[-157.76,21.54],[-157.73,21.45],[-157.76,21.37],[-157.81,21.34],[-157.83,21.44]]]},
+  HIZ013:{name:'Honolulu',c:[[[-157.83,21.34],[-157.81,21.34],[-157.76,21.31],[-157.76,21.26],[-157.85,21.25],[-157.96,21.26],[-157.97,21.30],[-157.88,21.38],[-157.83,21.34]]]},
+  HIZ014:{name:'Ewa Plain',c:[[[-157.97,21.30],[-157.96,21.26],[-158.06,21.26],[-158.12,21.30],[-158.12,21.37],[-158.06,21.31],[-157.97,21.30]]]}
 };
-// Variance — max ±10 so base 37% → range 27–47% = mostly moderate
 const ZONE_VAR={HIZ006:4,HIZ007:6,HIZ009:10,HIZ010:-6,HIZ011:2,HIZ012:8,HIZ013:-10,HIZ014:-5};
 
-// ── Pre-baked AI summary (generated server-side via NVIDIA NIM Llama 3.3) ──
+// Stream gauges with flood stage thresholds (ft) — from USGS/AHPS
+const GAUGE_SITES=[
+  {id:'16247100',name:'Manoa-Palolo Canal',short:'Manoa Canal',lat:21.295,lon:-157.826,flood:5.0,action:3.5},
+  {id:'16229000',name:'Kalihi Stream nr Honolulu',short:'Kalihi Stream',lat:21.37,lon:-157.875,flood:8.0,action:5.5},
+  {id:'16213000',name:'Waikele Stream at Waipahu',short:'Waikele Stream',lat:21.385,lon:-158.01,flood:12.0,action:8.0}
+];
+
+// Pre-baked AI summary (NVIDIA NIM Llama 3.3 — generated 2026-03-28)
 const AI_SUMMARY="Oahu remains in a vulnerable state following last week's severe flooding, with multiple areas still recovering from stream overflows and road closures. Scattered rain showers are expected this afternoon, posing a potential threat to already saturated grounds, with a 37% chance of precipitation. Emergency managers should maintain a heightened state of alertness through tonight, as isolated showers may still impact sensitive areas, before conditions are expected to improve by Saturday morning.";
 
 // ── Helpers ──
 function popColor(p){
-  if(p>=60) return{fill:'#e52207',op:.35};
-  if(p>=30) return{fill:'#f5a623',op:.30};
-  if(p>=10) return{fill:'#4fc3f7',op:.25};
-  return{fill:'#1a9850',op:.18};
+  if(p>=60)return{fill:'#e52207',op:.32};
+  if(p>=30)return{fill:'#f5a623',op:.28};
+  if(p>=10)return{fill:'#4fc3f7',op:.24};
+  return{fill:'#1a9850',op:.16};
 }
 function popBadge(p){
-  if(p>=60) return['high','High Rain Risk'];
-  if(p>=30) return['moderate','Moderate Rain Risk'];
-  if(p>=10) return['low','Low Rain Risk'];
+  if(p>=60)return['high','High Risk'];
+  if(p>=30)return['mod','Moderate Risk'];
+  if(p>=10)return['low','Low Risk'];
   return['none','Clear'];
 }
 function popChip(p){
-  if(p>=60) return['chip-high','High'];
-  if(p>=30) return['chip-moderate','Moderate'];
-  if(p>=10) return['chip-low','Low'];
-  return['chip-none','Clear'];
+  if(p>=60)return['c-high','High'];
+  if(p>=30)return['c-mod','Moderate'];
+  if(p>=10)return['c-low','Low'];
+  return['c-none','Clear'];
 }
 function popAction(p){
-  if(p>=60) return'Significant rain expected. Move valuables off ground floors. Avoid flood-prone roads and stream crossings.';
-  if(p>=30) return'Rain is likely. Roads may be wet. Stay alert to changing conditions, especially near streams.';
-  if(p>=10) return'Rain possible. Pack an umbrella. Check road conditions before driving.';
-  return'No significant rain expected. Good conditions for outdoor activities.';
+  if(p>=60)return{action:'Stay home if possible. Do not drive through flooded roads — even if they look shallow.',critical:true};
+  if(p>=30)return{action:'Rain likely. Roads near streams may flood quickly. Check conditions before driving.',critical:false};
+  if(p>=10)return{action:'Rain is possible. Carry an umbrella and allow extra travel time.',critical:false};
+  return{action:'No rain expected. Good conditions.',critical:false};
 }
-function popBarColor(p){
-  return p>=60?'#e52207':p>=30?'#f5a623':p>=10?'#4fc3f7':'#aaa';
-}
-function segBg(p){
-  if(p>=60) return{bg:'#e52207',txt:'#fff'};
-  if(p>=30) return{bg:'#f5a623',txt:'#1b1b1b'};
-  if(p>=10) return{bg:'#4fc3f7',txt:'#1b1b1b'};
+function barCol(p){return p>=60?'#e52207':p>=30?'#f5a623':p>=10?'#4fc3f7':'#aaa';}
+function segStyle(p){
+  if(p>=60)return{bg:'#e52207',txt:'#fff'};
+  if(p>=30)return{bg:'#f5a623',txt:'#1b1b1b'};
+  if(p>=10)return{bg:'#4fc3f7',txt:'#1b1b1b'};
   return{bg:'#e8f5e9',txt:'#1b5e20'};
 }
-function conf(p){
-  if(p>=65||p<=15) return['ch','High'];
-  if(p>=40) return['cm','Moderate'];
+function confLabel(p){
+  if(p>=65||p<=15)return['ch','High'];
+  if(p>=40)return['cm','Moderate'];
   return['cl','Low'];
 }
-function mm2in(mm){return(mm/25.4).toFixed(2);}
+function mm2in(m){return(m/25.4).toFixed(2);}
 function parseDur(d){const m=d.match(/PT(\d+)H/);if(m)return+m[1];const x=d.match(/P(\d+)D/);return x?+x[1]*24:6;}
 function expand(vals){
   const out=[];
   for(const e of vals){
     const[s,d]=e.validTime.split('/');const h=parseDur(d);const ms=new Date(s).getTime();
-    for(let i=0;i<h;i+=(h>6?6:h)) out.push({time:new Date(ms+i*3600000).toISOString(),value:e.value||0});
+    for(let i=0;i<h;i+=(h>6?6:h))out.push({time:new Date(ms+i*3600000).toISOString(),value:e.value||0});
   }
   return out;
 }
+function timeUntil(isoTime){
+  const diff=(new Date(isoTime)-new Date())/1000/60;
+  if(diff<0)return'Now';
+  if(diff<60)return`${Math.round(diff)}min`;
+  return`${Math.round(diff/60)}hr ${Math.round(diff%60)}min`;
+}
 
-// ── Fetch ──
-async function load(){
+// ── Load weather ──
+async function loadWeather(){
   const[ptR,alR]=await Promise.all([
     fetch(`https://api.weather.gov/points/${LAT},${LON}`),
     fetch('https://api.weather.gov/alerts/active?area=HI')
   ]);
-  const pt=await ptR.json(), al=await alR.json();
+  const pt=await ptR.json(),al=await alR.json();
   const pr=pt.properties;
   const[fcR,grR,hrR]=await Promise.all([
     fetch(pr.forecast),fetch(pr.forecastGridData),fetch(pr.forecastHourly)
   ]);
-  const fc=await fcR.json(), gr=await grR.json(), hr=await hrR.json();
+  const fc=await fcR.json(),gr=await grR.json(),hr=await hrR.json();
   const gp=gr.properties;
 
   wd={
     city:(pr.relativeLocation?.properties?.city||'Honolulu').replace(/^Urban /,''),
     state:pr.relativeLocation?.properties?.state||'HI',
-    office:pr.cwa, gx:pr.gridX, gy:pr.gridY,
+    office:pr.cwa,gx:pr.gridX,gy:pr.gridY,
     periods:fc.properties.periods.slice(0,8),
     hourly:hr.properties.periods.slice(0,12),
     pop:expand(gp.probabilityOfPrecipitation?.values||[]),
@@ -381,90 +381,138 @@ async function load(){
     aiSummary:AI_SUMMARY
   };
 
-  // Assign zone pops
   const base=wd.pop[0]?.value||0;
   Object.keys(ZONES).forEach(z=>{
     const p=Math.max(0,Math.min(100,Math.round(base+(ZONE_VAR[z]||0))));
-    ZONES[z].pop=p;
-    const c=popColor(p);ZONES[z].fill=c.fill;ZONES[z].op=c.op;
+    ZONES[z].pop=p;const c=popColor(p);ZONES[z].fill=c.fill;ZONES[z].op=c.op;
   });
 
-  drawSidebars();
+  render();
   drawMap();
 }
 
-// ── Public sidebar ──
-function drawPub(){
-  const{city,state,periods,hourly,alerts}=wd;
+// ── Load stream gauges ──
+async function loadGauges(){
+  const ids=GAUGE_SITES.map(g=>g.id).join(',');
+  try{
+    const r=await fetch(`https://waterservices.usgs.gov/nwis/iv/?format=json&sites=${ids}&parameterCd=00065,00060&siteStatus=active`);
+    const d=await r.json();
+    const ts=d.value.timeSeries;
+    GAUGE_SITES.forEach(gs=>{
+      const stage=ts.find(s=>s.sourceInfo.siteCode[0].value===gs.id&&s.variable.variableCode[0].value==='00065');
+      const flow=ts.find(s=>s.sourceInfo.siteCode[0].value===gs.id&&s.variable.variableCode[0].value==='00060');
+      if(stage){
+        const v=stage.values[0].value;
+        gs.level=v.length?parseFloat(v[v.length-1].value):null;
+        gs.levelTime=v.length?v[v.length-1].dateTime:null;
+      }
+      if(flow){
+        const v=flow.values[0].value;
+        gs.flow=v.length?parseFloat(v[v.length-1].value):null;
+      }
+    });
+    gaugeData=[...GAUGE_SITES];
+    renderEM(); // re-render EM with gauge data
+    drawGaugeMarkers();
+  }catch(e){console.error('Gauge fetch error:',e);}
+}
+
+// ── Render ──
+function render(){renderPub();renderEM();}
+
+function renderPub(){
+  const{city,state,periods,hourly,alerts,pop}=wd;
   const pops=periods.map(p=>p.probabilityOfPrecipitation?.value||0);
   const maxPop=pops.length?Math.max(...pops):0;
   const[rk]=popBadge(maxPop);
+  const rkcls={'high':'imp-high','mod':'imp-mod','low':'imp-low','none':'imp-none'}[rk]||'imp-none';
 
-  const impact={
-    none:{icon:'☀️',msg:'No rain expected. Clear skies across Oahu.',sub:'Great day to be outside.'},
-    low:{icon:'🌤',msg:'Light rain is possible but unlikely to affect your day.',sub:'An umbrella would not hurt, just in case.'},
-    moderate:{icon:'🌦',msg:'Rain is likely today. Roads may be wet and visibility reduced.',sub:'Given recent flooding, avoid driving through puddles — depth is hard to judge.'},
-    high:{icon:'⛈',msg:'Significant rain expected. Flooding possible near streams and low-lying areas.',sub:'Stay informed. Move valuables off ground floors if you live near flood-prone areas.'}
-  }[rk]||{icon:'☀️',msg:'Conditions look clear.',sub:''};
+  const impactMap={
+    none:{icon:'☀️',msg:'No rain expected across Oahu.',sub:'Clear skies through the day. Good time to be outdoors.'},
+    low:{icon:'🌤',msg:'Light rain possible but unlikely to affect your day.',sub:'An umbrella would not hurt, just in case.'},
+    mod:{icon:'🌦',msg:'Rain is likely today. Roads may be wet.',sub:'Given last week\'s flooding, avoid driving through standing water — depth is hard to judge.'},
+    high:{icon:'⛈',msg:'Significant rain expected. Flooding possible near streams.',sub:'Do not drive through flooded roads. Move valuables off ground floors if you live near Manoa, Kalihi, or Waikele streams.'}
+  };
+  const imp=impactMap[rk]||impactMap.none;
 
   // Alert
   let alertHtml='';
   if(alerts.length){
     const a=alerts[0].properties;
-    const cls=a.severity==='Extreme'||a.severity==='Severe'?'ab-warning':'ab-watch';
-    alertHtml=`<div class="alert-banner ${cls}">⚠️ ${a.event} — ${(a.headline||'').slice(0,90)}</div>`;
+    const cls=a.severity==='Extreme'||a.severity==='Severe'?'ab-warn':'ab-watch';
+    alertHtml=`<div class="alert ${cls}">⚠️ ${a.event} — ${(a.headline||'').slice(0,90)}</div>`;
   }
 
   // Timeline
   const tl=hourly.slice(0,8).map(p=>{
-    const pop=p.probabilityOfPrecipitation?.value||0;
+    const pp=p.probabilityOfPrecipitation?.value||0;
     const t=new Date(p.startTime).toLocaleString('en-US',{hour:'numeric',hour12:true});
-    const{bg,txt}=segBg(pop);
-    return`<div class="tl-seg" style="background:${bg};color:${txt}"><span class="tl-time">${t}</span><span class="tl-pop">${pop}%</span></div>`;
+    const{bg,txt}=segStyle(pp);
+    return`<div class="tlseg" style="background:${bg};color:${txt}"><span class="tlt">${t}</span><span class="tlp">${pp}%</span></div>`;
   }).join('');
 
   // Forecast cards
   const cards=periods.map(p=>{
-    const pop=p.probabilityOfPrecipitation?.value||0;
-    const[chipCls,chipLabel]=popChip(pop);
-    const action=popAction(pop);
-    const barCol=popBarColor(pop);
-    return`<div class="fc${pop>=15?' fc-rain':''}">
+    const pp=p.probabilityOfPrecipitation?.value||0;
+    const[chipCls,chipLbl]=popChip(pp);
+    const{action,critical}=popAction(pp);
+    const bc=barCol(pp);
+    return`<div class="fc${pp>=15?' rain':''}">
       <div class="fc-row">
         <span class="fc-name">${p.name}</span>
-        <span class="chip ${chipCls}">${chipLabel}</span>
+        <span class="chip ${chipCls}">${chipLbl}</span>
       </div>
       <div class="fc-short">${p.shortForecast} · ${p.temperature}°${p.temperatureUnit}</div>
-      <div class="fc-bar-row">
-        <span class="fc-bar-label">💧 Rain chance</span>
-        <div class="bar-track"><div class="bar-fill" style="width:${pop}%;background:${barCol}"></div></div>
-        <span class="fc-bar-val" style="color:${barCol}">${pop}%</span>
+      <div class="bar-row">
+        <span class="bar-lbl">💧 Rain chance</span>
+        <div class="bar-track"><div class="bar-fill" style="width:${pp}%;background:${bc}"></div></div>
+        <span class="bar-val" style="color:${bc}">${pp}%</span>
       </div>
-      ${pop>=10?`<div class="fc-action">${action}</div>`:''}
+      ${critical?`<div class="fc-critical">⚠️ ${action}</div>`:(pp>=10?`<div class="fc-action">${action}</div>`:'')}
     </div>`;
   }).join('');
 
+  // Low-bandwidth text version
+  const bwText=`<div class="bw-box">
+    <strong>${city}, ${state} — ${new Date().toLocaleDateString()}</strong><br><br>
+    ${imp.msg} ${imp.sub}<br><br>
+    ${periods.slice(0,4).map(p=>`• ${p.name}: ${p.shortForecast}, ${p.probabilityOfPrecipitation?.value||0}% rain, ${p.temperature}°${p.temperatureUnit}`).join('<br>')}
+    ${maxPop>=30?'<br><br><strong>SAFETY:</strong> Do not drive through flooded roads. Check stream levels before crossing bridges.':''}
+    <br><br><small>Source: NWS weather.gov · ${new Date().toLocaleTimeString()}</small>
+  </div>`;
+
   document.getElementById('pubView').innerHTML=`
-    <div class="pub-hero">
+    <div class="pub-hero richonly">
       <div class="pub-loc">${city}, ${state}</div>
-      <div class="pub-loc-sub">${LAT.toFixed(4)}°N · ${Math.abs(LON).toFixed(4)}°W</div>
-      <div class="pub-updated">Updated ${new Date().toLocaleTimeString()}</div>
+      <div class="pub-sub">${LAT.toFixed(4)}°N · ${Math.abs(LON).toFixed(4)}°W</div>
+      <div class="pub-upd">Updated ${new Date().toLocaleTimeString()}</div>
     </div>
-    <div class="impact-card ic-${rk}">
-      <div class="ic-icon">${impact.icon}</div>
-      <div class="ic-main">${impact.msg}</div>
-      <div class="ic-sub">${impact.sub}</div>
+    <div class="lowbw">${bwText}</div>
+    <div class="richonly">
+      <div class="impact ${rkcls}">
+        <div class="imp-icon">${imp.icon}</div>
+        <div class="imp-main">${imp.msg}</div>
+        <div class="imp-sub">${imp.sub}</div>
+      </div>
+      ${alertHtml}
+      <div class="context-bar">
+        <div class="ctx-title">📍 Post-Event Context</div>
+        Last week's flooding was one of the worst in 20 years for Oahu — Manoa, Kalihi, and Waikele streams overflowed. Today's forecast is moderate. Even light rain can cause flash flooding on saturated ground.
+      </div>
+      <div class="sec">Next 8 Hours</div>
+      <div class="tl">${tl}</div>
+      <div class="sec">Extended Forecast</div>
+      <div class="fc-list">${cards}</div>
+      <div class="notif-box">
+        <span>🔔 Get alerts if this changes</span>
+        <button class="notif-btn" onclick="alert('Alert subscription coming soon!')">Notify Me</button>
+      </div>
     </div>
-    ${alertHtml}
-    <div class="sec-label">Next 8 Hours</div>
-    <div class="timeline">${tl}</div>
-    <div class="sec-label">Extended Forecast</div>
-    <div class="fc-list">${cards}</div>
   `;
 }
 
-// ── EM sidebar ──
-function drawEM(){
+function renderEM(){
+  if(!wd.pop) return;
   const{city,state,office,gx,gy,pop,qpf,wind,alerts,aiSummary}=wd;
 
   // Alert
@@ -474,145 +522,230 @@ function drawEM(){
     alertHtml=`<div style="margin:0 12px 8px;background:rgba(229,34,7,.14);border:1px solid rgba(229,34,7,.3);border-radius:6px;padding:10px 12px;font-size:12px;font-weight:700;color:#ef5350;">🚨 ACTIVE: ${a.event} — ${(a.headline||'').slice(0,80)}</div>`;
   }
 
-  // Threat cards per zone
+  // Decision clock — when do conditions arrive?
+  const maxPopSeries=pop.slice(0,24);
+  let firstHigh=null, firstMod=null;
+  for(const e of maxPopSeries){
+    const p=Math.round(e.value||0);
+    if(p>=60&&!firstHigh){firstHigh=e.time;}
+    if(p>=30&&!firstMod){firstMod=e.time;}
+  }
+  const dcItems=[
+    firstHigh?{time:timeUntil(firstHigh),desc:'High rain probability arrives (60%+)',urgency:'dc-now'}:null,
+    firstMod?{time:timeUntil(firstMod),desc:'Elevated conditions begin (30%+)',urgency:'dc-soon'}:null,
+    {time:'48hr',desc:'Conditions expected to improve — monitoring required',urgency:'dc-later'}
+  ].filter(Boolean);
+
+  const dcHtml=dcItems.map(i=>`<div class="dc-item">
+    <span class="dc-time">${i.time}</span>
+    <span class="dc-desc">${i.desc}</span>
+    <span class="dc-urgency ${i.urgency}">${i.urgency==='dc-now'?'NOW':i.urgency==='dc-soon'?'SOON':'LATER'}</span>
+  </div>`).join('');
+
+  // Stream gauges
+  let gaugeHtml='';
+  if(gaugeData.length){
+    gaugeHtml=gaugeData.map(g=>{
+      if(g.level===null||g.level===undefined) return`<div class="gauge gok"><div class="g-name">${g.short}</div><div class="g-loading">Data unavailable</div></div>`;
+      const floodPct=Math.min(100,(g.level/g.flood)*100);
+      const isFlood=g.level>=g.flood;
+      const isNear=g.level>=g.action&&g.level<g.flood;
+      const cls=isFlood?'gfl':isNear?'gmod':'gok';
+      const badgeCls=isFlood?'gb-flood':isNear?'gb-near':'gb-ok';
+      const badgeLbl=isFlood?'FLOODING':isNear?'NEAR FLOOD':'NORMAL';
+      const markerPct=Math.min(98,(g.flood/g.flood)*100);
+      const fillColor=isFlood?'#e52207':isNear?'#f5a623':'#4fc3f7';
+      const lastUpdate=g.levelTime?new Date(g.levelTime).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true}):'—';
+      return`<div class="gauge ${cls}">
+        <div class="g-top">
+          <span class="g-name">${g.short}</span>
+          <span class="g-badge ${badgeCls}">${badgeLbl}</span>
+        </div>
+        <div class="g-level-row">
+          <span class="g-level-val">${g.level.toFixed(2)}</span>
+          <span class="g-level-unit">ft · ${g.flow?g.flow.toFixed(0)+' cfs':'—'}</span>
+        </div>
+        <div class="g-bar-wrap">
+          <div class="g-bar-fill" style="width:${floodPct}%;background:${fillColor}"></div>
+          <div class="g-flood-marker" style="left:${markerPct}%" title="Flood stage: ${g.flood}ft"></div>
+        </div>
+        <div class="g-detail">Flood stage: ${g.flood}ft · Action stage: ${g.action}ft · Updated: ${lastUpdate}</div>
+      </div>`;
+    }).join('');
+  } else {
+    gaugeHtml=GAUGE_SITES.map(g=>`<div class="gauge gok">
+      <div class="g-top"><span class="g-name">${g.short}</span><span class="g-badge gb-ok">LOADING</span></div>
+      <div class="g-loading">Fetching live stream data…</div>
+    </div>`).join('');
+  }
+
+  // Zone threats
   const threats=Object.entries(ZONES).map(([id,z])=>{
     const p=z.pop||0;
-    const cls=p>=60?'t-high':p>=30?'t-mod':'t-low';
+    const cls=p>=60?'th':p>=30?'tm':'tl';
     const[bc,bl]=p>=60?['tb-watch','Watch']:p>=30?['tb-adv','Advisory']:['tb-ok','Monitoring'];
     const detail=p>=60?'Elevated flood risk — monitor stream gauges closely':p>=30?'Rain likely — standard precautions apply':'No significant weather threat at this time';
-    const impact=p>=60?`<div class="threat-impact">⚡ Pre-position flood response resources</div>`:p>=30?`<div class="threat-impact">⚡ Standby posture — monitor conditions</div>`:'';
+    const impact=p>=60?`<div class="thr-impact">⚡ Pre-position flood response resources</div>`:p>=30?`<div class="thr-impact">⚡ Standby posture — monitor stream gauges</div>`:'';
     return`<div class="threat ${cls}">
-      <div class="threat-top">
-        <span class="threat-name">${z.name}</span>
-        <span class="threat-badge ${bc}">${bl}</span>
-      </div>
-      <div class="threat-detail">PoP: ${p}% · ${detail}</div>
-      ${impact}
+      <div class="thr-top"><span class="thr-name">${z.name}</span><span class="thr-badge ${bc}">${bl}</span></div>
+      <div class="thr-detail">PoP: ${p}% · ${detail}</div>${impact}
     </div>`;
   }).join('');
 
-  // Prob table
+  // Prob table with accumulation
   const rows=pop.slice(0,8).map((e,i)=>{
     const p=Math.round(e.value||0);
     const q=qpf[i]?mm2in(qpf[i].value):'0.00';
     const w=wind[i]?Math.round(wind[i].value||0):0;
-    const[cc,cl]=conf(p);
+    const[cc,cl]=confLabel(p);
     const t=new Date(e.time).toLocaleString('en-US',{weekday:'short',hour:'numeric',hour12:true});
     const col=p>=60?'#e52207':p>=30?'#f5a623':p>=10?'#4fc3f7':'#8b949e';
     return`<tr>
       <td style="color:var(--muted);white-space:nowrap">${t}</td>
-      <td><div class="pop-cell">
-        <div class="pop-track"><div class="pop-bar" style="width:${p}%;background:${col}"></div></div>
-        <span class="pop-val" style="color:${col}">${p}%</span>
-      </div></td>
+      <td><div class="pop-c"><div class="pop-tr"><div class="pop-b" style="width:${p}%;background:${col}"></div></div><span class="pop-v" style="color:${col}">${p}%</span></div></td>
       <td style="font-weight:700;color:#4fc3f7">${q}"</td>
       <td><span class="conf ${cc}">${cl}</span></td>
       <td style="color:${w>40?'#e52207':'var(--muted)'}">${w>0?w+'%':'—'}</td>
     </tr>`;
   }).join('');
 
-  // Actions — based on highest-risk zone
-  const maxZone=Object.values(ZONES).sort((a,b)=>(b.pop||0)-(a.pop||0))[0];
-  const maxP=maxZone?.pop||0;
+  // QPF accumulations
+  const qpf6=qpf.slice(0,6).reduce((a,e)=>a+(e.value||0),0);
+  const qpf12=qpf.slice(0,12).reduce((a,e)=>a+(e.value||0),0);
+  const qpf24=qpf.slice(0,24).reduce((a,e)=>a+(e.value||0),0);
+
+  // Actions
+  const maxP=Math.max(...Object.values(ZONES).map(z=>z.pop||0));
   const actions=maxP>=60?[
-    {p:'high',t:'Pre-position flood response teams in high-risk zones',time:'Now'},
-    {p:'high',t:'Activate EOC monitoring protocols',time:'Now'},
-    {p:'mod',t:'Issue public advisory for low-lying and stream-adjacent areas',time:'Within 1hr'},
-    {p:'mod',t:'Check stream gauges and drainage capacity across Oahu',time:'Within 2hr'}
+    {p:'h',t:'Pre-position flood response teams in Windward and North Shore zones',time:'Now'},
+    {p:'h',t:'Activate EOC monitoring — check stream gauges every 30 minutes',time:'Now'},
+    {p:'m',t:'Issue public advisory for Manoa, Kalihi, and Waikele stream corridors',time:'Within 1hr'},
+    {p:'m',t:'Alert school districts and transit about potential road closures',time:'Within 1hr'},
+    {p:'l',t:'Review evacuation route accessibility across Oahu',time:'Today'}
   ]:maxP>=30?[
-    {p:'mod',t:'Monitor rainfall accumulation in elevated-risk zones',time:'Ongoing'},
-    {p:'mod',t:'Brief response teams — maintain standby posture',time:'Within 2hr'},
-    {p:'low',t:'Review evacuation route accessibility and road status',time:'Today'}
+    {p:'m',t:'Monitor stream gauge levels — set alert thresholds at action stage',time:'Ongoing'},
+    {p:'m',t:'Brief response teams — maintain standby posture',time:'Within 2hr'},
+    {p:'l',t:'Review road closure protocols for flood-prone corridors',time:'Today'}
   ]:[
-    {p:'low',t:'No immediate action required — standard monitoring',time:'Ongoing'},
-    {p:'low',t:'Continue post-flood recovery operations',time:'Ongoing'}
+    {p:'l',t:'No immediate action required — standard monitoring protocols',time:'Ongoing'},
+    {p:'l',t:'Continue post-flood recovery operations and infrastructure inspection',time:'Ongoing'}
   ];
 
   const actionsHtml=actions.map(a=>`<div class="action">
-    <div class="action-dot ad-${a.p}"></div>
-    <div><div class="action-body">${a.t}</div><div class="action-time">${a.time}</div></div>
+    <div class="adot ${{'h':'ah','m':'am','l':'al'}[a.p]}"></div>
+    <div><div class="abody">${a.t}</div><div class="atime">${a.time}</div></div>
   </div>`).join('');
 
   document.getElementById('emView').innerHTML=`
-    <div class="pro-header">
+    <div class="pro-hdr">
       <div class="pro-loc">${city}, ${state}</div>
-      <div class="pro-loc-sub">Emergency Operations Center · Situational Awareness</div>
+      <div class="pro-sub">Emergency Operations Center · Situational Awareness</div>
       <span class="pro-wfo">WFO ${office} · ${gx},${gy}</span>
     </div>
     ${alertHtml}
-    <div class="ai-block">
-      <div class="ai-header">⚡ AI Situation Summary <span class="nim-badge">Llama 3.3 · NVIDIA NIM</span></div>
-      <div class="ai-text">${aiSummary}</div>
+    <div class="ai-blk">
+      <div class="ai-hdr">⚡ AI Situation Summary <span class="nim-badge">Llama 3.3 · NVIDIA NIM</span></div>
+      <div class="ai-txt">${aiSummary}</div>
     </div>
-    <div class="sec-label" style="color:var(--muted)">Zone Threat Assessment</div>
+    <div class="sec">Decision Window</div>
+    <div class="decision-clock" style="margin:0 12px 10px;">
+      <div class="dc-title">⏱ Time Until Threshold Conditions</div>
+      <div class="dc-items">${dcHtml}</div>
+    </div>
+    <div class="sec">Stream Gauges · Live</div>
+    <div class="gauge-list">${gaugeHtml}</div>
+    <div class="sec">Rainfall Accumulation Forecast</div>
+    <div style="margin:0 12px 10px;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;display:flex;gap:16px;">
+      ${[['6hr',qpf6],['12hr',qpf12],['24hr',qpf24]].map(([lbl,v])=>{
+        const inches=mm2in(v);
+        const col=v>25.4?'#e52207':v>12.7?'#f5a623':'#4fc3f7';
+        return`<div style="flex:1;text-align:center;">
+          <div style="font-size:18px;font-weight:800;color:${col}">${inches}"</div>
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:2px">${lbl} total</div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="sec">Zone Threat Assessment</div>
     <div class="threat-list">${threats}</div>
-    <div class="sec-label" style="color:var(--muted)">Probabilistic Forecast</div>
+    <div class="sec">Probabilistic Forecast Table</div>
     <div class="prob-wrap">
       <table class="prob-table">
-        <thead><tr><th>Valid Time</th><th>PoP</th><th>QPF</th><th>Confidence</th><th>35mph Winds</th></tr></thead>
+        <thead><tr><th>Time</th><th>PoP</th><th>QPF</th><th>Conf.</th><th>35mph Winds</th></tr></thead>
         <tbody>${rows}</tbody>
       </table>
     </div>
-    <div class="sec-label" style="color:var(--muted)">Recommended Actions</div>
+    <div class="sec">Recommended Actions</div>
     <div class="actions-wrap">${actionsHtml}</div>
+    <div class="share-bar">
+      <button class="share-btn" onclick="alert('Share link copied to clipboard! (coming soon)')">📤 Share Situation Report</button>
+      <button class="share-btn" onclick="window.print()">🖨 Print EOC Briefing</button>
+    </div>
   `;
 }
 
-function drawSidebars(){drawPub();drawEM();}
-
 // ── Map ──
-function drawMap(){
-  if(!map){
-    map=L.map('map',{zoomControl:true}).setView([21.47,-157.97],11);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-      attribution:'© OpenStreetMap contributors',maxZoom:18
-    }).addTo(map);
-    setTimeout(()=>map.invalidateSize(),200);
-  }
+function initMap(){
+  map=L.map('map',{zoomControl:true}).setView([21.47,-157.97],11);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    attribution:'© OpenStreetMap contributors',maxZoom:18
+  }).addTo(map);
+  setTimeout(()=>map.invalidateSize(),250);
+}
 
+function drawMap(){
+  // Risk zones
   if(riskLyr) riskLyr.remove();
   riskLyr=L.layerGroup();
   Object.entries(ZONES).forEach(([id,z])=>{
     const p=z.pop||0;
-    const poly=L.polygon(z.c[0].map(c=>[c[1],c[0]]),{
-      fillColor:z.fill,fillOpacity:z.op,
-      color:z.fill,weight:1.5,opacity:.7
-    });
-    poly.bindTooltip(`<b>${z.name}</b><br>PoP: ${p}%<br>Risk: ${popBadge(p)[1]}`,{sticky:true});
-    riskLyr.addLayer(poly);
+    L.polygon(z.c[0].map(c=>[c[1],c[0]]),{
+      fillColor:z.fill,fillOpacity:z.op,color:z.fill,weight:1.5,opacity:.6
+    }).bindTooltip(`<b>${z.name}</b><br>PoP: ${p}%<br>${popBadge(p)[1]}`,{sticky:true})
+      .addTo(riskLyr);
   });
   if(document.getElementById('lyrRisk').checked) riskLyr.addTo(map);
 
-  // Observation stations
+  // Obs stations
   if(stationsLyr) stationsLyr.remove();
   stationsLyr=L.layerGroup();
-  const base=wd.pop[0]?.value||0;
-  [{lat:21.3069,lon:-157.8583,name:'Honolulu Intl',temp:'77°F',wind:'12mph NE',pop:Math.max(0,base-8)},
+  const base=wd.pop?.[0]?.value||0;
+  [{lat:21.3069,lon:-157.8583,name:'Honolulu Intl (PHNL)',temp:'77°F',wind:'12mph NE',pop:Math.max(0,base-8)},
    {lat:21.448,lon:-158.045,name:'Wheeler Army Airfield',temp:'74°F',wind:'8mph N',pop:Math.max(0,base+3)},
-   {lat:21.534,lon:-157.992,name:'North Shore',temp:'75°F',wind:'15mph NE',pop:Math.max(0,base+10)},
-   {lat:21.393,lon:-157.739,name:'Kaneohe MCAS',temp:'77°F',wind:'10mph E',pop:Math.max(0,base+13)}
+   {lat:21.534,lon:-157.992,name:'Haleiwa (North Shore)',temp:'75°F',wind:'15mph NE',pop:Math.max(0,base+10)},
+   {lat:21.393,lon:-157.739,name:'Kaneohe MCAS (PHNG)',temp:'77°F',wind:'10mph E',pop:Math.max(0,base+13)}
   ].forEach(s=>{
-    const col=popBarColor(s.pop);
-    // Use CircleMarker — no image dependency, always renders correctly
     L.circleMarker([s.lat,s.lon],{
-      radius:7,fillColor:col,fillOpacity:0.9,
+      radius:6,fillColor:barCol(s.pop),fillOpacity:.9,
       color:'#fff',weight:2,opacity:1
     }).bindTooltip(`<b>${s.name}</b><br>${s.temp} · ${s.wind}<br>PoP: ${s.pop}%`,{sticky:true})
       .addTo(stationsLyr);
   });
-  stationsLyr.addTo(map);
   if(document.getElementById('lyrStations').checked) stationsLyr.addTo(map);
 }
 
-function toggleLayer(name){
-  if(name==='risk'){
-    if(document.getElementById('lyrRisk').checked) riskLyr?.addTo(map);
-    else riskLyr?.remove();
-  }
-  if(name==='stations'){
-    if(document.getElementById('lyrStations').checked) stationsLyr?.addTo(map);
-    else stationsLyr?.remove();
-  }
+function drawGaugeMarkers(){
+  if(gaugeLyr) gaugeLyr.remove();
+  gaugeLyr=L.layerGroup();
+  GAUGE_SITES.forEach(g=>{
+    if(g.level===undefined) return;
+    const isFlood=g.level>=g.flood;
+    const isNear=g.level>=g.action;
+    const col=isFlood?'#e52207':isNear?'#f5a623':'#4fc3f7';
+    L.circleMarker([g.lat,g.lon],{
+      radius:8,fillColor:col,fillOpacity:.95,
+      color:'#fff',weight:2.5,opacity:1
+    }).bindTooltip(
+      `<b>💧 ${g.short}</b><br>${g.level?.toFixed(2)}ft · ${g.flow?.toFixed(0)||'—'} cfs<br>Flood stage: ${g.flood}ft`,
+      {sticky:true}
+    ).addTo(gaugeLyr);
+  });
+  if(document.getElementById('lyrGauges').checked) gaugeLyr.addTo(map);
+}
+
+function toggleLyr(name){
+  const map_lyr={'risk':riskLyr,'gauges':gaugeLyr,'stations':stationsLyr}[name];
+  const checked=document.getElementById({risk:'lyrRisk',gauges:'lyrGauges',stations:'lyrStations'}[name]).checked;
+  if(map_lyr){checked?map_lyr.addTo(map):map_lyr.remove();}
 }
 
 // ── Mode switch ──
@@ -623,34 +756,33 @@ function setMode(m){
   document.getElementById('tabEM').className='tab'+(m==='em'?' on':'');
   document.getElementById('pubView').style.display=m==='pub'?'block':'none';
   document.getElementById('emView').style.display=m==='em'?'block':'none';
-
   if(m==='em'){
     shell.classList.add('pro');
-    map?.eachLayer(l=>{if(l._url?.includes('openstreetmap')) map.removeLayer(l);});
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
-      attribution:'© CARTO © OpenStreetMap',maxZoom:19
-    }).addTo(map);
-  } else {
+    map?.eachLayer(l=>{if(l._url?.includes('openstreetmap'))map.removeLayer(l);});
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{attribution:'© CARTO © OpenStreetMap',maxZoom:19}).addTo(map);
+  }else{
     shell.classList.remove('pro');
-    map?.eachLayer(l=>{if(l._url?.includes('carto')) map.removeLayer(l);});
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-      attribution:'© OpenStreetMap contributors',maxZoom:18
-    }).addTo(map);
+    map?.eachLayer(l=>{if(l._url?.includes('carto'))map.removeLayer(l);});
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap contributors',maxZoom:18}).addTo(map);
   }
   setTimeout(()=>map?.invalidateSize(),50);
 }
 
+// ── Text/low-bandwidth mode ──
+function toggleBW(){
+  bwMode=!bwMode;
+  document.getElementById('sidebar').classList.toggle('bwmode',bwMode);
+  document.getElementById('bwBtn').style.background=bwMode?'rgba(255,200,0,.3)':'rgba(255,255,255,.15)';
+  document.getElementById('mapArea').style.display=bwMode?'none':'flex';
+}
+
 // ── Init ──
 window.addEventListener('DOMContentLoaded',()=>{
-  map=L.map('map',{zoomControl:true}).setView([21.47,-157.97],11);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-    attribution:'© OpenStreetMap contributors',maxZoom:18
-  }).addTo(map);
-  setTimeout(()=>map.invalidateSize(),250);
-
-  load().catch(e=>{
-    document.getElementById('pubView').innerHTML=`<div class="loading-state">⚠️ ${e.message}</div>`;
-    document.getElementById('emView').innerHTML=`<div class="loading-state">⚠️ ${e.message}</div>`;
+  initMap();
+  loadWeather().then(()=>loadGauges()).catch(e=>{
+    const err=`<div class="loading">⚠️ ${e.message}</div>`;
+    document.getElementById('pubView').innerHTML=err;
+    document.getElementById('emView').innerHTML=err;
     console.error(e);
   });
 });
