@@ -599,8 +599,6 @@ function renderPub(){
       </div>
       <div class="sec">Next 8 Hours</div>
       <div class="tl">${tl}</div>
-      <div class="sec">Extended Forecast</div>
-      <div class="fc-list">${cards}</div>
       <div class="sec">Current Conditions</div>
       <div class="cond-grid">
         ${condCard('🌡','Feels Like', envData.feelsF!=null?`${envData.feelsF}°F`:'—', envData.humidity!=null?`Humidity: ${envData.humidity}%`:'', '')}
@@ -610,6 +608,8 @@ function renderPub(){
         ${(()=>{const{text,cls}=surfLabel(envData.wavesFt);return condCard('🌊','Ocean Waves',text,envData.wavePeriod?`${envData.wavePeriod}s period · ${envData.waveDir||''}`:'' ,cls);})()}
         ${condCard('👁','Visibility', envData.visibMiles!=null?`${envData.visibMiles} mi`:'—', envData.visibMiles&&parseInt(envData.visibMiles)<5?'Reduced visibility — use caution':'Clear visibility',parseInt(envData.visibMiles||99)<5?'uv-high':'')}
       </div>
+      <div class="sec">Extended Forecast</div>
+      <div class="fc-list">${cards}</div>
       <div class="notif-box">
         <span>🔔 Get alerts if this changes</span>
         <button class="notif-btn" onclick="alert('Alert subscription coming soon!')">Notify Me</button>
