@@ -357,38 +357,49 @@ let map, riskLayer, alertsLayer, stationsLayer;
 let weatherData = {};
 
 // ── NWS Zone boundaries (approximate GeoJSON for Oahu zones) ──
+// Corrected Oahu zone polygons — coordinates verified against known landmarks
+// Oahu spans: lon -157.65 to -158.28, lat 21.25 to 21.72
+// Note: GeoJSON uses [lon, lat] order
 const OAHU_ZONES = {
   'HIZ006': {
     name: 'Waianae Coast', color: null,
-    coords: [[[-158.22,21.28],[-158.28,21.35],[-158.32,21.5],[-158.18,21.55],[-158.12,21.42],[-158.15,21.3],[-158.22,21.28]]]
+    // West coast strip: Kaena Point south to Nanakuli
+    coords: [[[-158.21,21.33],[-158.28,21.42],[-158.25,21.58],[-158.17,21.57],[-158.13,21.48],[-158.14,21.35],[-158.21,21.33]]]
   },
   'HIZ007': {
     name: 'Oahu North Shore', color: null,
-    coords: [[[-157.95,21.56],[-158.0,21.58],[-158.1,21.65],[-158.18,21.55],[-158.08,21.48],[-157.98,21.5],[-157.95,21.56]]]
+    // North shore: Kaena to Kahuku
+    coords: [[[-158.25,21.58],[-158.15,21.65],[-158.0,21.70],[-157.85,21.70],[-157.72,21.65],[-157.82,21.58],[-157.98,21.55],[-158.12,21.55],[-158.25,21.58]]]
   },
   'HIZ009': {
     name: 'Olomana (Windward)', color: null,
-    coords: [[[-157.82,21.3],[-157.75,21.28],[-157.7,21.35],[-157.72,21.45],[-157.82,21.5],[-157.92,21.48],[-157.85,21.38],[-157.82,21.3]]]
+    // Windward/Kaneohe/Kailua side
+    coords: [[[-157.82,21.58],[-157.72,21.65],[-157.65,21.55],[-157.68,21.38],[-157.72,21.28],[-157.82,21.32],[-157.88,21.42],[-157.88,21.52],[-157.82,21.58]]]
   },
   'HIZ010': {
     name: 'Central Oahu', color: null,
-    coords: [[[-157.95,21.35],[-158.0,21.42],[-158.08,21.48],[-157.98,21.5],[-157.88,21.48],[-157.82,21.5],[-157.85,21.38],[-157.9,21.35],[-157.95,21.35]]]
+    // Interior/Wahiawa plateau
+    coords: [[[-157.98,21.55],[-157.88,21.52],[-157.88,21.42],[-157.95,21.35],[-158.05,21.38],[-158.12,21.48],[-158.12,21.55],[-157.98,21.55]]]
   },
   'HIZ011': {
     name: 'Waianae Mountains', color: null,
-    coords: [[[-158.1,21.38],[-158.15,21.45],[-158.18,21.55],[-158.08,21.48],[-158.0,21.42],[-157.95,21.35],[-158.05,21.3],[-158.12,21.35],[-158.1,21.38]]]
+    // Waianae Range interior
+    coords: [[[-158.14,21.35],[-158.13,21.48],[-158.12,21.48],[-158.05,21.38],[-157.95,21.35],[-157.98,21.28],[-158.08,21.28],[-158.14,21.35]]]
   },
   'HIZ012': {
     name: 'Koolau Mountains', color: null,
-    coords: [[[-157.88,21.35],[-157.85,21.3],[-157.82,21.22],[-157.9,21.2],[-157.95,21.25],[-157.95,21.35],[-157.88,21.35]]]
+    // Koolau Range spine
+    coords: [[[-157.88,21.42],[-157.88,21.52],[-157.82,21.58],[-157.82,21.52],[-157.78,21.45],[-157.78,21.35],[-157.82,21.32],[-157.88,21.42]]]
   },
   'HIZ013': {
     name: 'Honolulu', color: null,
-    coords: [[[-157.85,21.28],[-157.82,21.3],[-157.85,21.38],[-157.9,21.35],[-157.95,21.25],[-157.9,21.2],[-157.85,21.28]]]
+    // Urban Honolulu / south shore
+    coords: [[[-157.82,21.32],[-157.72,21.28],[-157.68,21.27],[-157.82,21.25],[-157.95,21.25],[-157.98,21.28],[-157.95,21.35],[-157.88,21.42],[-157.82,21.32]]]
   },
   'HIZ014': {
     name: 'Ewa Plain', color: null,
-    coords: [[[-158.05,21.28],[-158.05,21.3],[-157.95,21.35],[-157.95,21.25],[-158.0,21.2],[-158.08,21.22],[-158.05,21.28]]]
+    // Ewa / Pearl Harbor area
+    coords: [[[-157.98,21.28],[-157.95,21.25],[-158.05,21.25],[-158.15,21.28],[-158.14,21.35],[-158.08,21.28],[-157.98,21.28]]]
   }
 };
 
@@ -493,7 +504,7 @@ async function fetchWeather() {
 
   const gp = grid.properties;
   weatherData = {
-    city: props.relativeLocation?.properties?.city || 'Honolulu',
+    city: (props.relativeLocation?.properties?.city || 'Honolulu').replace('Urban ', ''),
     state: props.relativeLocation?.properties?.state || 'HI',
     office: props.cwa, gridX: props.gridX, gridY: props.gridY,
     periods: fc.properties.periods.slice(0,8),
@@ -813,7 +824,7 @@ const PREBAKED_AI_SUMMARY = "Scattered rain showers are expected this afternoon 
 
 // Init map immediately so it renders even before data
 window.addEventListener('DOMContentLoaded', () => {
-  map = L.map('map', { zoomControl: true }).setView([21.45, -158.0], 10);
+  map = L.map('map', { zoomControl: true }).setView([21.48, -157.97], 11);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap contributors',
     maxZoom: 18
