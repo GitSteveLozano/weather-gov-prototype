@@ -544,6 +544,7 @@ async function loadWeather(){
     pop:expand(gp.probabilityOfPrecipitation?.values||[]),
     qpf:expand(gp.quantitativePrecipitation?.values||[]),
     wind:expand(gp.potentialOf35mphWinds?.values||[]),
+    lightning:expand(gp.lightningActivityLevel?.values||[]),
     alerts:al.features||[]
   };
   const base=wd.pop[0]?.value||0;
@@ -697,7 +698,44 @@ async function loadHazards(){
       });
     }catch(e){console.warn('radar status error:',e);}
 
-    // 6c. Red Flag / Fire Weather alerts
+    // 6c. Soil moisture — Open-Meteo (already fetched in loadEnv, read from stored values)
+    try{
+      const smR=await fetch('https://api.open-meteo.com/v1/forecast?latitude=21.3069&longitude=-157.8583&hourly=soil_moisture_0_to_1cm,soil_moisture_1_to_3cm&forecast_days=1&timezone=Pacific/Honolulu');
+      const smD=await smR.json();
+      const sm0=smD.hourly?.soil_moisture_0_to_1cm?.[0];
+      const sm1=smD.hourly?.soil_moisture_1_to_3cm?.[0];
+      const sat=sm0!=null?sm0:null;
+      hazards.soilMoisture={
+        surface:sm0!=null?sm0.toFixed(3):null,
+        shallow:sm1!=null?sm1.toFixed(3):null,
+        status:sat>=0.35?'warning':sat>=0.25?'watch':'ok',
+        detail:sat!=null?(sat>=0.35?`Saturated (${sm0.toFixed(2)} m³/m³) — streams will rise rapidly with any rainfall`:sat>=0.25?`Elevated moisture (${sm0.toFixed(2)}) — above-normal flood response`:`Normal (${sm0.toFixed(2)}) — standard response expected`):'Data unavailable'
+      };
+    }catch(e){console.warn('soil moisture error:',e);}
+
+    // 6d. NWS forecaster discussion (AFOS product — HFO)
+    try{
+      const discR=await fetch('https://api.weather.gov/products?office=HFO&type=AFD&limit=1');
+      const discD=await discR.json();
+      const latest=discD['@graph']?.[0];
+      hazards.forecasterDiscussion={
+        url:latest?`https://api.weather.gov/products/${latest.id}`:null,
+        issuanceTime:latest?.issuanceTime||null,
+        productName:latest?.productName||'Area Forecast Discussion'
+      };
+    }catch(e){console.warn('NWS discussion error:',e);}
+
+    // 6e. Flood Inundation Map availability for active alerts
+    try{
+      const fimAlerts=(wd.alerts||[]).filter(a=>a.properties.event.includes('Flood'));
+      hazards.fim={
+        available:fimAlerts.length>0,
+        url:'https://www.weather.gov/hfo/ahps2',
+        detail:fimAlerts.length?`Inundation mapping available for active flood alert`:'No active flood inundation maps'
+      };
+    }catch(e){console.warn('FIM error:',e);}
+
+    // 6f. Red Flag / Fire Weather alerts
     try{
       const ffR=await fetch('https://api.weather.gov/alerts/active?area=HI&event=Red+Flag+Warning,Fire+Weather+Watch');
       const ffD=await ffR.json();
@@ -708,6 +746,16 @@ async function loadHazards(){
         detail:ffAlerts.length?ffAlerts[0].properties.headline?.slice(0,80)||ffAlerts[0].properties.event:null
       };
     }catch(e){console.warn('fire weather alert error:',e);}
+
+    // 6g. Lightning — NWS lightning activity from grid data (lightningActivityLevel)
+    try{
+      const lal=wd.lightning?.[0]?.value||1;
+      hazards.lightning={
+        level:lal,
+        status:lal>=4?'warning':lal>=2?'advisory':'ok',
+        detail:lal>=4?`Lightning Activity Level ${lal} — ground operations unsafe, recall field teams`:lal>=2?`LAL ${lal} — scattered lightning possible, monitor field crews`:`LAL ${lal} — minimal lightning threat`
+      };
+    }catch(e){console.warn('lightning error:',e);}
 
     // 6. Vog — AQI proxy + wind direction context
     const aqiVal=envData.aqi||0;
@@ -1069,6 +1117,12 @@ function render(){
           <div class="emp-label">✅ Recommended Actions</div>
           ${actionsHtml}
         </div>
+        ${renderIBWAlerts()}
+        ${renderFireWindLightning()}
+        ${renderSoilSaturation()}
+        ${renderForecasterDiscussion()}
+        ${renderCommsRisk()}
+        ${renderNotificationReach()}
         ${renderLifelines()}
         ${renderRoadRisk()}
         ${renderShelters()}
@@ -1221,6 +1275,189 @@ function renderChecklist(){
       <button onclick="clearChecklist()" style="margin-left:auto;background:none;border:none;color:var(--muted);font-size:10px;cursor:pointer;">Reset</button>
     </div>
     ${rows}
+  </div>`;
+}
+
+function renderSoilSaturation(){
+  const sm=hazards.soilMoisture;
+  if(!sm||sm.surface==null) return'';
+  const pct=Math.min(100,(parseFloat(sm.surface)/0.45)*100);
+  const color=sm.status==='warning'?'#ef5350':sm.status==='watch'?'#f5a623':'#4caf50';
+  const label=sm.status==='warning'?'SATURATED':sm.status==='watch'?'Elevated':'Normal';
+  return`<div class="emp-section">
+    <div class="emp-label">🌱 Ground Saturation <span style="font-size:9px;color:var(--muted);text-transform:none;font-weight:400;margin-left:4px;">Open-Meteo · Flood amplifier</span></div>
+    <div style="background:var(--card2);border:1px solid ${sm.status!=='ok'?color+'66':'var(--border)'};border-radius:8px;padding:11px 13px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <span style="font-size:13px;font-weight:700;color:${color};">${label}</span>
+        <span style="font-size:12px;color:var(--muted);">${sm.surface} m³/m³</span>
+      </div>
+      <div style="height:6px;background:#30363d;border-radius:3px;overflow:hidden;margin-bottom:6px;">
+        <div style="width:${pct.toFixed(0)}%;height:100%;background:${color};border-radius:3px;"></div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);line-height:1.5;">${sm.detail}</div>
+      ${sm.status!=='ok'?`<div style="margin-top:6px;font-size:11px;color:${color};font-weight:600;">⚠️ Streams will respond faster than normal to any new rainfall</div>`:''}
+    </div>
+  </div>`;
+}
+
+function renderForecasterDiscussion(){
+  const disc=hazards.forecasterDiscussion;
+  if(!disc) return'';
+  const age=disc.issuanceTime?Math.round((Date.now()-new Date(disc.issuanceTime).getTime())/3600000):null;
+  const ageStr=age!=null?`${age}h ago`:'—';
+  const stale=age!=null&&age>6;
+  return`<div class="emp-section">
+    <div class="emp-label">💬 NWS Forecaster Discussion <span style="font-size:9px;color:var(--muted);text-transform:none;font-weight:400;margin-left:4px;">HFO Area Forecast Discussion</span></div>
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:11px 13px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+      <div>
+        <div style="font-size:12px;color:var(--text);">Last updated <strong style="color:${stale?'#f5a623':'#4caf50'}">${ageStr}</strong>${stale?' — may be outdated':''}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:3px;">Contains forecaster reasoning on uncertainty, confidence, and key decision factors</div>
+        <div style="margin-top:6px;font-size:11px;color:#f5a623;">⚠️ The Maui fire forecaster issued a critical warning via this channel — always check before high-impact events</div>
+      </div>
+      ${disc.url?`<a href="${disc.url}" target="_blank" style="flex-shrink:0;background:rgba(79,195,247,.15);border:1px solid rgba(79,195,247,.3);color:#4fc3f7;font-size:11px;font-weight:700;padding:7px 12px;border-radius:5px;text-decoration:none;white-space:nowrap;">View Discussion →</a>`:''}
+    </div>
+  </div>`;
+}
+
+function renderNotificationReach(){
+  const hasFlood=(wd.alerts||[]).some(a=>a.properties.event.includes('Flood'));
+  return`<div class="emp-section">
+    <div class="emp-label">📣 Alert Notification Reach <span style="font-size:9px;color:var(--muted);text-transform:none;font-weight:400;margin-left:4px;">Oahu estimated coverage</span></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;">
+      ${[
+        ['📱','WEA (Wireless Emergency Alert)','~100%','No signup required — geofenced broadcast to all phones','#4caf50'],
+        ['📧','HNL Alert (opt-in)','~11%','~110K of 1M Oahu residents signed up as of March 2026','#f5a623'],
+      ].map(([icon,name,pct,sub,color])=>`
+        <div style="background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:10px 12px;">
+          <div style="font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:4px;">${icon} ${name}</div>
+          <div style="font-size:20px;font-weight:800;color:${color};">${pct}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:3px;line-height:1.4;">${sub}</div>
+        </div>`).join('')}
+    </div>
+    ${hasFlood?`<div style="margin-top:8px;font-size:11px;color:#f5a623;background:rgba(245,166,35,.08);border:1px solid rgba(245,166,35,.2);border-radius:5px;padding:7px 10px;">Active flood alert — WEA broadcast should be confirmed with county. 89% of Oahu residents may not receive HNL Alert notifications.</div>`:''}
+  </div>`;
+}
+
+function renderIBWAlerts(){
+  const alerts=wd.alerts||[];
+  if(!alerts.length) return'';
+  const ibwCards=alerts.slice(0,4).map(a=>{
+    const p=a.properties;
+    const evt=p.event||'';
+    const sev=p.severity||'Unknown';
+    const cert=p.certainty||'Unknown';
+    const tier=evt.toLowerCase().includes('emergency')?'catastrophic':sev==='Extreme'?'considerable':'standard';
+    const tierColor={'catastrophic':'#ef5350','considerable':'#f5a623','standard':'#4fc3f7'}[tier];
+    const tierLabel={'catastrophic':'⚠️ CATASTROPHIC','considerable':'CONSIDERABLE','standard':'Standard'}[tier];
+    const expires=p.expires?new Date(p.expires).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true}):'—';
+    const fim=hazards.fim?.available&&evt.includes('Flood');
+    return`<div style="background:var(--card2);border:1px solid ${tierColor}44;border-left:3px solid ${tierColor};border-radius:6px;padding:9px 12px;margin-bottom:6px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+        <span style="font-size:12px;font-weight:700;color:var(--text);">${evt}</span>
+        <span style="font-size:9px;font-weight:700;background:${tierColor}22;color:${tierColor};padding:2px 6px;border-radius:3px;">${tierLabel}</span>
+      </div>
+      <div style="font-size:10px;color:var(--muted);line-height:1.5;">
+        Expires ${expires} · ${sev} severity · ${cert} certainty
+        ${fim?` · <a href="${hazards.fim.url}" target="_blank" style="color:#4fc3f7;">Inundation map →</a>`:''}
+      </div>
+      ${p.headline?`<div style="font-size:11px;color:var(--text);margin-top:4px;opacity:.8;">${p.headline.slice(0,100)}</div>`:''}
+    </div>`;
+  }).join('');
+  return`<div class="emp-section">
+    <div class="emp-label">🚨 Active Alerts · IBW Tier <span style="font-size:9px;color:var(--muted);text-transform:none;font-weight:400;margin-left:4px;">Impact-Based Warning damage classification</span></div>
+    ${ibwCards}
+  </div>`;
+}
+
+function renderCommsRisk(){
+  const gust=parseFloat(envData.gustMph||0);
+  const hasFlood=(wd.alerts||[]).some(a=>a.properties.event.includes('Flood'));
+  const risks=[
+    {name:'Cell service',icon:'📱',risk:gust>=60?'high':gust>=45?'mod':'low',detail:gust>=60?`Gusts ${gust}mph — tower structural risk, outages likely`:gust>=45?`Gusts ${gust}mph — possible service degradation`:`Gusts ${gust}mph — below disruption threshold (45mph)`},
+    {name:'Power / utilities',icon:'⚡',risk:gust>=50?'high':gust>=35?'mod':'low',detail:gust>=50?`⚠️ Pre-position generator crews — outages probable`:gust>=35?`Elevated outage risk — brief local failures possible`:`Below outage threshold (35mph gusts)`},
+    {name:'Internet / data',icon:'🌐',risk:hasFlood&&gust>=40?'mod':'low',detail:hasFlood?'Flood + wind combo may affect data center cooling and fiber routes':'No significant disruption expected'},
+    {name:'Radio / repeaters',icon:'📻',risk:hasFlood?'mod':'low',detail:hasFlood?'Check repeater station elevations — flooding may affect base stations':'Radio infrastructure stable'},
+  ];
+  const riskColor={high:'#ef5350',mod:'#f5a623',low:'#4caf50'};
+  const rows=risks.map(r=>`
+    <div style="display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid rgba(48,54,61,.4);">
+      <span style="font-size:14px;">${r.icon}</span>
+      <div style="flex:1;">
+        <div style="font-size:11px;font-weight:700;color:var(--text);">${r.name}</div>
+        <div style="font-size:10px;color:var(--muted);line-height:1.4;">${r.detail}</div>
+      </div>
+      <div style="font-size:10px;font-weight:700;color:${riskColor[r.risk]};min-width:40px;text-align:right;">${r.risk==='high'?'⚠️ HIGH':r.risk==='mod'?'MOD':'LOW'}</div>
+    </div>`).join('');
+  return`<div class="emp-section">
+    <div class="emp-label">📡 Communications Risk <span style="font-size:9px;color:var(--muted);text-transform:none;font-weight:400;margin-left:4px;">Weather-derived infrastructure risk</span></div>
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:4px 12px;">${rows}</div>
+  </div>`;
+}
+
+function renderFireWindLightning(){
+  const humidity=envData.humidity||70;
+  const windMph=parseFloat(envData.windMph||0);
+  const gustMph=parseFloat(envData.gustMph||0);
+  const lal=hazards.lightning?.level||1;
+  const visibMi=parseFloat(envData.visibMi||10);
+  const aqi=envData.aqi||0;
+  const windDir=envData.windDir||'';
+  const rfAlert=hazards.fireWeather?.status!=='ok';
+  const southWind=['S','SSW','SW','WSW','SSE','SE'].includes(windDir);
+
+  const cards=[
+    {
+      icon:'🔥', name:'Fire / Red Flag',
+      status:rfAlert?hazards.fireWeather.status:hazards.fire?.status||'ok',
+      val:rfAlert?'⚠️ ALERT':`${humidity}% RH`,
+      detail:rfAlert?hazards.fireWeather.detail||'Red Flag Warning in effect':`Wind ${windMph}mph · RH ${humidity}% · ${windMph>20&&humidity<40?'Elevated risk':'Low risk'}`
+    },
+    {
+      icon:'💨', name:'Wind / Gusts',
+      status:gustMph>=60?'warning':gustMph>=40?'watch':gustMph>=25?'advisory':'ok',
+      val:`${windMph}mph`,
+      detail:`Gusts to ${gustMph}mph from ${windDir} · ${gustMph>=50?'⚠️ Power outage risk, structural damage possible':gustMph>=35?'Elevated outage risk':'Below damage threshold'}`
+    },
+    {
+      icon:'⚡', name:'Lightning',
+      status:lal>=4?'warning':lal>=2?'advisory':'ok',
+      val:`LAL ${lal}`,
+      detail:lal>=4?'Unsafe for outdoor operations / aerial assets':lal>=2?'Monitor — scattered activity possible':'Minimal lightning threat'
+    },
+    {
+      icon:'👁', name:'Visibility / Aviation',
+      status:visibMi<3?'warning':visibMi<6?'watch':'ok',
+      val:`${visibMi}mi`,
+      detail:visibMi<3?'⚠️ Aerial rescue operations impaired':visibMi<6?'Reduced vis — helicopter ops caution':'Good visibility — aerial ops unaffected'
+    },
+    {
+      icon:'🌫', name:'Vog / Air Quality',
+      status:hazards.vog?.status||'ok',
+      val:`AQI ${aqi}`,
+      detail:`${windDir} wind${southWind?' — possible vog transport from Big Island':''} · ${aqi>100?'⚠️ Outdoor shelter ops affected':aqi>50?'Moderate — monitor sensitive populations':'Good air quality'}`
+    },
+    {
+      icon:'🌀', name:'Tsunami',
+      status:hazards.tsunami?.status||'ok',
+      val:hazards.tsunami?.status==='ok'?'Clear':'⚠️ ALERT',
+      detail:hazards.tsunami?.detail||'No tsunami warnings · PTWC monitoring 24/7'
+    },
+  ];
+
+  const statusColor={ok:'var(--muted)',advisory:'#4fc3f7',watch:'#f5a623',warning:'#ef5350'};
+  const cardHtml=cards.map(c=>`
+    <div style="background:var(--card2);border:1px solid ${c.status!=='ok'?statusColor[c.status]+'55':'var(--border)'};border-radius:6px;padding:9px 11px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;">
+        <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);">${c.icon} ${c.name}</span>
+        <span style="font-size:9px;font-weight:700;color:${statusColor[c.status]||'var(--muted)'};">${c.status==='ok'?'OK':c.status.toUpperCase()}</span>
+      </div>
+      <div style="font-size:15px;font-weight:800;color:${c.status!=='ok'?statusColor[c.status]:'var(--text)'};">${c.val}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:3px;line-height:1.4;">${c.detail}</div>
+    </div>`).join('');
+
+  return`<div class="emp-section">
+    <div class="emp-label">🌐 All-Hazards Conditions <span style="font-size:9px;color:var(--muted);text-transform:none;font-weight:400;margin-left:4px;">Fire · Wind · Lightning · Visibility · Vog · Tsunami</span></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;">${cardHtml}</div>
   </div>`;
 }
 
