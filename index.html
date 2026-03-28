@@ -305,10 +305,14 @@ const GAUGE_SITES=[
   {id:'16213000',name:'Waikele Stream',short:'Waikele Stream',lat:21.385,lon:-158.01,flood:12.0,action:8.0}
 ];
 
-// Pre-baked AI content (NVIDIA NIM Llama 3.3 — generated 2026-03-28)
-const PUBLIC_SUMMARY="Scattered showers are expected on Oahu today, but conditions should improve by tomorrow. Given last week's flooding, stay aware near streams and avoid driving through standing water.";
-const EM_SHAREABLE="Oahu is currently in post-flood recovery with scattered showers forecast today (37% PoP) and improving conditions expected tomorrow. Stream levels are below flood stage: Kalihi at 2.8ft (flood stage 8ft), Manoa Canal at 1.2ft (flood stage 5ft), Waikele at 3.7ft (flood stage 12ft). No active alerts are in effect — maintain monitoring posture and continue post-flood infrastructure inspection.";
-const EM_ANALYTICAL="Oahu is recovering from a significant flooding event with multiple streams still elevated but below flood stage. Scattered showers are expected this afternoon with 37% PoP, posing renewed flooding risk on saturated ground. Maintain heightened monitoring through tonight; conditions improve by Saturday morning.";
+// AI-generated content (NVIDIA NIM Llama 3.3 — generated 2026-03-28 from live NWS data)
+const PUBLIC_IMPACT="Scattered showers possible this afternoon, mostly clearing by evening. Streets near Kalihi Stream and Manoa Canal may see brief pooling — avoid driving through standing water, even if it looks shallow.";
+const FREQUENCY_FRAMING="In 7 of 10 situations like today's, any showers clear before evening and the weekend looks good.";
+const BOTH_BOUNDS="Winds 15–25 mph from the northeast. Rain, if it arrives, will likely fall between noon and 6pm.";
+const CREDIBILITY_STMT="We flag this because Oahu's ground is still saturated from last week — even light rain can raise streams quickly. Not every warning means it will affect you, but it's better to know early.";
+const FORECASTER_NARRATIVE="The 37% probability reflects genuine uncertainty around an upper-level trough whose timing and intensity remain unclear. The high-pressure system northeast of the islands is slowing the trough's approach, which is why confidence is moderate rather than high. Watch for two signals that conditions are worsening: a wind shift toward the south or southwest, and rapid stream gauge rises at Kalihi or Manoa Canal — either of those would suggest the trough is deeper and closer than current models show. If neither materializes by 2pm, the probability will trend further downward.";
+const PROBABILITY_TREND="PoP is trending down from 52% this morning — models continue to weaken the trough and push shower activity east of Oahu by evening.";
+const EM_SHAREABLE="A weak upper-level trough brings a 37% chance of scattered showers this afternoon (winds 20mph NNE, waves 6ft/11s). Stream levels remain below flood stage: Kalihi 2.8ft (flood stage 8ft), Manoa Canal 1.2ft (flood stage 5ft), Waikele 3.7ft (flood stage 12ft). Given post-flood ground saturation, pre-position monitoring resources and set gauge alert thresholds at action stage. Conditions expected to improve by Saturday morning.";
 
 // ── Helpers ──
 function popColor(p){
@@ -532,20 +536,26 @@ function render(){
     return`<div class="cond-pill"><div class="cp-icon">${icon}</div><div class="cp-label">${label}</div><div class="cp-val ${cls}">${val}</div></div>`;
   }
   const uvVal=envData.uv!=null?envData.uv:null;
+  const uvWord=uvVal==null?'—':uvVal<=2?'Low':uvVal<=5?'Moderate':uvVal<=7?'High':'Very High';
   const uvCls=uvVal==null?'':uvVal<=2?'cv-good':uvVal<=5?'cv-mod':'cv-high';
-  const uvTxt=uvVal!=null?(uvVal<=2?`${uvVal} Low`:uvVal<=5?`${uvVal} Mod`:uvVal<=7?`${uvVal} High`:`${uvVal} V.High`):'—';
-  const aqiCls=envData.aqi==null?'':envData.aqi<=50?'cv-good':envData.aqi<=100?'cv-mod':'cv-high';
-  const windTxt=envData.windMph?`${envData.windMph}mph`:periods[0]?.windSpeed||'—';
+  const aqiVal=envData.aqi;
+  const aqiWord=aqiVal==null?'—':aqiVal<=50?'Good':aqiVal<=100?'Moderate':'Unhealthy';
+  const aqiCls=aqiVal==null?'':aqiVal<=50?'cv-good':aqiVal<=100?'cv-mod':'cv-high';
+  const windMph=parseFloat(envData.windMph||0);
+  const windWord=windMph<10?'Calm':windMph<20?'Breezy':windMph<30?'Windy':'Strong winds';
   const windDir=envData.windDir||'';
-  const waveTxt=envData.wavesFt?`${envData.wavesFt}ft`:'—';
-  const waveCls=envData.wavesFt?(parseFloat(envData.wavesFt)<2?'cv-good':parseFloat(envData.wavesFt)<5?'cv-mod':'cv-high'):'';
+  const wavesFt=parseFloat(envData.wavesFt||0);
+  const waveWord=wavesFt<2?'Calm':wavesFt<5?'Moderate':wavesFt<10?'Rough':'Dangerous';
+  const waveCls=wavesFt<2?'cv-good':wavesFt<5?'cv-mod':'cv-high';
+  const visib=parseInt(envData.visibMi||99);
+  const visibWord=visib>=10?'Clear':visib>=5?'Good':visib>=2?'Reduced':'Poor';
   const condStrip=`
     ${cpill('🌡','Feels Like',envData.feelsF?`${envData.feelsF}°F`:`${periods[0]?.temperature||'—'}°F`,'')}
-    ${cpill('💨','Wind',windDir?`${windTxt} ${windDir}`:windTxt,'')}
-    ${cpill('☀️','UV',uvTxt,uvCls)}
-    ${cpill('🌫','AQI',envData.aqi!=null?`${envData.aqi}`:'—',aqiCls)}
-    ${cpill('🌊','Waves',waveTxt,waveCls)}
-    ${cpill('👁','Visibility',envData.visibMi?`${envData.visibMi}mi`:'—','')}
+    ${cpill('💨','Wind',`${windWord}${windDir?' ('+windDir+')':''}`,'')}
+    ${cpill('☀️','UV Index',uvWord,uvCls)}
+    ${cpill('🌫','Air Quality',aqiWord,aqiCls)}
+    ${cpill('🌊','Ocean Surf',`${waveWord}${envData.wavesFt?' · '+envData.wavesFt+'ft':''}`,waveCls)}
+    ${cpill('👁','Visibility',visibWord,'')}
   `;
 
   // Timeline (8hr)
@@ -673,8 +683,12 @@ function render(){
         <span>Updated ${new Date().toLocaleTimeString()}</span>·
         <span class="nim-tag">AI · Llama 3.3</span>
       </div>
-      <div class="sit-public">${PUBLIC_SUMMARY}</div>
-      <div class="sit-context">📍 <strong>Post-flood context:</strong> Last week's flooding was one of Oahu's worst in 20 years. Saturated ground means even moderate rain can cause rapid stream rises and road flooding.</div>
+      <div class="sit-public">${PUBLIC_IMPACT}</div>
+      <div style="font-size:13px;color:#4b5563;margin-top:8px;line-height:1.6;">
+        📊 ${FREQUENCY_FRAMING}<br>
+        💨 ${BOTH_BOUNDS}
+      </div>
+      <div class="sit-context">⚠️ <strong>Post-flood context:</strong> ${CREDIBILITY_STMT}</div>
     </div>
 
     <div class="cond-strip">${condStrip}</div>
@@ -707,9 +721,12 @@ function render(){
       <div class="em-panel" id="emPanel">
         <div class="emp-section">
           <div class="emp-label">⚡ AI Situation Analysis <span class="nim-badge">Llama 3.3 · NVIDIA NIM</span></div>
-          <div class="ai-summary">${EM_ANALYTICAL}</div>
+          <div class="ai-summary" style="margin-bottom:10px;">${FORECASTER_NARRATIVE}</div>
+          <div style="background:rgba(79,195,247,.08);border:1px solid rgba(79,195,247,.2);border-radius:6px;padding:9px 12px;font-size:12px;color:var(--text);margin-bottom:10px;">
+            📈 <strong>Probability trend:</strong> ${PROBABILITY_TREND}
+          </div>
           <div class="shareable-box">
-            <div class="share-label">📤 Ready-to-share briefing</div>
+            <div class="share-label">📤 Ready to forward to agencies &amp; constituents</div>
             <div class="share-text">${EM_SHAREABLE}</div>
             <button class="share-btn" onclick="navigator.clipboard?.writeText(document.querySelector('.share-text').textContent).then(()=>alert('Copied to clipboard!'))">Copy for distribution</button>
           </div>
