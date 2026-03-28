@@ -367,6 +367,12 @@ const PROBABILITY_TREND="PoP is trending down from 52% this morning — models c
 const EM_SHAREABLE="A weak upper-level trough brings a 37% chance of scattered showers this afternoon (winds 20mph NNE, waves 6ft/11s). Stream levels remain below flood stage: Kalihi 2.8ft (flood stage 8ft), Manoa Canal 1.2ft (flood stage 5ft), Waikele 3.7ft (flood stage 12ft). Given post-flood ground saturation, pre-position monitoring resources and set gauge alert thresholds at action stage. Conditions expected to improve by Saturday morning.";
 
 // ── Helpers ──
+function popBadge(p){
+  if(p>=60)return['high','High Risk'];
+  if(p>=30)return['mod','Moderate Risk'];
+  if(p>=10)return['low','Low Risk'];
+  return['none','Clear'];
+}
 function popColor(p){
   if(p>=60)return{fill:'#e52207',op:.22};
   if(p>=30)return{fill:'#f5a623',op:.18};
