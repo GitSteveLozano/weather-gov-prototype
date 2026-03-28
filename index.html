@@ -276,6 +276,53 @@ header{
 .sh-addr{font-size:10px;color:var(--muted);margin-top:1px;}
 .sh-cap{font-size:10px;color:var(--muted);margin-top:2px;}
 
+/* Action deadline card */
+.act-deadline{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:13px 15px;margin-bottom:8px;}
+.act-deadline.ad-urgent{border-color:rgba(229,34,7,.4);background:rgba(229,34,7,.06);}
+.act-deadline.ad-soon{border-color:rgba(245,166,35,.4);background:rgba(245,166,35,.06);}
+.ad-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.ad-action{font-size:12px;font-weight:700;color:var(--text);}
+.ad-timer{font-size:18px;font-weight:800;font-variant-numeric:tabular-nums;}
+.ad-timer.at-urgent{color:#ef5350;}
+.ad-timer.at-soon{color:#f5a623;}
+.ad-timer.at-ok{color:#4fc3f7;}
+.ad-sub{font-size:10px;color:var(--muted);line-height:1.4;}
+
+/* Wahiawa Reservoir */
+.reservoir-card{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:13px 15px;}
+.reservoir-card.rc-watch{border-color:rgba(245,166,35,.5);background:rgba(245,166,35,.06);}
+.reservoir-card.rc-warning{border-color:rgba(229,34,7,.5);background:rgba(229,34,7,.08);}
+.rc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.rc-name{font-size:12px;font-weight:700;color:var(--text);}
+.rc-badge{font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;text-transform:uppercase;}
+.rc-ok .rc-badge{background:rgba(79,195,247,.15);color:#4fc3f7;}
+.rc-watch .rc-badge{background:rgba(245,166,35,.2);color:#f5a623;}
+.rc-warning .rc-badge{background:rgba(229,34,7,.2);color:#ef5350;}
+.rc-levels{display:flex;gap:12px;margin-bottom:8px;}
+.rc-lv{text-align:center;}
+.rc-lv-val{font-size:18px;font-weight:800;color:var(--text);}
+.rc-lv-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;}
+.rc-bar-wrap{position:relative;height:8px;background:#30363d;border-radius:4px;overflow:visible;margin-bottom:4px;}
+.rc-bar-fill{height:100%;border-radius:4px;transition:width .5s;}
+.rc-threshold{position:absolute;top:-3px;width:2px;height:14px;border-radius:1px;}
+
+/* Radar status */
+.radar-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(48,54,61,.5);}
+.radar-row:last-child{border:none;}
+.radar-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.rd-online{background:#4caf50;}
+.rd-offline{background:#ef5350;animation:pulse 1.5s infinite;}
+.rd-unknown{background:#888;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+
+/* Checklist */
+.checklist-item{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(48,54,61,.4);}
+.checklist-item:last-child{border:none;}
+.cl-cb{width:16px;height:16px;border-radius:3px;border:2px solid var(--border);background:transparent;cursor:pointer;flex-shrink:0;appearance:none;-webkit-appearance:none;}
+.cl-cb:checked{background:#4fc3f7;border-color:#4fc3f7;}
+.cl-label{font-size:12px;color:var(--text);cursor:pointer;}
+.cl-cb:checked+.cl-label{color:var(--muted);text-decoration:line-through;}
+
 /* Road risk */
 .road-item{display:flex;align-items:center;gap:9px;background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:9px 12px;margin-bottom:6px;}
 .road-item:last-child{margin:0;}
@@ -393,8 +440,19 @@ const ZONE_VAR={HIZ006:4,HIZ007:6,HIZ009:10,HIZ010:-6,HIZ011:2,HIZ012:8,HIZ013:-
 const GAUGE_SITES=[
   {id:'16247100',name:'Manoa-Palolo Canal',short:'Manoa Canal',lat:21.295,lon:-157.826,flood:5.0,action:3.5},
   {id:'16229000',name:'Kalihi Stream',short:'Kalihi Stream',lat:21.37,lon:-157.875,flood:8.0,action:5.5},
-  {id:'16213000',name:'Waikele Stream',short:'Waikele Stream',lat:21.385,lon:-158.01,flood:12.0,action:8.0}
+  {id:'16213000',name:'Waikele Stream',short:'Waikele Stream',lat:21.385,lon:-158.01,flood:12.0,action:8.0},
+  {id:'16068500',name:'Kaukonahua Stream',short:'Kaukonahua',lat:21.538,lon:-158.03,flood:28.0,action:20.0}
 ];
+
+// Wahiawa Reservoir — standalone critical infrastructure gauge
+const WAHIAWA_RESERVOIR={
+  id:'16210000',
+  name:'Wahiawa Reservoir',
+  prepare:82.8,   // ft — prepare-to-evacuate threshold (hit March 2026)
+  critical:90.0,  // ft — critical failure threshold
+  level:null,
+  levelTime:null
+};
 
 // AI-generated content (NVIDIA NIM Llama 3.3 — generated 2026-03-28 from live NWS data)
 const PUBLIC_IMPACT="Scattered showers possible this afternoon, mostly clearing by evening. Streets near Kalihi Stream and Manoa Canal may see brief pooling — avoid driving through standing water, even if it looks shallow.";
@@ -604,6 +662,52 @@ async function loadHazards(){
     else if(humidity<40&&windMph>15){fireStatus='advisory';fireDetail=`Dry conditions (${humidity}% RH) — monitor fire weather`;}
     else{fireDetail=`Humidity: ${humidity}% · Wind: ${windMph}mph — Low fire risk`;}
     hazards.fire={status:fireStatus,detail:fireDetail};
+
+    // 6a. Wahiawa Reservoir — critical infrastructure (Dole-owned, 4 state deficiencies since 2009)
+    try{
+      const wahR=await fetch(`https://waterservices.usgs.gov/nwis/iv/?format=json&sites=${WAHIAWA_RESERVOIR.id}&parameterCd=00065&siteStatus=active`);
+      const wahD=await wahR.json();
+      const wahTs=wahD.value.timeSeries;
+      if(wahTs&&wahTs.length){
+        const v=wahTs[0].values[0].value;
+        if(v&&v.length){
+          WAHIAWA_RESERVOIR.level=parseFloat(v[v.length-1].value);
+          WAHIAWA_RESERVOIR.levelTime=v[v.length-1].dateTime;
+        }
+      }
+    }catch(e){console.warn('Wahiawa gauge error:',e);}
+
+    // 6b. Radar status — PHMO (Molokai), PHKI (Kauai), PHKM (Maui)
+    try{
+      const radarR=await fetch('https://api.weather.gov/radar/stations');
+      const radarD=await radarR.json();
+      const stations=radarD.features||[];
+      hazards.radar={};
+      ['PHMO','PHKI','PHKM'].forEach(id=>{
+        const st=stations.find(s=>s.properties.stationIdentifier===id);
+        if(st){
+          const op=st.properties.rda?.operabilityStatus||st.properties.operationalStatus||'unknown';
+          const online=op.toLowerCase().includes('online')||op.toLowerCase().includes('operate');
+          hazards.radar[id]={
+            name:st.properties.name,
+            status:online?'ok':'warning',
+            detail:online?`${id} operational`:`${id} ${op} — forecast coverage degraded`
+          };
+        }
+      });
+    }catch(e){console.warn('radar status error:',e);}
+
+    // 6c. Red Flag / Fire Weather alerts
+    try{
+      const ffR=await fetch('https://api.weather.gov/alerts/active?area=HI&event=Red+Flag+Warning,Fire+Weather+Watch');
+      const ffD=await ffR.json();
+      const ffAlerts=ffD.features||[];
+      hazards.fireWeather={
+        alerts:ffAlerts,
+        status:ffAlerts.length?(ffAlerts[0].properties.event.includes('Warning')?'warning':'watch'):'ok',
+        detail:ffAlerts.length?ffAlerts[0].properties.headline?.slice(0,80)||ffAlerts[0].properties.event:null
+      };
+    }catch(e){console.warn('fire weather alert error:',e);}
 
     // 6. Vog — AQI proxy + wind direction context
     const aqiVal=envData.aqi||0;
@@ -900,6 +1004,11 @@ function render(){
       </div>
 
       <div class="em-panel" id="emPanel">
+        ${renderActionDeadlines()}
+        ${renderRadarStatus()}
+        ${renderWahiawaReservoir()}
+        ${renderChecklist()}
+
         <div class="emp-section">
           <div class="emp-label">⚡ AI Situation Analysis <span class="nim-badge">Llama 3.3 · NVIDIA NIM</span></div>
           <div class="ai-summary" style="margin-bottom:10px;">${FORECASTER_NARRATIVE}</div>
@@ -966,6 +1075,153 @@ function render(){
       </div>
     </div>
   `;
+}
+
+function renderActionDeadlines(){
+  const now=Date.now();
+  const deadlines=[];
+
+  // For each gauge: estimate time to action stage based on current level and rise rate
+  GAUGE_SITES.forEach(g=>{
+    if(g.level==null) return;
+    const pctToAction=g.level/g.action;
+    // If within 75% of action stage, calculate deadline
+    if(pctToAction>=0.6){
+      const gap=g.action-g.level;
+      const riseRate=0.3; // ft/hr conservative estimate (elevated after recent rain)
+      const hrsToAction=gap>0?gap/riseRate:0;
+      const minsToAction=Math.round(hrsToAction*60);
+      // Latest safe action = threshold minus 45min pre-positioning lead
+      const actDeadlineMins=Math.max(0,minsToAction-45);
+      const urgent=actDeadlineMins<60;
+      const soon=actDeadlineMins<180;
+      const timerClass=urgent?'at-urgent':soon?'at-soon':'at-ok';
+      const cardClass=urgent?'ad-urgent':soon?'ad-soon':'';
+      const h=Math.floor(actDeadlineMins/60),m=actDeadlineMins%60;
+      const deadline=new Date(now+actDeadlineMins*60000);
+      const deadlineStr=deadline.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true});
+      deadlines.push(`<div class="act-deadline ${cardClass}">
+        <div class="ad-top">
+          <span class="ad-action">Pre-position for ${g.short} action stage</span>
+          <span class="ad-timer ${timerClass}">${actDeadlineMins>0?`${h>0?h+'h ':''} ${m}m`:'NOW'}</span>
+        </div>
+        <div class="ad-sub">
+          ${g.short} at ${g.level.toFixed(2)}ft · Action stage ${g.action}ft · 
+          ${actDeadlineMins>0?`Act by <strong>${deadlineStr}</strong> to pre-position before threshold crossing`:'<strong style="color:#ef5350;">Act now — approaching action stage</strong>'}
+        </div>
+      </div>`);
+    }
+  });
+
+  // Wahiawa Reservoir deadline
+  if(WAHIAWA_RESERVOIR.level!=null){
+    const gap=WAHIAWA_RESERVOIR.prepare-WAHIAWA_RESERVOIR.level;
+    if(gap<15){
+      const hrsToPrep=gap>0?gap/0.5:0; // reservoirs rise slower
+      const minsToPrep=Math.max(0,Math.round(hrsToPrep*60)-60);
+      const urgent=minsToPrep<120;
+      const deadline=new Date(now+minsToPrep*60000);
+      const deadlineStr=deadline.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true});
+      const h=Math.floor(minsToPrep/60),m=minsToPrep%60;
+      deadlines.push(`<div class="act-deadline ${urgent?'ad-urgent':'ad-soon'}">
+        <div class="ad-top">
+          <span class="ad-action">🚨 Wahiawa Reservoir — prep evacuation downstream</span>
+          <span class="ad-timer ${urgent?'at-urgent':'at-soon'}">${minsToPrep>0?`${h>0?h+'h ':''} ${m}m`:'NOW'}</span>
+        </div>
+        <div class="ad-sub">
+          Level ${WAHIAWA_RESERVOIR.level.toFixed(1)}ft · Prepare-to-evacuate at ${WAHIAWA_RESERVOIR.prepare}ft · 
+          ${minsToPrep>0?`Issue Waialua/Haleiwa downstream advisory by <strong>${deadlineStr}</strong>`:'<strong style="color:#ef5350;">Issue downstream advisory immediately</strong>'}
+        </div>
+      </div>`);
+    }
+  }
+
+  if(!deadlines.length){
+    deadlines.push(`<div style="font-size:12px;color:var(--muted);padding:6px 0;">No immediate action deadlines — all gauges within normal range.</div>`);
+  }
+
+  return`<div class="emp-section">
+    <div class="emp-label">⏰ Action Deadlines <span style="font-size:9px;color:var(--muted);text-transform:none;font-weight:400;margin-left:4px;">Latest safe pre-positioning time · HURREVAC model</span></div>
+    ${deadlines.join('')}
+  </div>`;
+}
+
+function renderWahiawaReservoir(){
+  const r=WAHIAWA_RESERVOIR;
+  if(r.level==null) return`<div class="emp-section"><div class="emp-label">💧 Wahiawa Reservoir</div><div style="font-size:12px;color:var(--muted);">Level data unavailable</div></div>`;
+  const pctPrepare=Math.min(100,(r.level/r.prepare)*100);
+  const pctCritical=Math.min(100,(r.level/r.critical)*100);
+  const status=r.level>=r.prepare?'warning':r.level>=(r.prepare-8)?'watch':'ok';
+  const preparePos=Math.min(98,(r.prepare/r.critical)*100);
+  const barColor=status==='warning'?'#ef5350':status==='watch'?'#f5a623':'#4fc3f7';
+  const upd=r.levelTime?new Date(r.levelTime).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true}):'—';
+  return`<div class="emp-section">
+    <div class="emp-label">🏔 Wahiawa Reservoir <span style="font-size:9px;color:var(--muted);text-transform:none;font-weight:400;margin-left:4px;">USGS 16210000 · Dole-owned · 4 state deficiency notices</span></div>
+    <div class="reservoir-card rc-${status}">
+      <div class="rc-top">
+        <span class="rc-name">Wahiawa Reservoir at Spillway</span>
+        <span class="rc-badge">${status==='warning'?'⚠️ Near Threshold':status==='watch'?'Watch':'Normal'}</span>
+      </div>
+      <div class="rc-levels">
+        <div class="rc-lv"><div class="rc-lv-val" style="color:${barColor}">${r.level.toFixed(1)}</div><div class="rc-lv-lbl">Current (ft)</div></div>
+        <div class="rc-lv"><div class="rc-lv-val">${r.prepare}</div><div class="rc-lv-lbl">Prep-Evac</div></div>
+        <div class="rc-lv"><div class="rc-lv-val" style="color:#ef5350">${r.critical}</div><div class="rc-lv-lbl">Critical</div></div>
+        <div class="rc-lv"><div class="rc-lv-val" style="color:var(--muted);font-size:12px">${upd}</div><div class="rc-lv-lbl">Updated</div></div>
+      </div>
+      <div class="rc-bar-wrap">
+        <div class="rc-bar-fill" style="width:${pctCritical.toFixed(1)}%;background:${barColor};"></div>
+        <div class="rc-threshold" style="left:${preparePos.toFixed(1)}%;background:#f5a623;" title="Prepare-to-Evacuate: ${r.prepare}ft"></div>
+      </div>
+      <div style="font-size:10px;color:var(--muted);margin-top:4px;">Downstream risk: Waialua · Haleiwa · North Shore · ${r.level>=(r.prepare-5)?'<span style="color:#f5a623;font-weight:700;">Monitor closely</span>':'Low current risk'}</div>
+    </div>
+  </div>`;
+}
+
+function renderRadarStatus(){
+  if(!hazards.radar||!Object.keys(hazards.radar).length){
+    return`<div class="emp-section"><div class="emp-label">📡 Radar Network</div><div style="font-size:12px;color:var(--muted);">Radar status loading…</div></div>`;
+  }
+  const rows=Object.entries(hazards.radar).map(([id,r])=>{
+    const online=r.status==='ok';
+    return`<div class="radar-row">
+      <div class="radar-dot ${online?'rd-online':'rd-offline'}"></div>
+      <div style="flex:1;">
+        <span style="font-size:12px;font-weight:700;color:var(--text);">${id}</span>
+        <span style="font-size:11px;color:var(--muted);margin-left:6px;">${r.name||''}</span>
+      </div>
+      <div style="font-size:10px;font-weight:700;color:${online?'#4caf50':'#ef5350'};">${online?'ONLINE':'⚠️ OFFLINE'}</div>
+    </div>`;
+  }).join('');
+  const anyOffline=Object.values(hazards.radar).some(r=>r.status!=='ok');
+  return`<div class="emp-section">
+    <div class="emp-label">📡 Radar Network Status ${anyOffline?'<span style="background:rgba(229,34,7,.2);color:#ef5350;padding:1px 6px;border-radius:3px;font-size:9px;margin-left:4px;">DEGRADED</span>':''}</div>
+    ${anyOffline?`<div style="background:rgba(229,34,7,.08);border:1px solid rgba(229,34,7,.3);border-radius:6px;padding:9px 12px;font-size:12px;color:#ef5350;margin-bottom:10px;line-height:1.5;">⚠️ Radar coverage gap detected. NWS forecast accuracy may be degraded. Verify conditions against USGS stream gauges and field reports.</div>`:''}
+    ${rows}
+  </div>`;
+}
+
+function renderChecklist(){
+  const items=[
+    {id:'cl_shelter',label:'Shelter standby team notified'},
+    {id:'cl_gauges',label:'Stream gauge alerts armed (15-min interval)'},
+    {id:'cl_dot',label:'HDOT briefed on flood-prone road status'},
+    {id:'cl_field',label:'Field teams staged / search-rescue on standby'},
+    {id:'cl_advisory',label:'Public advisory issued (HNL Alert + WEA)'},
+    {id:'cl_nws',label:'NWS forecaster briefing received'},
+  ];
+  const saved=JSON.parse(localStorage.getItem('em_checklist')||'{}');
+  const rows=items.map(it=>`
+    <div class="checklist-item">
+      <input type="checkbox" class="cl-cb" id="${it.id}" ${saved[it.id]?'checked':''} onchange="saveChecklist('${it.id}',this.checked)">
+      <label class="cl-label" for="${it.id}">${it.label}</label>
+    </div>`).join('');
+  const checked=items.filter(it=>saved[it.id]).length;
+  return`<div class="emp-section">
+    <div class="emp-label">✅ Pre-Event Checklist <span style="font-size:9px;color:var(--muted);text-transform:none;font-weight:400;margin-left:4px;">${checked}/${items.length} complete · Saved locally</span>
+      <button onclick="clearChecklist()" style="margin-left:auto;background:none;border:none;color:var(--muted);font-size:10px;cursor:pointer;">Reset</button>
+    </div>
+    ${rows}
+  </div>`;
 }
 
 function renderLifelines(){
@@ -1114,7 +1370,10 @@ function renderHazardGrid(){
     hCard('eq','⚡','Earthquake',h.earthquake?.status||'ok',h.earthquake?.detail||'—','https://earthquake.usgs.gov/earthquakes/map/?extent=18,-162&extent=23,-154'),
     hCard('tropical','🌀','Hurricane/Tropical',h.tropical?.status||'ok',h.tropical?.detail||`${h.tropical?.inSeason?'Hurricane season active':'Off season'} · No threats`),
     hCard('vog','🌫','Vog / Air Quality',h.vog?.status||'ok',h.vog?.detail||'—','https://www.ivhhn.org/vog'),
-    hCard('fire','🔥','Fire Risk',h.fire?.status||'ok',h.fire?.detail||'—'),
+    hCard('fire','🔥','Fire / Red Flag',
+      h.fireWeather?.status||h.fire?.status||'ok',
+      h.fireWeather?.detail||h.fire?.detail||'—',
+      'https://www.weather.gov/hfo/'),
   ];
 
   return`<div style="padding:10px 18px 4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#888;">Hawaii Hazard Status</div>
@@ -1198,6 +1457,17 @@ function toggleEM(){
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap contributors',maxZoom:18}).addTo(map);
   }
   setTimeout(()=>map?.invalidateSize(),50);
+}
+
+function saveChecklist(id,val){
+  const saved=JSON.parse(localStorage.getItem('em_checklist')||'{}');
+  saved[id]=val;
+  localStorage.setItem('em_checklist',JSON.stringify(saved));
+  // re-render just the label text — find the label and toggle strikethrough
+}
+function clearChecklist(){
+  localStorage.removeItem('em_checklist');
+  render();
 }
 
 function toggleDetail(){
