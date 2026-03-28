@@ -75,13 +75,13 @@ header{
 .cond-strip::-webkit-scrollbar{display:none;}
 .cond-pill{
   flex-shrink:0;display:flex;flex-direction:column;align-items:center;
-  padding:10px 14px;gap:3px;border-right:1px solid #f0f0f0;
-  min-width:80px;cursor:default;
+  padding:10px 16px;gap:4px;border-right:1px solid #f0f0f0;
+  min-width:90px;cursor:default;
 }
 .cond-pill:last-child{border-right:none;}
-.cp-icon{font-size:18px;}
-.cp-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#888;}
-.cp-val{font-size:12px;font-weight:700;text-align:center;line-height:1.2;}
+.cp-icon{font-size:20px;}
+.cp-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#888;}
+.cp-val{font-size:13px;font-weight:700;text-align:center;line-height:1.3;color:#1b1b1b;}
 .cv-good{color:#1a9850;} .cv-mod{color:#b45309;} .cv-high{color:#c62800;}
 
 /* ─── TIMELINE ─── */
@@ -316,10 +316,10 @@ const EM_SHAREABLE="A weak upper-level trough brings a 37% chance of scattered s
 
 // ── Helpers ──
 function popColor(p){
-  if(p>=60)return{fill:'#e52207',op:.32};
-  if(p>=30)return{fill:'#f5a623',op:.28};
-  if(p>=10)return{fill:'#4fc3f7',op:.24};
-  return{fill:'#1a9850',op:.16};
+  if(p>=60)return{fill:'#e52207',op:.22};
+  if(p>=30)return{fill:'#f5a623',op:.18};
+  if(p>=10)return{fill:'#4fc3f7',op:.15};
+  return{fill:'#1a9850',op:.10};
 }
 function barCol(p){return p>=60?'#e52207':p>=30?'#f5a623':p>=10?'#4fc3f7':'#aaa';}
 function segStyle(p){
@@ -829,14 +829,18 @@ function drawEQMarkers(){
   feats.forEach(f=>{
     const p=f.properties;
     const geo=f.geometry.coordinates;
+    // Only show earthquakes that are NOT near Oahu (keep Big Island cluster, skip anything within 50km of Oahu)
+    const lat=geo[1],lon=geo[0];
+    const nearOahu=lat>21.0&&lat<22.0&&lon>-158.5&&lon<-157.5;
+    if(nearOahu) return;
     const mag=p.mag;
     const r=Math.max(4,mag*3);
     const col=mag>=5?'#e52207':mag>=4?'#f5a623':'#fbbf24';
     const t=new Date(p.time).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit',hour12:true});
-    L.circleMarker([geo[1],geo[0]],{
-      radius:r,fillColor:col,fillOpacity:.7,
-      color:'#fff',weight:1.5,opacity:.9
-    }).bindTooltip(`<b>M${mag} Earthquake</b><br>${p.place}<br>${t}`,{sticky:true})
+    L.circleMarker([lat,lon],{
+      radius:r,fillColor:col,fillOpacity:.75,
+      color:'rgba(0,0,0,0.3)',weight:1,opacity:1
+    }).bindTooltip(`<b>⚡ M${mag} Earthquake</b><br>${p.place}<br>${t}`,{sticky:true})
       .addTo(eqLyr);
   });
   // Earthquake markers always on (they're on Big Island, not cluttering Oahu)
@@ -869,8 +873,18 @@ function showSegDetail(i){
 function toggleEM(){
   const panel=document.getElementById('emPanel');
   const chevron=document.getElementById('emChevron');
+  const isOpening=!panel.classList.contains('open');
   panel.classList.toggle('open');
   chevron.classList.toggle('open');
+  // Auto-switch map tiles
+  if(isOpening){
+    map?.eachLayer(l=>{if(l._url?.includes('openstreetmap'))map.removeLayer(l);});
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{attribution:'© CARTO © OpenStreetMap',maxZoom:19}).addTo(map);
+  } else {
+    map?.eachLayer(l=>{if(l._url?.includes('carto'))map.removeLayer(l);});
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap contributors',maxZoom:18}).addTo(map);
+  }
+  setTimeout(()=>map?.invalidateSize(),50);
 }
 
 function toggleBW(){
