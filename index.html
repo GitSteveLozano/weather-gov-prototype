@@ -699,9 +699,14 @@ function render(){
       <div class="tl-detail" id="tlDetail"></div>
     </div>
 
-    <div class="gauges-section">
-      <div class="gauges-label">💧 Stream Gauges · Live <span class="gauges-status">${gaugeStatus}</span></div>
-      ${gaugeRows}
+    <div style="margin:0 12px 12px;background:#fffbeb;border-left:3px solid #f5a623;border-radius:0 6px 6px 0;padding:10px 13px;font-size:13px;color:#92400e;line-height:1.5;">
+      💧 ${(()=>{
+        const rising=GAUGE_SITES.filter(g=>g.level>=g.action);
+        const elevated=GAUGE_SITES.filter(g=>g.level>0&&g.level<g.action&&g.level/(g.flood)>0.3);
+        if(rising.length) return `<strong>${rising.map(g=>g.short).join(' and ')} ${rising.length>1?'are':'is'} approaching action stage</strong> — avoid roads near ${rising.length>1?'these streams':'this stream'} corridor.`;
+        if(elevated.length) return `Streams across Oahu are still elevated from last week's flooding — they will respond faster than normal to any new rain today.`;
+        return `Stream levels are within normal range. Continue standard monitoring.`;
+      })()}
     </div>
 
     ${renderHazardGrid()}
