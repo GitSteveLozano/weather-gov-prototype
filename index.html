@@ -570,6 +570,13 @@ function render(){
   const{city,state,periods,hourly,pop,qpf,wind,alerts}=wd;
   const pops=periods.map(p=>p.probabilityOfPrecipitation?.value||0);
   const maxPop=pops.length?Math.max(...pops):0;
+  const[rk]=popBadge(maxPop);
+  const imp={
+    none:{icon:'☀️',msg:'No rain expected. Clear skies across Oahu.'},
+    low:{icon:'🌤',msg:'Light rain possible but unlikely to affect your day.'},
+    mod:{icon:'🌦',msg:'Rain likely this afternoon. Roads near streams may be slippery.'},
+    high:{icon:'⛈',msg:'Significant rain expected. Flooding possible near streams and low-lying areas.'}
+  }[rk]||{icon:'☀️',msg:'Conditions look clear.'};
 
   // Hazard bar
   let hazardHtml='';
