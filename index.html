@@ -733,6 +733,24 @@ function render(){
         </div>
 
         <div class="emp-section">
+          <div class="emp-label">🔭 Operational Conditions</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            ${[
+              ['💨','Wind (Range)', envData.windMph&&envData.gustMph?`${Math.max(5,Math.round(envData.windMph)-8)}–${envData.gustMph}mph`:`${envData.windMph||'—'}mph`, `${envData.windDir||''} · Gusts to ${envData.gustMph||'—'}mph`],
+              ['🌊','Waves / Surf', envData.wavesFt?`${envData.wavesFt}ft`:'—', envData.wavePeriod?`${envData.wavePeriod}s period · ${envData.waveDir||''}`:'' ],
+              ['👁','Visibility', envData.visibMi?`${envData.visibMi}mi`:'—', parseInt(envData.visibMi||99)<5?'⚠️ Reduced — ops impact':'Roads & aviation clear'],
+              ['🌫','AQI / Air', envData.aqi!=null?`${envData.aqi} (${envData.aqi<=50?'Good':envData.aqi<=100?'Moderate':'Unhealthy'})`:'—', envData.pm25?`PM2.5: ${envData.pm25} µg/m³`:''],
+              ['💧','Humidity', envData.humidity?`${envData.humidity}%`:'—', envData.feelsF?`Feels like ${envData.feelsF}°F`:''],
+              ['⚡','Lightning', maxPop>=40?'Possible':'Low', maxPop>=40?'Monitor outdoor workers & aircraft':'No significant threat']
+            ].map(([icon,label,val,sub])=>`<div style="background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:9px 11px;">
+              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:3px;">${icon} ${label}</div>
+              <div style="font-size:15px;font-weight:800;color:var(--text);">${val}</div>
+              ${sub?`<div style="font-size:10px;color:var(--muted);margin-top:2px;">${sub}</div>`:''}
+            </div>`).join('')}
+          </div>
+        </div>
+
+        <div class="emp-section">
           <div class="emp-label">⏱ Decision Window</div>
           <div class="dc-grid">${dcHtml}</div>
         </div>
