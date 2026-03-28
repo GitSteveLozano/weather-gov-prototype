@@ -472,6 +472,7 @@ function expandSeries(vals) {
 }
 
 async function fetchWeather() {
+  console.log('fetchWeather: starting...');
   // Note: User-Agent is a forbidden header in browsers, omit it
   const [ptRes, alertRes] = await Promise.all([
     fetch(`https://api.weather.gov/points/${LAT},${LON}`),
@@ -523,19 +524,26 @@ async function fetchWeather() {
 }
 
 function render() {
-  renderPublic();
-  renderPro();
+  try { renderPublic(); } catch(e) {
+    console.error('renderPublic error:', e);
+    document.getElementById('sidebarPublic').innerHTML = `<div class="loading-state">⚠️ Render error: ${e.message}</div>`;
+  }
+  try { renderPro(); } catch(e) {
+    console.error('renderPro error:', e);
+    document.getElementById('sidebarPro').innerHTML = `<div class="loading-state">⚠️ Render error: ${e.message}</div>`;
+  }
 }
 
 function renderPublic() {
   const { city, state, periods, hourlyPeriods, popSeries, alerts } = weatherData;
   const now = new Date();
-  const maxPop = Math.max(...(periods.map(p=>p.probabilityOfPrecipitation?.value||0)));
+  const popValues = periods.map(p=>p.probabilityOfPrecipitation?.value||0);
+  const maxPop = popValues.length ? Math.max(...popValues) : 0;
   const [riskKey] = popToBadge(maxPop);
 
   const impactMsg = {
     dry: { icon:'☀️', msg:`Clear conditions expected. No weather hazards in the forecast.`, sub:'Good time to be outdoors.' },
-    low: { icon:'🌤', msg:`Light rain possible. Not enough to disrupt daily plans for most people.`, sub:'An umbrella wouldn't hurt.' },
+    low: { icon:'🌤', msg:`Light rain possible. Not enough to disrupt daily plans for most people.`, sub:'An umbrella would not hurt.' },
     moderate: { icon:'🌧', msg:`Rain is likely today. Expect wet roads and reduced visibility at times.`, sub:'Avoid unnecessary travel if flooding is common in your area.' },
     high: { icon:'⛈', msg:`Significant rain expected. Flooding is possible in low-lying areas and near streams.`, sub:'Stay informed. Move valuables off the ground if you live near flood-prone areas.' },
     extreme: { icon:'🚨', msg:`Dangerous flooding conditions. Take immediate protective action.`, sub:'Do not attempt to cross flooded roads.' }
@@ -813,7 +821,9 @@ window.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => map.invalidateSize(), 200);
 
   fetchWeather().catch(e => {
-    document.getElementById('sidebarPublic').innerHTML = `<div class="loading-state">⚠️ Failed to load: ${e.message}</div>`;
+    const msg = e.message || String(e);
+    document.getElementById('sidebarPublic').innerHTML = `<div class="loading-state">⚠️ Error: ${msg}<br><small style="color:#aaa">Check console for details</small></div>`;
+    document.getElementById('sidebarPro').innerHTML = `<div class="loading-state">⚠️ Error: ${msg}</div>`;
     console.error('Weather fetch error:', e);
   });
 });
