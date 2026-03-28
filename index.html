@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>weather.gov — Probabilistic Display Prototype</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  :root {
+    --blue: #0050d8;
+    --blue-light: #d9e8fb;
+    --green: #00a91c;
+    --yellow: #f5a623;
+    --orange: #e66000;
+    --red: #e52207;
+    --gray-light: #f0f0f0;
+    --gray: #757575;
+    --dark: #1b1b1b;
+    --white: #ffffff;
+  }
+
+  body {
+    font-family: 'Source Sans Pro', 'Public Sans', system-ui, sans-serif;
+    background: #f0f4f8;
+    color: var(--dark);
+    min-height: 100vh;
+  }
+
+  header {
+    background: var(--blue);
+    color: white;
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .logo { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
+  .logo span { font-weight: 300; }
+
+  .mode-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 24px;
+    padding: 4px 6px;
+  }
+
+  .mode-btn {
+    padding: 6px 16px;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+
+  .mode-btn.active {
+    background: white;
+    color: var(--blue);
+  }
+
+  .mode-btn:not(.active) {
+    background: transparent;
+    color: white;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 24px 16px;
+  }
+
+  .location-bar {
+    background: white;
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+
+  .location-name { font-size: 22px; font-weight: 700; }
+  .location-sub { font-size: 14px; color: var(--gray); margin-top: 2px; }
+
+  .last-updated { font-size: 12px; color: var(--gray); }
+
+  /* PUBLIC VIEW */
+  .public-view { display: block; }
+  .pro-view { display: none; }
+
+  .mode-pro .public-view { display: none; }
+  .mode-pro .pro-view { display: block; }
+
+  /* Condition card */
+  .condition-card {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+
+  .condition-card h2 {
+    font-size: 16px;
+    color: var(--gray);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+  }
+
+  /* Risk indicator */
+  .risk-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+
+  .risk-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 15px;
+  }
+
+  .risk-low { background: #e8f5e9; color: #1b5e20; }
+  .risk-moderate { background: #fff8e1; color: #e65100; }
+  .risk-high { background: #fce4ec; color: #880e4f; }
+  .risk-none { background: var(--gray-light); color: var(--gray); }
+
+  .risk-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .dot-low { background: var(--green); }
+  .dot-moderate { background: var(--yellow); }
+  .dot-high { background: var(--red); }
+  .dot-none { background: #ccc; }
+
+  /* Public forecast periods */
+  .forecast-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+  }
+
+  .period-card {
+    background: var(--gray-light);
+    border-radius: 8px;
+    padding: 14px;
+    border-left: 4px solid transparent;
+  }
+
+  .period-card.has-rain { border-left-color: var(--blue); }
+
+  .period-name { font-weight: 700; font-size: 15px; margin-bottom: 6px; }
+  .period-short { font-size: 14px; color: #333; margin-bottom: 8px; }
+
+  .rain-chance {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .rain-bar-wrap {
+    height: 6px;
+    background: #ddd;
+    border-radius: 3px;
+    margin-top: 4px;
+    overflow: hidden;
+  }
+
+  .rain-bar {
+    height: 100%;
+    border-radius: 3px;
+    background: var(--blue);
+  }
+
+  .plain-language {
+    font-size: 14px;
+    color: #333;
+    line-height: 1.5;
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: #e8f0fb;
+    border-radius: 6px;
+  }
+
+  /* Alert banner */
+  .alert-banner {
+    background: #fff3cd;
+    border-left: 4px solid var(--yellow);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-bottom: 16px;
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .alert-banner.watch { border-color: var(--orange); background: #fff0e6; }
+  .alert-banner.warning { border-color: var(--red); background: #fce4ec; }
+  .alert-banner.none { display: none; }
+
+  /* PRO VIEW */
+  .pro-header {
+    background: #1b2a3b;
+    color: white;
+    border-radius: 8px 8px 0 0;
+    padding: 12px 18px;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .pro-badge {
+    background: #f5a623;
+    color: #1b1b1b;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 800;
+  }
+
+  .pro-card {
+    background: white;
+    border-radius: 0 0 8px 8px;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+
+  .prob-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  .prob-table th {
+    background: #f0f4f8;
+    padding: 8px 12px;
+    text-align: left;
+    font-weight: 700;
+    color: var(--gray);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #ddd;
+  }
+
+  .prob-table td {
+    padding: 9px 12px;
+    border-bottom: 1px solid #f0f0f0;
+    vertical-align: middle;
+  }
+
+  .prob-table tr:hover td { background: #f8f9ff; }
+
+  .prob-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .prob-bar-wrap {
+    width: 80px;
+    height: 8px;
+    background: #ddd;
+    border-radius: 4px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .prob-bar {
+    height: 100%;
+    border-radius: 4px;
+  }
+
+  .prob-val { font-weight: 700; min-width: 36px; }
+
+  .conf-badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 4px;
+  }
+
+  .conf-high { background: #e8f5e9; color: #1b5e20; }
+  .conf-moderate { background: #fff8e1; color: #c62800; }
+  .conf-low { background: #fce4ec; color: #880e4f; }
+
+  .qpf-cell { font-weight: 700; color: var(--blue); }
+
+  /* Probability chart */
+  .chart-wrap {
+    margin-top: 16px;
+    overflow-x: auto;
+  }
+
+  .chart-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--gray);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+
+  .bar-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    height: 120px;
+    padding-bottom: 24px;
+    position: relative;
+  }
+
+  .bar-chart::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; bottom: 24px;
+    height: 1px;
+    background: #ddd;
+  }
+
+  .bar-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    justify-content: flex-end;
+    min-width: 32px;
+  }
+
+  .bar {
+    width: 100%;
+    background: var(--blue);
+    border-radius: 3px 3px 0 0;
+    min-height: 2px;
+    position: relative;
+    transition: all 0.3s;
+  }
+
+  .bar:hover::after {
+    content: attr(data-val);
+    position: absolute;
+    top: -22px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--dark);
+    color: white;
+    font-size: 11px;
+    padding: 2px 5px;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+
+  .bar-label {
+    font-size: 10px;
+    color: var(--gray);
+    margin-top: 4px;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .pro-note {
+    font-size: 12px;
+    color: var(--gray);
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #eee;
+  }
+
+  .wfo-tag {
+    display: inline-block;
+    background: #1b2a3b;
+    color: #7ec8e3;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: monospace;
+  }
+
+  /* Loading state */
+  .loading {
+    text-align: center;
+    padding: 40px;
+    color: var(--gray);
+    font-size: 16px;
+  }
+
+  .prototype-badge {
+    background: #fce4ec;
+    color: #880e4f;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .view-label {
+    font-size: 12px;
+    color: rgba(255,255,255,0.7);
+    margin-right: 4px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <div class="logo">weather<span>.gov</span></div>
+    <span class="prototype-badge">Prototype</span>
+  </div>
+  <div class="mode-toggle" id="modeToggle">
+    <span class="view-label">View:</span>
+    <button class="mode-btn active" id="btnPublic" onclick="setMode('public')">🌤 Public</button>
+    <button class="mode-btn" id="btnPro" onclick="setMode('pro')">📊 Emergency Manager</button>
+  </div>
+</header>
+
+<div class="container" id="app">
+  <div class="loading">Loading weather data...</div>
+</div>
+
+<script>
+const NWS_USER_AGENT = 'weather-gov-prototype-demo@tinybison.io';
+const LAT = 21.3069;
+const LON = -157.8583;
+
+let currentMode = 'public';
+let weatherData = {};
+
+function setMode(mode) {
+  currentMode = mode;
+  document.getElementById('btnPublic').className = 'mode-btn' + (mode === 'public' ? ' active' : '');
+  document.getElementById('btnPro').className = 'mode-btn' + (mode === 'pro' ? ' active' : '');
+  
+  const app = document.getElementById('app');
+  if (mode === 'pro') {
+    app.classList.add('mode-pro');
+  } else {
+    app.classList.remove('mode-pro');
+  }
+}
+
+function getPlainLanguage(pop, shortForecast) {
+  if (pop >= 70) return "High chance of rain — plan for wet conditions";
+  if (pop >= 50) return "Likely to rain — bring an umbrella";
+  if (pop >= 30) return "Rain possible — keep an eye on conditions";
+  if (pop >= 10) return "Small chance of rain — mostly good weather";
+  return "Dry conditions expected";
+}
+
+function getRiskLevel(pop) {
+  if (pop >= 70) return 'high';
+  if (pop >= 40) return 'moderate';
+  if (pop >= 10) return 'low';
+  return 'none';
+}
+
+function getRiskLabel(pop) {
+  if (pop >= 70) return '🌧 High Rain Risk';
+  if (pop >= 40) return '🌦 Moderate Rain Risk';
+  if (pop >= 10) return '🌤 Low Rain Risk';
+  return '☀️ No Rain Expected';
+}
+
+function getConfidence(pop) {
+  // Simulated confidence — in real world would come from ensemble spread
+  if (pop >= 60 || pop <= 20) return { label: 'High', cls: 'conf-high' };
+  if (pop >= 40) return { label: 'Moderate', cls: 'conf-moderate' };
+  return { label: 'Low', cls: 'conf-low' };
+}
+
+function mmToInches(mm) {
+  return (mm / 25.4).toFixed(2);
+}
+
+function formatTime(isoStr) {
+  const d = new Date(isoStr);
+  return d.toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', hour12: true });
+}
+
+function parseISO8601Duration(duration) {
+  // e.g. PT6H -> 6 hours
+  const match = duration.match(/PT(\d+)H/);
+  if (match) return parseInt(match[1]);
+  const dayMatch = duration.match(/P(\d+)D/);
+  if (dayMatch) return parseInt(dayMatch[1]) * 24;
+  return 6;
+}
+
+function expandTimeSeries(values) {
+  // Expand ISO8601 interval values to individual hourly entries
+  const result = [];
+  for (const entry of values) {
+    const [start, duration] = entry.validTime.split('/');
+    const hours = parseISO8601Duration(duration);
+    const startMs = new Date(start).getTime();
+    for (let h = 0; h < hours; h += (hours > 6 ? 6 : hours)) {
+      result.push({
+        time: new Date(startMs + h * 3600000).toISOString(),
+        value: entry.value
+      });
+    }
+  }
+  return result;
+}
+
+async function fetchWeather() {
+  try {
+    const headers = { 'User-Agent': NWS_USER_AGENT };
+    
+    // Get grid info
+    const pointRes = await fetch(`https://api.weather.gov/points/${LAT},${LON}`, { headers });
+    const pointData = await pointRes.json();
+    const props = pointData.properties;
+    
+    const office = props.cwa;
+    const gridX = props.gridX;
+    const gridY = props.gridY;
+    const city = props.relativeLocation?.properties?.city || 'Honolulu';
+    const state = props.relativeLocation?.properties?.state || 'HI';
+
+    // Fetch forecast, grid data, and alerts in parallel
+    const [forecastRes, gridRes, alertsRes] = await Promise.all([
+      fetch(props.forecast, { headers }),
+      fetch(props.forecastGridData, { headers }),
+      fetch(`https://api.weather.gov/alerts/active?point=${LAT},${LON}`, { headers })
+    ]);
+
+    const forecastData = await forecastRes.json();
+    const gridData = await gridRes.json();
+    const alertsData = await alertsRes.json();
+
+    const periods = forecastData.properties.periods.slice(0, 6);
+    const gridProps = gridData.properties;
+    
+    const popSeries = expandTimeSeries(gridProps.probabilityOfPrecipitation?.values || []);
+    const qpfSeries = expandTimeSeries(gridProps.quantitativePrecipitation?.values || []);
+    const windSeries = expandTimeSeries(gridProps.potentialOf35mphWinds?.values || []);
+    const alerts = alertsData.features || [];
+
+    weatherData = { city, state, office, gridX, gridY, periods, popSeries, qpfSeries, windSeries, alerts };
+    render();
+  } catch (err) {
+    document.getElementById('app').innerHTML = `<div class="loading">⚠️ Could not load weather data: ${err.message}</div>`;
+  }
+}
+
+function render() {
+  const { city, state, office, gridX, gridY, periods, popSeries, qpfSeries, windSeries, alerts } = weatherData;
+
+  const now = new Date();
+  const maxPop = Math.max(...periods.map(p => p.probabilityOfPrecipitation?.value || 0));
+  const riskLevel = getRiskLevel(maxPop);
+
+  // Alert banner
+  let alertHTML = '';
+  if (alerts.length > 0) {
+    const a = alerts[0].properties;
+    const cls = a.severity === 'Extreme' || a.severity === 'Severe' ? 'warning' : 'watch';
+    alertHTML = `<div class="alert-banner ${cls}">⚠️ ${a.event} — ${a.headline || a.description?.slice(0, 100)}</div>`;
+  }
+
+  // Public forecast periods
+  const periodCards = periods.map(p => {
+    const pop = p.probabilityOfPrecipitation?.value || 0;
+    const risk = getRiskLevel(pop);
+    const plain = getPlainLanguage(pop, p.shortForecast);
+    return `
+      <div class="period-card ${pop >= 20 ? 'has-rain' : ''}">
+        <div class="period-name">${p.name}</div>
+        <div class="period-short">${p.shortForecast}</div>
+        <div class="rain-chance">
+          💧 ${pop}% chance of rain
+        </div>
+        <div class="rain-bar-wrap">
+          <div class="rain-bar" style="width:${pop}%"></div>
+        </div>
+        <div class="plain-language">${plain}</div>
+      </div>`;
+  }).join('');
+
+  // Pro table — next 8 time periods from grid data
+  const proRows = popSeries.slice(0, 8).map((entry, i) => {
+    const pop = Math.round(entry.value || 0);
+    const qpf = qpfSeries[i] ? mmToInches(qpfSeries[i].value) : '0.00';
+    const wind = windSeries[i] ? Math.round(windSeries[i].value || 0) : 0;
+    const conf = getConfidence(pop);
+    const color = pop >= 70 ? '#e52207' : pop >= 40 ? '#f5a623' : pop >= 20 ? '#0050d8' : '#aaa';
+    const t = new Date(entry.time);
+    const label = t.toLocaleString('en-US', { weekday: 'short', hour: 'numeric', hour12: true });
+    return `
+      <tr>
+        <td><strong>${label}</strong></td>
+        <td>
+          <div class="prob-cell">
+            <div class="prob-bar-wrap">
+              <div class="prob-bar" style="width:${pop}%;background:${color}"></div>
+            </div>
+            <span class="prob-val" style="color:${color}">${pop}%</span>
+          </div>
+        </td>
+        <td class="qpf-cell">${qpf}"</td>
+        <td><span class="conf-badge ${conf.cls}">${conf.label}</span></td>
+        <td>${wind > 0 ? `<span style="color:${wind>50?'#e52207':'#666'}">${wind}% chance</span>` : '<span style="color:#aaa">—</span>'}</td>
+      </tr>`;
+  }).join('');
+
+  // Bar chart data for PoP
+  const chartBars = popSeries.slice(0, 12).map(entry => {
+    const pop = Math.round(entry.value || 0);
+    const t = new Date(entry.time);
+    const label = t.toLocaleString('en-US', { hour: 'numeric', hour12: true });
+    const h = Math.max(2, pop);
+    const color = pop >= 70 ? '#e52207' : pop >= 40 ? '#f5a623' : pop >= 20 ? '#0050d8' : '#ccc';
+    return `
+      <div class="bar-col">
+        <div class="bar" style="height:${h}%;background:${color}" data-val="${pop}%"></div>
+        <div class="bar-label">${label}</div>
+      </div>`;
+  }).join('');
+
+  const html = `
+    <div class="location-bar">
+      <div>
+        <div class="location-name">${city}, ${state}</div>
+        <div class="location-sub">${LAT.toFixed(4)}°N, ${Math.abs(LON).toFixed(4)}°W</div>
+      </div>
+      <div class="last-updated">Updated ${now.toLocaleTimeString()}</div>
+    </div>
+
+    ${alertHTML}
+
+    <!-- PUBLIC VIEW -->
+    <div class="public-view">
+      <div class="condition-card">
+        <h2>Current Conditions</h2>
+        <div class="risk-row">
+          <div class="risk-pill risk-${riskLevel}">
+            <div class="risk-dot dot-${riskLevel}"></div>
+            ${getRiskLabel(maxPop)}
+          </div>
+        </div>
+        <div class="forecast-grid">${periodCards}</div>
+      </div>
+    </div>
+
+    <!-- PRO VIEW -->
+    <div class="pro-view">
+      <div class="pro-header">
+        <span>Emergency Manager View</span>
+        <span class="pro-badge">EM</span>
+        <span style="margin-left:auto;font-weight:400;font-size:11px;opacity:0.7">WFO: <span class="wfo-tag">${office} ${gridX},${gridY}</span></span>
+      </div>
+      <div class="pro-card">
+        <div class="chart-title">Precipitation Probability (PoP) — Next 12 Hours</div>
+        <div class="chart-wrap">
+          <div class="bar-chart">${chartBars}</div>
+        </div>
+
+        <div class="chart-title" style="margin-top:20px">Probabilistic Forecast Table</div>
+        <div style="overflow-x:auto">
+          <table class="prob-table">
+            <thead>
+              <tr>
+                <th>Valid Time</th>
+                <th>PoP</th>
+                <th>QPF (in.)</th>
+                <th>Confidence</th>
+                <th>35+ mph Winds</th>
+              </tr>
+            </thead>
+            <tbody>${proRows}</tbody>
+          </table>
+        </div>
+
+        <div class="pro-note">
+          ⚠️ Confidence estimates are simulated in this prototype — production would derive from ensemble spread data.<br>
+          Data source: NWS API · Gridpoint: ${office}/${gridX},${gridY} · Location: ${LAT}, ${LON}
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('app').innerHTML = html;
+  document.getElementById('app').className = currentMode === 'pro' ? 'container mode-pro' : 'container';
+}
+
+fetchWeather();
+</script>
+</body>
+</html>
