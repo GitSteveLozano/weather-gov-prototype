@@ -106,12 +106,13 @@ header{
 .it-label{font-size:10px;font-weight:700;text-align:center;color:#6b7280;line-height:1.2;text-transform:uppercase;letter-spacing:.3px;}
 
 /* ─── ACTIVE HAZARD MODE ─── */
+@keyframes slideDown{from{opacity:0;transform:translateY(-12px);}to{opacity:1;transform:translateY(0);}}
 .hazard-takeover{
   display:none;padding:16px 20px;
   background:linear-gradient(135deg,#991b1b,#7f1d1d);
   color:#fff;border-bottom:2px solid #ef4444;
 }
-.hazard-takeover.show{display:block;}
+.hazard-takeover.show{display:block;animation:slideDown .3s ease-out;}
 .ht-event{font-size:20px;font-weight:800;margin-bottom:4px;display:flex;align-items:center;gap:8px;}
 .ht-action{font-size:14px;line-height:1.5;opacity:.95;margin-bottom:10px;}
 .ht-steps{display:flex;flex-direction:column;gap:6px;}
