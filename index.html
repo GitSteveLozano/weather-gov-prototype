@@ -225,6 +225,24 @@ header{
 .lyr-row input{cursor:pointer;accent-color:var(--blue);}
 
 .loading{padding:40px 20px;text-align:center;color:#999;font-size:14px;}
+
+/* ─── HAZARD GRID ─── */
+.hazard-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px;}
+.haz-card{
+  border-radius:8px;padding:11px 13px;border:1px solid transparent;
+  cursor:default;transition:all .15s;
+}
+.haz-card:hover{filter:brightness(.97);}
+.hc-ok{background:#f0fdf4;border-color:#bbf7d0;color:#166534;}
+.hc-advisory{background:#fefce8;border-color:#fde68a;color:#92400e;}
+.hc-watch{background:#fff7ed;border-color:#fdba74;color:#c2410c;}
+.hc-warning{background:#fef2f2;border-color:#fca5a5;color:#991b1b;animation:warnpulse 2s ease-in-out infinite;}
+.hc-unknown{background:#f8fafc;border-color:#e2e8f0;color:#64748b;}
+.haz-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+.haz-icon{font-size:18px;}
+.haz-status{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
+.haz-name{font-size:12px;font-weight:700;margin-bottom:2px;}
+.haz-detail{font-size:11px;opacity:.8;line-height:1.4;}
 </style>
 </head>
 <body>
@@ -265,8 +283,8 @@ header{
 
 <script>
 const LAT=21.3069,LON=-157.8583;
-let map,riskLyr,gaugeLyr,stationsLyr;
-let wd={},envData={},gauges=[];
+let map,riskLyr,gaugeLyr,stationsLyr,eqLyr;
+let wd={},envData={},gauges=[],hazards={};
 let bwMode=false, activeSeg=null;
 
 // ── Zone polygons ──
@@ -405,6 +423,89 @@ async function loadGauges(){
     render();
     drawGaugeMarkers();
   }catch(e){console.error('gauge error:',e);}
+}
+
+// ── Load hazard data ──
+async function loadHazards(){
+  try{
+    // 1. Earthquakes — USGS last 24hr M2.5+ in Hawaii
+    const eqR=await fetch('https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&minlatitude=18.5&maxlatitude=22.5&minlongitude=-160.5&maxlongitude=-154.5&minmagnitude=2.5&orderby=time&limit=10&starttime='+(new Date(Date.now()-86400000).toISOString().split('.')[0]));
+    const eq=await eqR.json();
+    const eqFeats=eq.features||[];
+    const maxMag=eqFeats.length?Math.max(...eqFeats.map(f=>f.properties.mag)):0;
+    const bigEq=eqFeats.find(f=>f.properties.mag>=5.0);
+    hazards.earthquake={
+      status:bigEq?'watch':eqFeats.length?'advisory':'ok',
+      count:eqFeats.length,
+      maxMag:maxMag.toFixed(1),
+      largest:eqFeats[0]?.properties?.place||null,
+      detail:eqFeats.length?`${eqFeats.length} event${eqFeats.length>1?'s':''} in last 24hr · Largest M${maxMag.toFixed(1)}`:'No significant activity in last 24hr',
+      features:eqFeats
+    };
+
+    // 2. Surf — NOAA buoy 51202 (near Oahu)
+    const buoyR=await fetch('https://www.ndbc.noaa.gov/data/realtime2/51202.txt');
+    const buoyTxt=await buoyR.text();
+    const lines=buoyTxt.split('\n').filter(l=>!l.startsWith('#')&&l.trim());
+    let waveHtM=null,wavePeriod=null;
+    if(lines[0]){
+      const parts=lines[0].trim().split(/\s+/);
+      waveHtM=parseFloat(parts[8]); // WVHT
+      wavePeriod=parseFloat(parts[9]); // DPD
+    }
+    const wavesFt=waveHtM?waveHtM*3.28084:null;
+    const surfStatus=!wavesFt?'unknown':wavesFt>=15?'warning':wavesFt>=8?'watch':wavesFt>=4?'advisory':'ok';
+    hazards.surf={
+      status:surfStatus,
+      wavesFt:wavesFt?wavesFt.toFixed(1):null,
+      period:!isNaN(wavePeriod)?wavePeriod:null,
+      detail:wavesFt?`${wavesFt.toFixed(1)}ft · ${!isNaN(wavePeriod)?wavePeriod+'s period':''}${wavesFt>=8?' — High surf risk':wavesFt>=4?' — Moderate surf':' — Calm'}`:' Buoy data unavailable'
+    };
+
+    // 3. Tropical / Hurricane — NWS alerts
+    const tropR=await fetch('https://api.weather.gov/alerts/active?area=HI&event=Hurricane+Warning,Hurricane+Watch,Tropical+Storm+Warning,Tropical+Storm+Watch,Tropical+Cyclone+Local+Statement');
+    const trop=await tropR.json();
+    const tropAlerts=trop.features||[];
+    const tropWorst=tropAlerts.find(a=>a.properties.event.includes('Warning'))||tropAlerts[0];
+    hazards.tropical={
+      status:tropAlerts.length?(tropWorst?.properties.event.includes('Warning')?'warning':'watch'):'ok',
+      detail:tropAlerts.length?tropWorst.properties.event+' in effect':'No tropical cyclone threats · Season: Jun–Nov',
+      inSeason:new Date().getMonth()>=5&&new Date().getMonth()<=10
+    };
+
+    // 4. Tsunami — NWS alerts
+    const tsuR=await fetch('https://api.weather.gov/alerts/active?area=HI&event=Tsunami+Warning,Tsunami+Watch,Tsunami+Advisory');
+    const tsu=await tsuR.json();
+    const tsuAlerts=tsu.features||[];
+    const tsuWorst=tsuAlerts.find(a=>a.properties.event.includes('Warning'))||tsuAlerts[0];
+    hazards.tsunami={
+      status:tsuAlerts.length?(tsuWorst?.properties.event.includes('Warning')?'warning':'watch'):'ok',
+      detail:tsuAlerts.length?tsuWorst.properties.event+' in effect':'No tsunami warnings in effect',
+      lastEvent:'Last major event: 1946 (Hilo) · Monitoring: PTWC 24/7'
+    };
+
+    // 5. Fire risk — derived from humidity + wind (no dedicated HI fire API)
+    const humidity=envData.humidity||70;
+    const windMph=parseFloat(envData.windMph||10);
+    let fireStatus='ok',fireDetail='';
+    if(humidity<30&&windMph>20){fireStatus='watch';fireDetail=`Low humidity (${humidity}%) + high wind (${windMph}mph) — elevated fire conditions`;}
+    else if(humidity<40&&windMph>15){fireStatus='advisory';fireDetail=`Dry conditions (${humidity}% RH) — monitor fire weather`;}
+    else{fireDetail=`Humidity: ${humidity}% · Wind: ${windMph}mph — Low fire risk`;}
+    hazards.fire={status:fireStatus,detail:fireDetail};
+
+    // 6. Vog — AQI proxy + wind direction context
+    const aqiVal=envData.aqi||0;
+    const windDir=envData.windDir||'';
+    const southWind=['S','SSW','SW','WSW','SSE','SE'].includes(windDir);
+    let vogStatus='ok',vogDetail='';
+    if(aqiVal>100){vogStatus='advisory';vogDetail=`AQI ${aqiVal} — possible vog from Kilauea (${windDir} wind)`;}
+    else if(southWind&&aqiVal>50){vogStatus='advisory';vogDetail=`${windDir} wind may carry vog from Big Island · AQI: ${aqiVal}`;}
+    else{vogDetail=`AQI: ${aqiVal} (Good) · Wind: ${windDir} — Vog unlikely`;}
+    hazards.vog={status:vogStatus,detail:vogDetail,aqi:aqiVal,windDir};
+
+    render();
+    drawEQMarkers();
+  }catch(e){console.error('hazard load error:',e);}
 }
 
 // ── Render ──
@@ -589,6 +690,8 @@ function render(){
       ${gaugeRows}
     </div>
 
+    ${renderHazardGrid()}
+
     <div class="em-expander">
       <div class="em-trigger" onclick="toggleEM()">
         <div class="em-trigger-left">
@@ -644,6 +747,60 @@ function render(){
       </div>
     </div>
   `;
+}
+
+function renderHazardGrid(){
+  function hCard(id,icon,name,status,detail,link){
+    const cls={ok:'hc-ok',advisory:'hc-advisory',watch:'hc-watch',warning:'hc-warning',unknown:'hc-unknown'}[status]||'hc-unknown';
+    const lbl={ok:'All Clear',advisory:'Advisory',watch:'Watch',warning:'⚠️ Warning',unknown:'No Data'}[status]||'—';
+    return`<div class="haz-card ${cls}" ${link?`onclick="window.open('${link}','_blank')" style="cursor:pointer;"`:''}>
+      <div class="haz-top"><span class="haz-icon">${icon}</span><span class="haz-status">${lbl}</span></div>
+      <div class="haz-name">${name}</div>
+      <div class="haz-detail">${detail}</div>
+    </div>`;
+  }
+
+  const h=hazards;
+  if(!Object.keys(h).length){
+    return`<div style="padding:10px 18px 4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#888;">Hawaii Hazard Status</div>
+    <div style="padding:0 12px 12px;font-size:12px;color:#999;">Loading hazard data…</div>`;
+  }
+
+  const cards=[
+    hCard('flood','🌧','Flash Flood',
+      (wd.alerts||[]).some(a=>a.properties.event.includes('Flood')&&a.properties.severity!=='Unknown')?'warning':'ok',
+      (wd.alerts||[]).find(a=>a.properties.event.includes('Flood'))?.properties?.headline?.slice(0,60)||'No flood warnings · Monitor stream gauges'),
+    hCard('surf','🌊','High Surf',h.surf?.status||'unknown',h.surf?.detail||'—','https://www.weather.gov/hfo/SRF'),
+    hCard('tsunami','🌀','Tsunami',h.tsunami?.status||'ok',h.tsunami?.detail||'—','https://tsunami.gov'),
+    hCard('eq','⚡','Earthquake',h.earthquake?.status||'ok',h.earthquake?.detail||'—','https://earthquake.usgs.gov/earthquakes/map/?extent=18,-162&extent=23,-154'),
+    hCard('tropical','🌀','Hurricane/Tropical',h.tropical?.status||'ok',h.tropical?.detail||`${h.tropical?.inSeason?'Hurricane season active':'Off season'} · No threats`),
+    hCard('vog','🌫','Vog / Air Quality',h.vog?.status||'ok',h.vog?.detail||'—','https://www.ivhhn.org/vog'),
+    hCard('fire','🔥','Fire Risk',h.fire?.status||'ok',h.fire?.detail||'—'),
+  ];
+
+  return`<div style="padding:10px 18px 4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#888;">Hawaii Hazard Status</div>
+  <div class="hazard-grid">${cards.join('')}</div>`;
+}
+
+function drawEQMarkers(){
+  if(eqLyr)eqLyr.remove();
+  eqLyr=L.layerGroup();
+  const feats=(hazards.earthquake?.features||[]);
+  feats.forEach(f=>{
+    const p=f.properties;
+    const geo=f.geometry.coordinates;
+    const mag=p.mag;
+    const r=Math.max(4,mag*3);
+    const col=mag>=5?'#e52207':mag>=4?'#f5a623':'#fbbf24';
+    const t=new Date(p.time).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit',hour12:true});
+    L.circleMarker([geo[1],geo[0]],{
+      radius:r,fillColor:col,fillOpacity:.7,
+      color:'#fff',weight:1.5,opacity:.9
+    }).bindTooltip(`<b>M${mag} Earthquake</b><br>${p.place}<br>${t}`,{sticky:true})
+      .addTo(eqLyr);
+  });
+  // Earthquake markers always on (they're on Big Island, not cluttering Oahu)
+  eqLyr.addTo(map);
 }
 
 function showSegDetail(i){
@@ -732,7 +889,7 @@ function toggleLyr(name){
 window.addEventListener('DOMContentLoaded',()=>{
   initMap();
   loadWeather()
-    .then(()=>Promise.all([loadEnv(),loadGauges()]))
+    .then(()=>Promise.all([loadEnv(),loadGauges(),loadHazards()]))
     .catch(e=>{
       document.getElementById('content').innerHTML=`<div class="loading">⚠️ ${e.message}</div>`;
       console.error(e);
