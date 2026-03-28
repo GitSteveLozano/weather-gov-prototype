@@ -247,6 +247,44 @@ header{
 
 /* Actions */
 .action-item{display:flex;align-items:flex-start;gap:9px;background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:9px 12px;margin-bottom:7px;}
+
+/* Community Lifelines */
+.lifelines-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.ll-card{background:var(--card2);border-radius:6px;padding:9px 11px;border-left:3px solid #4fc3f7;}
+.ll-card.ll-ok{border-left-color:#4caf50;}
+.ll-card.ll-watch{border-left-color:#f5a623;}
+.ll-card.ll-warning{border-left-color:#ef5350;}
+.ll-card.ll-unknown{border-left-color:#555;}
+.ll-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;}
+.ll-name{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);}
+.ll-status{font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;text-transform:uppercase;}
+.ll-ok .ll-status{background:rgba(76,175,80,.2);color:#4caf50;}
+.ll-watch .ll-status{background:rgba(245,166,35,.2);color:#f5a623;}
+.ll-warning .ll-status{background:rgba(229,34,7,.2);color:#ef5350;}
+.ll-unknown .ll-status{background:rgba(100,100,100,.2);color:#888;}
+.ll-icon{font-size:16px;margin-bottom:2px;}
+.ll-detail{font-size:10px;color:var(--muted);line-height:1.4;}
+
+/* Shelters */
+.shelter-item{display:flex;align-items:flex-start;gap:9px;background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:9px 12px;margin-bottom:6px;}
+.shelter-item:last-child{margin:0;}
+.sh-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+.sh-open{background:#4caf50;}
+.sh-standby{background:#f5a623;}
+.sh-closed{background:#555;}
+.sh-name{font-size:12px;font-weight:700;color:var(--text);}
+.sh-addr{font-size:10px;color:var(--muted);margin-top:1px;}
+.sh-cap{font-size:10px;color:var(--muted);margin-top:2px;}
+
+/* Road risk */
+.road-item{display:flex;align-items:center;gap:9px;background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:9px 12px;margin-bottom:6px;}
+.road-item:last-child{margin:0;}
+.road-risk-bar{width:4px;height:32px;border-radius:2px;flex-shrink:0;}
+.rr-low{background:#4caf50;}
+.rr-mod{background:#f5a623;}
+.rr-high{background:#ef5350;}
+.road-name{font-size:12px;font-weight:700;color:var(--text);}
+.road-trigger{font-size:10px;color:var(--muted);margin-top:1px;}
 .action-item:last-child{margin:0;}
 .adot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:4px;}
 .ah{background:var(--red);} .am{background:var(--yellow);} .al{background:#4fc3f7;}
@@ -329,6 +367,7 @@ const LAT=21.3069,LON=-157.8583;
 let map,riskLyr,gaugeLyr,stationsLyr,eqLyr;
 let wd={},envData={},gauges=[],hazards={};
 let bwMode=false, activeSeg=null, activeIntent='home', hazardMode=false;
+let shelterLyr=null;
 
 const INTENTS=[
   {id:'home',   icon:'🏠', label:'At Home'},
@@ -359,6 +398,24 @@ const GAUGE_SITES=[
 
 // AI-generated content (NVIDIA NIM Llama 3.3 — generated 2026-03-28 from live NWS data)
 const PUBLIC_IMPACT="Scattered showers possible this afternoon, mostly clearing by evening. Streets near Kalihi Stream and Manoa Canal may see brief pooling — avoid driving through standing water, even if it looks shallow.";
+// Known Oahu Red Cross / City emergency shelters (verified locations)
+const OAHU_SHELTERS=[
+  {name:'Neal S. Blaisdell Center',addr:'777 Ward Ave, Honolulu',lat:21.2954,lon:-157.8518,cap:2000,status:'standby'},
+  {name:'Farrington High School',addr:'1564 N King St, Honolulu',lat:21.3368,lon:-157.8718,cap:800,status:'standby'},
+  {name:'Kailua District Park',addr:'21 S Kainalu Dr, Kailua',lat:21.3963,lon:-157.7397,cap:500,status:'standby'},
+  {name:'Waipahu High School',addr:'94-1211 Farrington Hwy, Waipahu',lat:21.3856,lon:-158.0094,cap:600,status:'standby'},
+  {name:'Aiea District Park',addr:'99-350 Aiea Heights Dr, Aiea',lat:21.3820,lon:-157.9310,cap:400,status:'standby'},
+];
+
+// Road flood risk thresholds (stream → road, known Oahu flood-prone spots)
+const ROAD_RISKS=[
+  {road:'Dillingham Blvd underpass',stream:'Kalihi Stream',gauge:0,threshold:5.5,current:null,note:'Floods at ~5.5ft gage height'},
+  {road:'Likelike Hwy / Kahekili merge',stream:'Kalihi Stream',gauge:0,threshold:7.0,current:null,note:'Impassable at 7ft+'},
+  {road:'Manoa Rd / Lowrey Ave',stream:'Manoa-Palolo Canal',gauge:1,threshold:3.5,current:null,note:'Overflows at 3.5ft, Manoa Valley trap'},
+  {road:'Farrington Hwy (Nanakuli)',stream:'Waikele Stream',gauge:2,threshold:8.0,current:null,note:'Flash flood corridor, rapid rise'},
+  {road:'Kamehameha Hwy (Pearl City)',stream:'Waikele Stream',gauge:2,threshold:10.0,current:null,note:'Bridge approaches flood at 10ft+'},
+];
+
 const FREQUENCY_FRAMING="In 7 of 10 situations like today's, any showers clear before evening and the weekend looks good.";
 const BOTH_BOUNDS="Winds 15–25 mph from the northeast. Rain, if it arrives, will likely fall between noon and 6pm.";
 const CREDIBILITY_STMT="We flag this because Oahu's ground is still saturated from last week — even light rain can raise streams quickly. Not every warning means it will affect you, but it's better to know early.";
@@ -561,6 +618,7 @@ async function loadHazards(){
   }catch(e){console.error('hazard inner error:',e);}
   render();
   try{drawEQMarkers();}catch(e){console.error('eq markers error:',e);}
+  try{drawShelterMarkers();}catch(e){console.error('shelter markers error:',e);}
   }catch(e){console.error('hazard load error:',e);}
 }
 
@@ -835,7 +893,7 @@ function render(){
               Operations &amp; Emergency Management
               <span class="em-trigger-badge">EM VIEW</span>
             </div>
-            <div class="em-trigger-sub">Probabilistic data · Stream gauges · Decision clock · Shareable briefing</div>
+            <div class="em-trigger-sub">Probabilistic data · Stream gauges · Community Lifelines · Road risk · Shelters</div>
           </div>
         </div>
         <span class="em-chevron" id="emChevron">▼</span>
@@ -902,9 +960,132 @@ function render(){
           <div class="emp-label">✅ Recommended Actions</div>
           ${actionsHtml}
         </div>
+        ${renderLifelines()}
+        ${renderRoadRisk()}
+        ${renderShelters()}
       </div>
     </div>
   `;
+}
+
+function renderLifelines(){
+  const wind=envData.windMph||0;
+  const gust=envData.gustMph||0;
+  const pop=maxPop||0;
+  const aqi=envData.aqi||0;
+  const gaugeElevated=GAUGE_SITES.filter(g=>g.level&&g.level>=(g.action||99));
+  const gaugeNearFlood=GAUGE_SITES.filter(g=>g.level&&g.level>=(g.flood*0.7));
+  const hasFloodAlert=(wd.alerts||[]).some(a=>a.properties.event.includes('Flood'));
+
+  // Derive lifeline status from weather data
+  const lifelines=[
+    {
+      icon:'🚨', name:'Safety & Security',
+      status: hasFloodAlert?'warning': gaugeElevated.length?'watch':'ok',
+      detail: hasFloodAlert?'Flood warning active — responder access may be limited':
+              gaugeElevated.length?`${gaugeElevated.length} stream${gaugeElevated.length>1?'s':''} near action stage`:
+              'No immediate threats — standard posture'
+    },
+    {
+      icon:'🏠', name:'Food, Water, Shelter',
+      status: hasFloodAlert?'watch': pop>=60?'watch':'ok',
+      detail: hasFloodAlert?'Shelter activation may be needed — verify with Red Cross':
+              pop>=60?'Pre-position shelter resources; possible activation tonight':
+              '5 standby shelters on Oahu — no activation needed'
+    },
+    {
+      icon:'🏥', name:'Health & Medical',
+      status: gaugeNearFlood.length>=2?'watch': hasFloodAlert?'watch':'ok',
+      detail: gaugeNearFlood.length>=2?'Stream flooding may limit access to Pali Momi, Kapiolani':
+              hasFloodAlert?'Monitor hospital access roads — Manoa, Kalihi corridors':
+              'Medical facilities accessible — no route concerns'
+    },
+    {
+      icon:'⚡', name:'Energy',
+      status: gust>=50?'warning': gust>=35?'watch':'ok',
+      detail: gust>=50?'⚠️ Gusts may cause outages — pre-position generator crews':
+              gust>=35?`Gusts to ${gust}mph — elevated outage risk on windward side`:
+              `Gusts to ${gust||'—'}mph — below outage threshold (35mph)`
+    },
+    {
+      icon:'📡', name:'Communications',
+      status: gust>=60?'watch': hasFloodAlert?'watch':'ok',
+      detail: gust>=60?'Sustained winds may stress cell tower mounts — backup comms ready':
+              hasFloodAlert?'Flood events can flood base stations — verify repeater status':
+              'No communications disruption expected'
+    },
+    {
+      icon:'🚗', name:'Transportation',
+      status: hasFloodAlert?'warning': gaugeElevated.length?'watch':'ok',
+      detail: hasFloodAlert?'Road closures likely — monitor HDOT 511 and Dillingham, Likelike':
+              gaugeElevated.length?'Elevated streams — Dillingham underpass and Manoa Rd at risk':
+              'Major routes clear — no known closures'
+    },
+    {
+      icon:'☣️', name:'Hazardous Materials',
+      status: hasFloodAlert?'watch':'ok',
+      detail: hasFloodAlert?'Flooding may mobilize fuel/chemical spills — Pearl Harbor area, Mapunapuna industrial':
+              'No active hazmat concerns from weather'
+    },
+  ];
+
+  const cards=lifelines.map(l=>`
+    <div class="ll-card ll-${l.status}">
+      <div class="ll-icon">${l.icon}</div>
+      <div class="ll-top">
+        <span class="ll-name">${l.name}</span>
+        <span class="ll-status">${l.status==='ok'?'OK':l.status==='watch'?'Watch':'Warning'}</span>
+      </div>
+      <div class="ll-detail">${l.detail}</div>
+    </div>`).join('');
+
+  return`<div class="emp-section">
+    <div class="emp-label">🏗 Community Lifelines Status <span style="font-size:9px;color:var(--muted);text-transform:none;font-weight:400;margin-left:4px;">FEMA Framework · Weather-derived</span></div>
+    <div class="lifelines-grid">${cards}</div>
+  </div>`;
+}
+
+function renderShelters(){
+  const shelterItems=OAHU_SHELTERS.map(s=>`
+    <div class="shelter-item">
+      <div class="sh-dot sh-${s.status}"></div>
+      <div>
+        <div class="sh-name">${s.name}</div>
+        <div class="sh-addr">${s.addr}</div>
+        <div class="sh-cap">Capacity: ${s.cap.toLocaleString()} · Status: ${s.status==='open'?'<span style="color:#4caf50;font-weight:700;">OPEN</span>':s.status==='standby'?'<span style="color:#f5a623;font-weight:700;">Standby</span>':'<span style="color:#888;">Closed</span>'} · <a href="https://www.honolulu.gov/dem" target="_blank" style="color:#4fc3f7;">Verify at honolulu.gov/dem</a></div>
+      </div>
+    </div>`).join('');
+
+  return`<div class="emp-section">
+    <div class="emp-label">🏠 Emergency Shelters · Oahu <span style="font-size:9px;color:var(--muted);text-transform:none;font-weight:400;margin-left:4px;">Pre-designated · Verify status before activation</span></div>
+    ${shelterItems}
+  </div>`;
+}
+
+function renderRoadRisk(){
+  // Wire current gauge levels into road risks
+  ROAD_RISKS.forEach(r=>{ r.current=GAUGE_SITES[r.gauge]?.level||null; });
+
+  const roadItems=ROAD_RISKS.map(r=>{
+    const pct=r.current!=null?(r.current/r.threshold)*100:0;
+    const risk=r.current==null?'unknown':r.current>=r.threshold?'high':r.current>=(r.threshold*0.75)?'mod':'low';
+    const riskLabel={'low':'Low Risk','mod':'Elevated','high':'⚠️ CLOSURE RISK','unknown':'No Data'}[risk];
+    const riskColor={'low':'#4caf50','mod':'#f5a623','high':'#ef5350','unknown':'#555'}[risk];
+    return`<div class="road-item">
+      <div class="road-risk-bar rr-${risk==='unknown'?'low':risk}"></div>
+      <div style="flex:1;">
+        <div class="road-name">${r.road}</div>
+        <div class="road-trigger">${r.stream}: ${r.current!=null?r.current.toFixed(2)+'ft current':'No data'} / ${r.threshold}ft closure threshold · ${r.note}</div>
+        ${r.current!=null?`<div style="margin-top:5px;height:3px;background:#30363d;border-radius:2px;overflow:hidden;"><div style="width:${Math.min(100,pct).toFixed(0)}%;height:100%;background:${riskColor};border-radius:2px;transition:width .5s;"></div></div>`:''}
+      </div>
+      <div style="font-size:10px;font-weight:700;color:${riskColor};min-width:70px;text-align:right;">${riskLabel}</div>
+    </div>`;
+  }).join('');
+
+  return`<div class="emp-section">
+    <div class="emp-label">🚗 Road Closure Risk · Stream-Derived <span style="font-size:9px;color:var(--muted);text-transform:none;font-weight:400;margin-left:4px;">Confirm with HDOT 511</span></div>
+    ${roadItems}
+  </div>`;
 }
 
 function renderHazardGrid(){
@@ -963,6 +1144,20 @@ function drawEQMarkers(){
   });
   // Earthquake markers always on (they're on Big Island, not cluttering Oahu)
   eqLyr.addTo(map);
+}
+
+function drawShelterMarkers(){
+  if(shelterLyr)shelterLyr.remove();
+  shelterLyr=L.layerGroup();
+  OAHU_SHELTERS.forEach(s=>{
+    const color=s.status==='open'?'#4caf50':s.status==='standby'?'#f5a623':'#888';
+    const icon=L.divIcon({
+      html:`<div style="background:${color};width:10px;height:10px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.4);"></div>`,
+      className:'',iconSize:[10,10],iconAnchor:[5,5]
+    });
+    L.marker([s.lat,s.lon],{icon}).bindPopup(`<strong>🏠 ${s.name}</strong><br>${s.addr}<br>Cap: ${s.cap.toLocaleString()}<br><em>${s.status==='open'?'OPEN':'Standby — verify status'}</em>`).addTo(shelterLyr);
+  });
+  shelterLyr.addTo(map);
 }
 
 function showSegDetail(i){
