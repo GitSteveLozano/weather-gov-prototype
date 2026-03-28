@@ -248,6 +248,40 @@ header{
 /* Actions */
 .action-item{display:flex;align-items:flex-start;gap:9px;background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:9px 12px;margin-bottom:7px;}
 
+/* EM KPI Header */
+.em-kpi-bar{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:0;background:var(--card);border-bottom:1px solid var(--border);}
+.em-kpi{padding:10px 12px;border-right:1px solid var(--border);text-align:center;}
+.em-kpi:last-child{border-right:none;}
+.em-kpi-val{font-size:15px;font-weight:800;color:var(--text);line-height:1.2;}
+.em-kpi-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-top:2px;}
+
+/* Map overlay strip */
+.map-overlay-strip{display:flex;gap:0;background:var(--card);border-bottom:1px solid var(--border);overflow-x:auto;}
+.map-overlay-strip::-webkit-scrollbar{display:none;}
+.mos-btn{flex-shrink:0;padding:7px 12px;font-size:11px;font-weight:700;color:var(--muted);background:none;border:none;border-right:1px solid var(--border);cursor:pointer;white-space:nowrap;transition:all .15s;}
+.mos-btn:last-child{border-right:none;}
+.mos-btn.active{color:#4fc3f7;background:rgba(79,195,247,.1);}
+.mos-btn:hover{color:var(--text);}
+
+/* EM Sub-tabs */
+.em-tabs{display:flex;background:var(--card);border-bottom:2px solid var(--border);}
+.em-tab{flex:1;padding:10px;font-size:12px;font-weight:700;color:var(--muted);background:none;border:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;}
+.em-tab.active{color:#4fc3f7;border-bottom-color:#4fc3f7;}
+
+/* Collapsible section */
+.emp-collapse-hdr{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;cursor:pointer;border-bottom:1px solid var(--border);user-select:none;}
+.emp-collapse-hdr:hover{background:rgba(255,255,255,.02);}
+.emp-ch-left{display:flex;align-items:center;gap:8px;}
+.emp-ch-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);}
+.emp-ch-status{font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;}
+.emp-ch-ok{color:#4caf50;background:rgba(76,175,80,.1);}
+.emp-ch-watch{color:#f5a623;background:rgba(245,166,35,.1);}
+.emp-ch-warning{color:#ef5350;background:rgba(229,34,7,.1);}
+.emp-ch-chevron{font-size:10px;color:var(--muted);transition:transform .2s;}
+.emp-ch-chevron.open{transform:rotate(180deg);}
+.emp-collapse-body{display:none;}
+.emp-collapse-body.open{display:block;}
+
 /* Community Lifelines */
 .lifelines-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
 .ll-card{background:var(--card2);border-radius:6px;padding:9px 11px;border-left:3px solid #4fc3f7;}
@@ -1052,86 +1086,166 @@ function render(){
       </div>
 
       <div class="em-panel" id="emPanel">
-        ${renderActionDeadlines()}
-        ${renderRadarStatus()}
-        ${renderWahiawaReservoir()}
-        ${renderChecklist()}
 
-        <div class="emp-section">
-          <div class="emp-label">⚡ AI Situation Analysis <span class="nim-badge">Llama 3.3 · NVIDIA NIM</span></div>
-          <div class="ai-summary" style="margin-bottom:10px;">${FORECASTER_NARRATIVE}</div>
-          <div style="background:rgba(79,195,247,.08);border:1px solid rgba(79,195,247,.2);border-radius:6px;padding:9px 12px;font-size:12px;color:var(--text);margin-bottom:10px;">
-            📈 <strong>Probability trend:</strong> ${PROBABILITY_TREND}
-          </div>
-          <div class="shareable-box">
-            <div class="share-label">📤 Ready to forward to agencies &amp; constituents</div>
-            <div class="share-text">${EM_SHAREABLE}</div>
-            <button class="share-btn" onclick="navigator.clipboard?.writeText(document.querySelector('.share-text').textContent).then(()=>alert('Copied to clipboard!'))">Copy for distribution</button>
-          </div>
+        <!-- KPI Header — always visible -->
+        ${(()=>{
+          const alertCount=(wd.alerts||[]).length;
+          const topAlert=(wd.alerts||[]).find(a=>a.properties.severity==='Extreme')||(wd.alerts||[])[0];
+          const topAlertColor=!topAlert?'#4caf50':topAlert.properties.severity==='Extreme'?'#ef5350':'#f5a623';
+          const topAlertLabel=!topAlert?'All Clear':topAlert.properties.event.split(' ').slice(-1)[0]||'Active';
+          const gaugesAtRisk=GAUGE_SITES.filter(g=>g.level&&g.level>=g.action*0.75).length;
+          const saved=JSON.parse(localStorage.getItem('em_checklist')||'{}');
+          const checkDone=Object.values(saved).filter(Boolean).length;
+          // Next deadline
+          const nextDeadlineMins=(()=>{
+            let min=Infinity;
+            GAUGE_SITES.forEach(g=>{
+              if(g.level==null) return;
+              if(g.level/g.action>=0.6){
+                const gap=g.action-g.level;
+                const mins=Math.max(0,Math.round((gap/0.3)*60)-45);
+                if(mins<min) min=mins;
+              }
+            });
+            return min===Infinity?null:min;
+          })();
+          const dlH=nextDeadlineMins!=null?Math.floor(nextDeadlineMins/60):null;
+          const dlM=nextDeadlineMins!=null?nextDeadlineMins%60:null;
+          const dlStr=nextDeadlineMins==null?'None':nextDeadlineMins===0?'NOW':`${dlH>0?dlH+'h ':''}${dlM}m`;
+          const dlColor=nextDeadlineMins==null?'#4caf50':nextDeadlineMins<60?'#ef5350':nextDeadlineMins<180?'#f5a623':'#4fc3f7';
+          return`<div class="em-kpi-bar">
+            <div class="em-kpi">
+              <div class="em-kpi-val" style="color:${topAlertColor}">${topAlertLabel}</div>
+              <div class="em-kpi-lbl">${alertCount} Alert${alertCount!==1?'s':''}</div>
+            </div>
+            <div class="em-kpi">
+              <div class="em-kpi-val" style="color:${gaugesAtRisk>0?'#f5a623':'#4caf50'}">${gaugesAtRisk}</div>
+              <div class="em-kpi-lbl">Gauges at Risk</div>
+            </div>
+            <div class="em-kpi">
+              <div class="em-kpi-val" style="color:${dlColor}">${dlStr}</div>
+              <div class="em-kpi-lbl">Next Deadline</div>
+            </div>
+            <div class="em-kpi">
+              <div class="em-kpi-val">${checkDone}/6</div>
+              <div class="em-kpi-lbl">Checklist</div>
+            </div>
+          </div>`;
+        })()}
+
+        <!-- Map overlay strip -->
+        <div class="map-overlay-strip">
+          <button class="mos-btn" onclick="toggleMapLayer('warnings')">⚠️ Warnings</button>
+          <button class="mos-btn" onclick="toggleMapLayer('flood')">🌊 Flood Zones</button>
+          <button class="mos-btn" onclick="toggleMapLayer('soil')">🌱 Soil Sat.</button>
+          <button class="mos-btn" onclick="toggleMapLayer('shelters')">🏠 Shelters</button>
+          <button class="mos-btn" onclick="toggleMapLayer('gauges')">💧 Gauges</button>
         </div>
 
-        <div class="emp-section">
-          <div class="emp-label">🔭 Operational Conditions</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-            ${[
-              ['💨','Wind (Range)', envData.windMph&&envData.gustMph?`${Math.max(5,Math.round(envData.windMph)-8)}–${envData.gustMph}mph`:`${envData.windMph||'—'}mph`, `${envData.windDir||''} · Gusts to ${envData.gustMph||'—'}mph`],
-              ['🌊','Waves / Surf', envData.wavesFt?`${envData.wavesFt}ft`:'—', envData.wavePeriod?`${envData.wavePeriod}s period · ${envData.waveDir||''}`:'' ],
-              ['👁','Visibility', envData.visibMi?`${envData.visibMi}mi`:'—', parseInt(envData.visibMi||99)<5?'⚠️ Reduced — ops impact':'Roads & aviation clear'],
-              ['🌫','AQI / Air', envData.aqi!=null?`${envData.aqi} (${envData.aqi<=50?'Good':envData.aqi<=100?'Moderate':'Unhealthy'})`:'—', envData.pm25?`PM2.5: ${envData.pm25} µg/m³`:''],
-              ['💧','Humidity', envData.humidity?`${envData.humidity}%`:'—', envData.feelsF?`Feels like ${envData.feelsF}°F`:''],
-              ['⚡','Lightning', maxPop>=40?'Possible':'Low', maxPop>=40?'Monitor outdoor workers & aircraft':'No significant threat']
-            ].map(([icon,label,val,sub])=>`<div style="background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:9px 11px;">
-              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:3px;">${icon} ${label}</div>
-              <div style="font-size:15px;font-weight:800;color:var(--text);">${val}</div>
-              ${sub?`<div style="font-size:10px;color:var(--muted);margin-top:2px;">${sub}</div>`:''}
-            </div>`).join('')}
-          </div>
+        <!-- Sub-tabs -->
+        <div class="em-tabs">
+          <button class="em-tab active" id="tab-ops" onclick="switchEMTab('ops')">⚡ Operations</button>
+          <button class="em-tab" id="tab-intel" onclick="switchEMTab('intel')">🔭 Intelligence</button>
         </div>
 
-        <div class="emp-section">
-          <div class="emp-label">⏱ Decision Window</div>
-          <div class="dc-grid">${dcHtml}</div>
+        <!-- OPERATIONS TAB -->
+        <div id="em-tab-ops">
+          ${emCollapse('act-deadlines','⏰ Action Deadlines',
+            (()=>{const d=GAUGE_SITES.filter(g=>g.level&&g.level/g.action>=0.6);return d.length?'watch':'ok';})(),
+            (()=>{const d=GAUGE_SITES.filter(g=>g.level&&g.level/g.action>=0.6);return d.length?`${d.length} gauge${d.length>1?'s':''} approaching threshold`:'All gauges within normal range';})(),
+            renderActionDeadlines(true), true)}
+
+          ${emCollapse('checklist','✅ Pre-Event Checklist',
+            (()=>{const s=JSON.parse(localStorage.getItem('em_checklist')||'{}');const d=Object.values(s).filter(Boolean).length;return d===6?'ok':d>0?'watch':'ok';})(),
+            (()=>{const s=JSON.parse(localStorage.getItem('em_checklist')||'{}');const d=Object.values(s).filter(Boolean).length;return`${d}/6 complete`;})(),
+            renderChecklist(true), false)}
+
+          ${emCollapse('gauges','💧 Stream Gauges · USGS Live',
+            GAUGE_SITES.some(g=>g.level&&g.level>=g.action)?'warning':GAUGE_SITES.some(g=>g.level&&g.level>=g.action*0.75)?'watch':'ok',
+            GAUGE_SITES.filter(g=>g.level).map(g=>`${g.short} ${g.level?.toFixed(1)}ft`).join(' · ')||'Loading…',
+            `<div class="emp-section">${emGauges}</div>
+             <div class="emp-section"><div class="emp-label">☁️ Rainfall Accumulation</div>${accumHtml}</div>`,
+            false)}
+
+          ${emCollapse('wahiawa','🏔 Wahiawa Reservoir',
+            WAHIAWA_RESERVOIR.level>=WAHIAWA_RESERVOIR.prepare?'warning':WAHIAWA_RESERVOIR.level>=(WAHIAWA_RESERVOIR.prepare-8)?'watch':'ok',
+            WAHIAWA_RESERVOIR.level!=null?`${WAHIAWA_RESERVOIR.level.toFixed(1)}ft current · Prep-evac at ${WAHIAWA_RESERVOIR.prepare}ft`:'Loading…',
+            renderWahiawaReservoir(true), false)}
+
+          ${emCollapse('road-risk','🚗 Road Closure Risk',
+            GAUGE_SITES.some(g=>g.level&&ROAD_RISKS.some(r=>r.gauge<GAUGE_SITES.length&&g.level>=(r.threshold*0.75)))?'watch':'ok',
+            'Stream-derived · Confirm with HDOT 511',
+            renderRoadRisk(true), false)}
+
+          ${emCollapse('shelters','🏠 Emergency Shelters',
+            'ok','5 pre-designated Oahu sites · Verify before activation',
+            renderShelters(true), false)}
+
+          ${emCollapse('comms','📡 Communications Risk',
+            (()=>{const g=parseFloat(envData.gustMph||0);return g>=60?'warning':g>=45?'watch':'ok';})(),
+            (()=>{const g=parseFloat(envData.gustMph||0);return g>=45?`Gusts ${g}mph — comms at risk`:'No significant disruption expected';})(),
+            renderCommsRisk(true), false)}
+
+          ${emCollapse('notif','📣 Notification Reach',
+            'watch','WEA ~100% · HNL Alert ~11% of Oahu',
+            renderNotificationReach(true), false)}
         </div>
 
-        <div class="emp-section">
-          <div class="emp-label">💧 Stream Gauge Detail · USGS Live</div>
-          ${emGauges}
+        <!-- INTELLIGENCE TAB -->
+        <div id="em-tab-intel" style="display:none;">
+          ${(wd.alerts||[]).length?emCollapse('ibw-alerts','🚨 Active Alerts · IBW Tier',
+            (wd.alerts||[]).some(a=>a.properties.severity==='Extreme')?'warning':'watch',
+            `${(wd.alerts||[]).length} active · ${(wd.alerts||[])[0]?.properties?.event||''}`,
+            renderIBWAlerts(true), true):''}
+
+          ${emCollapse('radar','📡 Radar Network',
+            Object.values(hazards.radar||{}).some(r=>r.status!=='ok')?'warning':'ok',
+            Object.values(hazards.radar||{}).some(r=>r.status!=='ok')?'⚠️ Degraded coverage — forecast accuracy impaired':'All stations operational',
+            renderRadarStatus(true), Object.values(hazards.radar||{}).some(r=>r.status!=='ok'))}
+
+          ${emCollapse('all-hazards','🌐 All-Hazards Conditions',
+            hazards.fireWeather?.status!=='ok'||hazards.vog?.status!=='ok'?'watch':'ok',
+            'Fire · Wind · Lightning · Visibility · Vog · Tsunami',
+            renderFireWindLightning(true), false)}
+
+          ${emCollapse('soil','🌱 Ground Saturation',
+            hazards.soilMoisture?.status||'ok',
+            hazards.soilMoisture?.detail||'Loading…',
+            renderSoilSaturation(true), hazards.soilMoisture?.status==='warning')}
+
+          ${emCollapse('lifelines','🏗 Community Lifelines',
+            (wd.alerts||[]).some(a=>a.properties.event.includes('Flood'))?'watch':'ok',
+            'FEMA 7-lifeline framework · Weather-derived',
+            renderLifelines(true), false)}
+
+          ${emCollapse('prob-table','📊 Probabilistic Forecast',
+            'ok','PoP · QPF · Confidence · Wind probability',
+            `<div class="emp-section"><div style="overflow-x:auto"><table class="prob-table"><thead><tr><th>Time</th><th>PoP</th><th>QPF</th><th>Conf.</th><th>35mph</th></tr></thead><tbody>${rows}</tbody></table></div></div>`,
+            false)}
+
+          ${emCollapse('ai-intel','⚡ AI Situation Analysis',
+            'ok','Llama 3.3 · NVIDIA NIM',
+            `<div class="emp-section">
+              <div class="ai-summary" style="margin-bottom:10px;">${FORECASTER_NARRATIVE}</div>
+              <div style="background:rgba(79,195,247,.08);border:1px solid rgba(79,195,247,.2);border-radius:6px;padding:9px 12px;font-size:12px;color:var(--text);margin-bottom:10px;">📈 <strong>Probability trend:</strong> ${PROBABILITY_TREND}</div>
+              <div class="shareable-box">
+                <div class="share-label">📤 Ready to forward to agencies &amp; constituents</div>
+                <div class="share-text">${EM_SHAREABLE}</div>
+                <button class="share-btn" onclick="navigator.clipboard?.writeText(document.querySelector('.share-text').textContent).then(()=>alert('Copied to clipboard!'))">Copy for distribution</button>
+              </div>
+            </div>`, false)}
+
+          ${emCollapse('forecaster-disc','💬 NWS Forecaster Discussion',
+            'ok','HFO Area Forecast Discussion',
+            renderForecasterDiscussion(true), false)}
         </div>
 
-        <div class="emp-section">
-          <div class="emp-label">☁️ Rainfall Accumulation Forecast</div>
-          ${accumHtml}
-        </div>
-
-        <div class="emp-section">
-          <div class="emp-label">📊 Probabilistic Forecast Table</div>
-          <div style="overflow-x:auto">
-            <table class="prob-table">
-              <thead><tr><th>Time</th><th>PoP</th><th>QPF</th><th>Conf.</th><th>35mph Winds</th></tr></thead>
-              <tbody>${rows}</tbody>
-            </table>
-          </div>
-        </div>
-
-        <div class="emp-section">
-          <div class="emp-label">✅ Recommended Actions</div>
-          ${actionsHtml}
-        </div>
-        ${renderIBWAlerts()}
-        ${renderFireWindLightning()}
-        ${renderSoilSaturation()}
-        ${renderForecasterDiscussion()}
-        ${renderCommsRisk()}
-        ${renderNotificationReach()}
-        ${renderLifelines()}
-        ${renderRoadRisk()}
-        ${renderShelters()}
       </div>
     </div>
   `;
 }
 
-function renderActionDeadlines(){
+function renderActionDeadlines(bare=false){
   const now=Date.now();
   const deadlines=[];
 
@@ -1193,14 +1307,12 @@ function renderActionDeadlines(){
   if(!deadlines.length){
     deadlines.push(`<div style="font-size:12px;color:var(--muted);padding:6px 0;">No immediate action deadlines — all gauges within normal range.</div>`);
   }
-
-  return`<div class="emp-section">
-    <div class="emp-label">⏰ Action Deadlines <span style="font-size:9px;color:var(--muted);text-transform:none;font-weight:400;margin-left:4px;">Latest safe pre-positioning time · HURREVAC model</span></div>
-    ${deadlines.join('')}
-  </div>`;
+  const inner=`<div style="padding:12px 14px;">${deadlines.join('')}</div>`;
+  if(bare) return inner;
+  return`<div class="emp-section"><div class="emp-label">⏰ Action Deadlines</div>${inner}</div>`;
 }
 
-function renderWahiawaReservoir(){
+function renderWahiawaReservoir(bare=false){
   const r=WAHIAWA_RESERVOIR;
   if(r.level==null) return`<div class="emp-section"><div class="emp-label">💧 Wahiawa Reservoir</div><div style="font-size:12px;color:var(--muted);">Level data unavailable</div></div>`;
   const pctPrepare=Math.min(100,(r.level/r.prepare)*100);
@@ -1231,7 +1343,7 @@ function renderWahiawaReservoir(){
   </div>`;
 }
 
-function renderRadarStatus(){
+function renderRadarStatus(bare=false){
   if(!hazards.radar||!Object.keys(hazards.radar).length){
     return`<div class="emp-section"><div class="emp-label">📡 Radar Network</div><div style="font-size:12px;color:var(--muted);">Radar status loading…</div></div>`;
   }
@@ -1254,7 +1366,7 @@ function renderRadarStatus(){
   </div>`;
 }
 
-function renderChecklist(){
+function renderChecklist(bare=false){
   const items=[
     {id:'cl_shelter',label:'Shelter standby team notified'},
     {id:'cl_gauges',label:'Stream gauge alerts armed (15-min interval)'},
@@ -1278,7 +1390,7 @@ function renderChecklist(){
   </div>`;
 }
 
-function renderSoilSaturation(){
+function renderSoilSaturation(bare=false){
   const sm=hazards.soilMoisture;
   if(!sm||sm.surface==null) return'';
   const pct=Math.min(100,(parseFloat(sm.surface)/0.45)*100);
@@ -1300,7 +1412,7 @@ function renderSoilSaturation(){
   </div>`;
 }
 
-function renderForecasterDiscussion(){
+function renderForecasterDiscussion(bare=false){
   const disc=hazards.forecasterDiscussion;
   if(!disc) return'';
   const age=disc.issuanceTime?Math.round((Date.now()-new Date(disc.issuanceTime).getTime())/3600000):null;
@@ -1319,7 +1431,7 @@ function renderForecasterDiscussion(){
   </div>`;
 }
 
-function renderNotificationReach(){
+function renderNotificationReach(bare=false){
   const hasFlood=(wd.alerts||[]).some(a=>a.properties.event.includes('Flood'));
   return`<div class="emp-section">
     <div class="emp-label">📣 Alert Notification Reach <span style="font-size:9px;color:var(--muted);text-transform:none;font-weight:400;margin-left:4px;">Oahu estimated coverage</span></div>
@@ -1338,7 +1450,7 @@ function renderNotificationReach(){
   </div>`;
 }
 
-function renderIBWAlerts(){
+function renderIBWAlerts(bare=false){
   const alerts=wd.alerts||[];
   if(!alerts.length) return'';
   const ibwCards=alerts.slice(0,4).map(a=>{
@@ -1369,7 +1481,7 @@ function renderIBWAlerts(){
   </div>`;
 }
 
-function renderCommsRisk(){
+function renderCommsRisk(bare=false){
   const gust=parseFloat(envData.gustMph||0);
   const hasFlood=(wd.alerts||[]).some(a=>a.properties.event.includes('Flood'));
   const risks=[
@@ -1394,7 +1506,7 @@ function renderCommsRisk(){
   </div>`;
 }
 
-function renderFireWindLightning(){
+function renderFireWindLightning(bare=false){
   const humidity=envData.humidity||70;
   const windMph=parseFloat(envData.windMph||0);
   const gustMph=parseFloat(envData.gustMph||0);
@@ -1461,7 +1573,7 @@ function renderFireWindLightning(){
   </div>`;
 }
 
-function renderLifelines(){
+function renderLifelines(bare=false){
   const wind=envData.windMph||0;
   const gust=envData.gustMph||0;
   const pop=maxPop||0;
@@ -1538,7 +1650,7 @@ function renderLifelines(){
   </div>`;
 }
 
-function renderShelters(){
+function renderShelters(bare=false){
   const shelterItems=OAHU_SHELTERS.map(s=>`
     <div class="shelter-item">
       <div class="sh-dot sh-${s.status}"></div>
@@ -1555,7 +1667,7 @@ function renderShelters(){
   </div>`;
 }
 
-function renderRoadRisk(){
+function renderRoadRisk(bare=false){
   // Wire current gauge levels into road risks
   ROAD_RISKS.forEach(r=>{ r.current=GAUGE_SITES[r.gauge]?.level||null; });
 
@@ -1694,6 +1806,59 @@ function toggleEM(){
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap contributors',maxZoom:18}).addTo(map);
   }
   setTimeout(()=>map?.invalidateSize(),50);
+}
+
+function emCollapse(id, label, status, summary, body, defaultOpen=false){
+  const statusClass={'ok':'emp-ch-ok','watch':'emp-ch-watch','warning':'emp-ch-warning'}[status]||'emp-ch-ok';
+  const statusLabel={'ok':'OK','watch':'Watch','warning':'⚠️ Warning'}[status]||'OK';
+  const open=defaultOpen||(status!=='ok');
+  return`<div class="emp-collapse">
+    <div class="emp-collapse-hdr" onclick="toggleCollapse('${id}')">
+      <div class="emp-ch-left">
+        <span class="emp-ch-label">${label}</span>
+        <span class="emp-ch-status ${statusClass}">${statusLabel}</span>
+        <span style="font-size:10px;color:var(--muted);margin-left:4px;">${summary}</span>
+      </div>
+      <span class="emp-ch-chevron${open?' open':''}" id="chev-${id}">▾</span>
+    </div>
+    <div class="emp-collapse-body${open?' open':''}" id="body-${id}">${body}</div>
+  </div>`;
+}
+
+function toggleCollapse(id){
+  const body=document.getElementById('body-'+id);
+  const chev=document.getElementById('chev-'+id);
+  if(!body||!chev) return;
+  const open=body.classList.toggle('open');
+  chev.classList.toggle('open',open);
+}
+
+function switchEMTab(tab){
+  document.getElementById('em-tab-ops').style.display=tab==='ops'?'block':'none';
+  document.getElementById('em-tab-intel').style.display=tab==='intel'?'block':'none';
+  document.getElementById('tab-ops').classList.toggle('active',tab==='ops');
+  document.getElementById('tab-intel').classList.toggle('active',tab==='intel');
+}
+
+let activeMapLayers={};
+function toggleMapLayer(layer){
+  const btn=document.querySelector(`.mos-btn[onclick*="${layer}"]`);
+  const active=activeMapLayers[layer];
+  activeMapLayers[layer]=!active;
+  if(btn) btn.classList.toggle('active',!active);
+  // Layer logic
+  if(layer==='shelters'){if(!active&&shelterLyr)shelterLyr.addTo(map);else if(shelterLyr)shelterLyr.remove();}
+  if(layer==='gauges'){if(!active&&gaugeLyr)gaugeLyr.addTo(map);else if(gaugeLyr)gaugeLyr.remove();}
+  // Flood zones / soil / warnings: show a toast for now (these require additional tile services)
+  if(['flood','soil','warnings'].includes(layer)){
+    const msgs={flood:'Flood inundation: weather.gov/hfo/ahps2',soil:'Soil saturation overlay — coming soon',warnings:'NWS warnings shown as map polygons when active'};
+    // Simple toast
+    const t=document.createElement('div');
+    t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1e3a8a;color:#fff;padding:8px 16px;border-radius:6px;font-size:12px;z-index:9999;';
+    t.textContent=msgs[layer];
+    document.body.appendChild(t);
+    setTimeout(()=>t.remove(),2500);
+  }
 }
 
 function saveChecklist(id,val){
