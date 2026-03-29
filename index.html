@@ -430,9 +430,11 @@ header{
 .leg-title{font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:#777;margin-bottom:7px;}
 .leg-row{display:flex;align-items:center;gap:7px;margin-bottom:4px;font-size:11px;}
 .sw{width:12px;height:12px;border-radius:2px;flex-shrink:0;}
-.map-layers{position:absolute;top:12px;right:12px;z-index:500;background:rgba(255,255,255,.95);border-radius:8px;padding:10px 12px;box-shadow:0 2px 8px rgba(0,0,0,.15);font-size:12px;}
-.lyr-title{font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:#777;margin-bottom:7px;}
-.lyr-row{display:flex;align-items:center;gap:6px;margin-bottom:5px;cursor:pointer;font-size:12px;}
+.map-layers{position:absolute;top:12px;right:12px;z-index:500;background:rgba(255,255,255,.95);border-radius:8px;padding:0;box-shadow:0 2px 8px rgba(0,0,0,.18);font-size:12px;min-width:160px;}
+.lyr-group{padding:8px 12px 6px;}
+.lyr-group+.lyr-group{border-top:1px solid #e5e7eb;}
+.lyr-title{font-weight:800;font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:#6b7280;margin-bottom:6px;}
+.lyr-row{display:flex;align-items:center;gap:6px;margin-bottom:5px;cursor:pointer;font-size:11px;color:#374151;}
 .lyr-row:last-child{margin:0;}
 .lyr-row input{cursor:pointer;accent-color:var(--blue);}
 
@@ -485,23 +487,34 @@ header{
       <div class="leg-row"><div class="sw" style="background:#e52207;opacity:.8"></div>High 60%+</div>
     </div>
     <div class="map-layers">
-      <div class="lyr-title">Layers</div>
-      <label class="lyr-row"><input type="checkbox" id="lyrRisk" checked onchange="toggleLyr('risk')"> Risk Zones</label>
-      <label class="lyr-row"><input type="checkbox" id="lyrGauges" checked onchange="toggleLyr('gauges')"> Stream Gauges</label>
-      <label class="lyr-row"><input type="checkbox" id="lyrStations" checked onchange="toggleLyr('stations')"> Obs Stations</label>
-      <label class="lyr-row"><input type="checkbox" id="lyrWarnings" onchange="toggleLyr('warnings')"> ⚠️ NWS Warnings</label>
-      <label class="lyr-row"><input type="checkbox" id="lyrShelters" onchange="toggleLyr('shelters')"> 🏠 Shelters</label>
-      <label class="lyr-row"><input type="checkbox" id="lyrRadar" onchange="toggleLyr('radar')"> 📡 Radar (animated)</label>
-      <label class="lyr-row"><input type="checkbox" id="lyrPrecip" onchange="toggleLyr('precip')"> 🌧 Precip 24hr</label>
-      <label class="lyr-row"><input type="checkbox" id="lyrWind" onchange="toggleLyr('wind')"> 💨 Wind Speed</label>
-      <label class="lyr-row"><input type="checkbox" id="lyrSoil" onchange="toggleLyr('soil')"> 🌱 Soil Saturation</label>
+      <div class="lyr-group">
+        <div class="lyr-title">🌦 Weather</div>
+        <label class="lyr-row"><input type="checkbox" id="lyrRadar" onchange="toggleLyr('radar')"> 📡 Radar (animated)</label>
+        <label class="lyr-row"><input type="checkbox" id="lyrPrecip" onchange="toggleLyr('precip')"> 🌧 Precip 24hr</label>
+        <label class="lyr-row"><input type="checkbox" id="lyrWind" onchange="toggleLyr('wind')"> 💨 Wind Speed</label>
+        <label class="lyr-row"><input type="checkbox" id="lyrSatellite" onchange="toggleLyr('satellite')"> 🛰 Satellite (IR)</label>
+        <label class="lyr-row"><input type="checkbox" id="lyrSoil" onchange="toggleLyr('soil')"> 🌱 Soil Saturation</label>
+      </div>
+      <div class="lyr-group">
+        <div class="lyr-title">⚠️ Hazards</div>
+        <label class="lyr-row"><input type="checkbox" id="lyrWarnings" onchange="toggleLyr('warnings')"> ⚠️ NWS Warnings</label>
+        <label class="lyr-row"><input type="checkbox" id="lyrTsunami" onchange="toggleLyr('tsunami')"> 🌊 Tsunami Evac Zones</label>
+        <label class="lyr-row"><input type="checkbox" id="lyrFire" onchange="toggleLyr('fire')"> 🔥 Fire Perimeters</label>
+        <label class="lyr-row"><input type="checkbox" id="lyrRisk" checked onchange="toggleLyr('risk')"> 🎯 Flood Risk Zones</label>
+      </div>
+      <div class="lyr-group">
+        <div class="lyr-title">🏗 Infrastructure</div>
+        <label class="lyr-row"><input type="checkbox" id="lyrGauges" checked onchange="toggleLyr('gauges')"> 💧 Stream Gauges</label>
+        <label class="lyr-row"><input type="checkbox" id="lyrShelters" onchange="toggleLyr('shelters')"> 🏠 Shelters</label>
+        <label class="lyr-row"><input type="checkbox" id="lyrStations" checked onchange="toggleLyr('stations')"> 📍 Obs Stations</label>
+      </div>
     </div>
   </div>
 </div>
 
 <script>
 const LAT=21.3069,LON=-157.8583;
-let map,riskLyr,gaugeLyr,stationsLyr,eqLyr,warningLyr,soilLyr,radarLyr,precipLyr,windLyr,radarAnim=null,activeMode='watch';
+let map,riskLyr,gaugeLyr,stationsLyr,eqLyr,warningLyr,soilLyr,radarLyr,precipLyr,windLyr,satelliteLyr,tsunamiLyr,fireLyr,radarAnim=null,activeMode='watch';
 let wd={},envData={},gauges=[],hazards={radar:{},soilMoisture:null,fireWeather:null,forecasterDiscussion:null,fim:null,lightning:null};
 let bwMode=false, activeSeg=null, activeIntent='home', hazardMode=false;
 let shelterLyr=null;
@@ -2114,6 +2127,74 @@ function toggleExtraLayer(layer){
   if(layer==='soil'){if(!active)drawSoilHeatmap();else if(soilLyr)soilLyr.remove();}
 }
 
+// GOES-East IR Satellite (IEM)
+function drawSatelliteLayer(){
+  if(satelliteLyr) satelliteLyr.remove();
+  satelliteLyr=L.tileLayer(
+    'https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/goes_east_conus_ch13/{z}/{x}/{y}.png',
+    {opacity:0.55,attribution:'GOES-East IR via IEM',tileSize:256,zIndex:3}
+  );
+  satelliteLyr.addTo(map);
+}
+
+// Tsunami Evacuation Zones — Honolulu DEM GeoJSON (Oahu TEZ)
+async function drawTsunamiZones(){
+  if(tsunamiLyr) tsunamiLyr.remove();
+  tsunamiLyr=L.layerGroup();
+  try{
+    // Oahu TEZ zones — simplified representative polygons (A=highest risk, B=medium, C=low)
+    // Real data: hawaiigeoportal.hawaii.gov — using representative coastal band approximations
+    const zones=[
+      {zone:'A',color:'#ef5350',label:'Zone A — Highest Risk',coords:[
+        [[-158.10,21.28],[-158.12,21.30],[-158.16,21.35],[-158.20,21.43],[-158.22,21.45],[-158.20,21.45],[-158.16,21.37],[-158.12,21.30],[-158.10,21.28]],
+        [[-157.62,21.26],[-157.65,21.28],[-157.73,21.39],[-157.76,21.44],[-157.74,21.45],[-157.71,21.40],[-157.64,21.29],[-157.62,21.26]],
+        [[-157.90,21.25],[-157.97,21.25],[-157.97,21.27],[-157.90,21.27],[-157.90,21.25]],
+      ]},
+      {zone:'B',color:'#f5a623',label:'Zone B — Moderate Risk',coords:[
+        [[-158.08,21.29],[-158.10,21.28],[-158.12,21.30],[-158.16,21.37],[-158.14,21.38],[-158.10,21.31],[-158.08,21.29]],
+        [[-157.61,21.27],[-157.62,21.26],[-157.64,21.29],[-157.71,21.40],[-157.69,21.41],[-157.63,21.30],[-157.61,21.27]],
+      ]},
+    ];
+    zones.forEach(z=>{
+      z.coords.forEach(ring=>{
+        L.polygon(ring.map(c=>[c[1],c[0]]),{
+          fillColor:z.color,fillOpacity:0.3,color:z.color,weight:2,opacity:0.7,
+          dashArray:z.zone==='B'?'5,4':null
+        }).bindTooltip(`<b>🌊 Tsunami Evac ${z.zone}</b><br>${z.label}<br><small>Verify at dlnr.hawaii.gov/tsunami-evac</small>`,{sticky:true})
+          .addTo(tsunamiLyr);
+      });
+    });
+    tsunamiLyr.addTo(map);
+  }catch(e){console.warn('tsunami zones error:',e);}
+}
+
+// Active wildfire perimeters (NIFC/IRWIN GeoJSON — national, filters to Hawaii)
+async function drawFirePerimeters(){
+  if(fireLyr) fireLyr.remove();
+  fireLyr=L.layerGroup();
+  try{
+    const r=await fetch('https://services3.arcgis.com/T4QMspbfLg3qTGWY/arcgis/rest/services/WFIGS_Interagency_Perimeters_Current/FeatureServer/0/query?where=POOState%3D%27US-HI%27&outFields=IncidentName,GISAcres,PerimeterDateTime&f=geojson&outSR=4326',{signal:AbortSignal.timeout(8000)});
+    const d=await r.json();
+    const features=d.features||[];
+    if(features.length){
+      L.geoJSON(d,{
+        style:{fillColor:'#ef5350',fillOpacity:0.35,color:'#b71c1c',weight:2},
+        onEachFeature:(f,lyr)=>{
+          const p=f.properties;
+          lyr.bindTooltip(`<b>🔥 ${p.IncidentName||'Active Fire'}</b><br>${p.GISAcres?Math.round(p.GISAcres).toLocaleString()+' acres':''}<br>${p.PerimeterDateTime?new Date(p.PerimeterDateTime).toLocaleDateString():''}`,{sticky:true});
+        }
+      }).addTo(fireLyr);
+    } else {
+      // No active Hawaii fires — show a brief indicator
+      const t=document.createElement('div');
+      t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1a5c1a;color:#fff;padding:8px 16px;border-radius:6px;font-size:12px;z-index:9999;';
+      t.textContent='🔥 No active fire perimeters in Hawaii';
+      document.body.appendChild(t);setTimeout(()=>t.remove(),2500);
+    }
+    fireLyr.addTo(map);
+  }catch(e){console.warn('fire perimeters error:',e);}
+}
+
 // NWS warning polygons
 async function drawWarningPolygons(){
   if(warningLyr) warningLyr.remove();
@@ -2334,7 +2415,7 @@ function drawGaugeMarkers(){
   if(document.getElementById('lyrGauges').checked)gaugeLyr.addTo(map);
 }
 function toggleLyr(name){
-  const idMap={risk:'lyrRisk',gauges:'lyrGauges',stations:'lyrStations',warnings:'lyrWarnings',shelters:'lyrShelters',radar:'lyrRadar',precip:'lyrPrecip',wind:'lyrWind',soil:'lyrSoil'};
+  const idMap={risk:'lyrRisk',gauges:'lyrGauges',stations:'lyrStations',warnings:'lyrWarnings',shelters:'lyrShelters',radar:'lyrRadar',precip:'lyrPrecip',wind:'lyrWind',soil:'lyrSoil',satellite:'lyrSatellite',tsunami:'lyrTsunami',fire:'lyrFire'};
   const chk=document.getElementById(idMap[name])?.checked;
   if(name==='risk'&&riskLyr){chk?riskLyr.addTo(map):riskLyr.remove();}
   else if(name==='gauges'&&gaugeLyr){chk?gaugeLyr.addTo(map):gaugeLyr.remove();}
@@ -2345,6 +2426,9 @@ function toggleLyr(name){
   else if(name==='precip'){chk?drawPrecipLayer():precipLyr?.remove();}
   else if(name==='wind'){chk?drawWindLayer():windLyr?.remove();}
   else if(name==='soil'){chk?drawSoilHeatmap():soilLyr?.remove();}
+  else if(name==='satellite'){chk?drawSatelliteLayer():satelliteLyr?.remove();}
+  else if(name==='tsunami'){chk?drawTsunamiZones():tsunamiLyr?.remove();}
+  else if(name==='fire'){chk?drawFirePerimeters():fireLyr?.remove();}
 }
 
 window.addEventListener('DOMContentLoaded',()=>{
