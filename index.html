@@ -300,6 +300,11 @@ header{
   background:rgba(255,255,255,.05);border-radius:4px;flex-shrink:0;
 }
 .em-sec-chev.open{transform:rotate(180deg);}
+.em-sec-tiles{display:flex;gap:0;border-bottom:1px solid var(--border);background:rgba(0,0,0,.15);}
+.em-sec-tile{flex:1;padding:7px 12px;border-right:1px solid var(--border);text-align:center;}
+.em-sec-tile:last-child{border-right:none;}
+.est-val{display:block;font-size:13px;font-weight:800;line-height:1.2;}
+.est-lbl{display:block;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-top:2px;}
 .em-sec-body{
   display:grid;grid-template-rows:0fr;
   transition:grid-template-rows .25s ease;
@@ -1188,25 +1193,41 @@ function render(){
           // ── SECTION 1: ACTIVE ALERTS ──
           const alerts=wd.alerts||[];
           const alertStatus=alerts.some(a=>a.properties.severity==='Extreme')?'warning':alerts.length?'watch':'ok';
-          const alertSummary=alerts.length?`${alerts.length} active · ${alerts[0]?.properties?.event||''}`:'No active NWS alerts';
-          const s1=emSection('alerts','🚨 Active Alerts',alertStatus,alertSummary,
+          const alertColor=alertStatus==='warning'?'#ef5350':alertStatus==='watch'?'#f5a623':'#4caf50';
+          const topEvt=alerts[0]?.properties?.event||'—';
+          const topSev=alerts[0]?.properties?.severity||'—';
+          const expiresStr=alerts[0]?.properties?.expires?new Date(alerts[0].properties.expires).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true}):'—';
+          const s1=emSection('alerts','🚨 Active Alerts',alertStatus,'',
             alerts.length?renderIBWAlerts(true):`<div style="padding:12px 14px;font-size:12px;color:var(--muted);">No active NWS alerts for Hawaii.</div>`,
-            alerts.length>0);
+            alerts.length>0,
+            alerts.length?[
+              {val:alerts.length,lbl:'Active',color:alertColor},
+              {val:topEvt.split(' ').slice(-2).join(' '),lbl:'Type',color:alertColor},
+              {val:topSev,lbl:'Severity',color:alertColor},
+              {val:expiresStr,lbl:'Expires',color:'var(--muted)'},
+            ]:[
+              {val:'None',lbl:'Active Alerts',color:'#4caf50'},
+              {val:'All Clear',lbl:'NWS Hawaii',color:'#4caf50'},
+            ]);
 
           // ── SECTION 3: HYDROLOGY ──
           const gaugeStatus=GAUGE_SITES.some(g=>g.level&&g.level>=g.action)?'warning':
             (GAUGE_SITES.some(g=>g.level&&g.level>=g.action*0.75)||(WAHIAWA_RESERVOIR.level!=null&&WAHIAWA_RESERVOIR.level>=WAHIAWA_RESERVOIR.prepare-8))?'watch':'ok';
-          const gaugeSummary=GAUGE_SITES.filter(g=>g.level).map(g=>{
+          const gaugeTiles=GAUGE_SITES.filter(g=>g.level!=null).map(g=>{
             const pct=Math.round((g.level/g.action)*100);
-            const col=g.level>=g.action?'🔴':g.level>=g.action*0.75?'🟡':'🟢';
-            return`${col} ${g.short} ${g.level.toFixed(1)}ft`;
-          }).join(' · ')||'Loading gauges…';
-          const s3=emSection('hydrology','💧 Hydrology',gaugeStatus,gaugeSummary,
+            const col=g.level>=g.action?'#ef5350':g.level>=g.action*0.75?'#f5a623':'#4caf50';
+            return{val:g.level.toFixed(1)+'ft',lbl:g.short,color:col};
+          });
+          if(WAHIAWA_RESERVOIR.level!=null){
+            const wCol=WAHIAWA_RESERVOIR.level>=WAHIAWA_RESERVOIR.prepare?'#ef5350':WAHIAWA_RESERVOIR.level>=(WAHIAWA_RESERVOIR.prepare-8)?'#f5a623':'#4caf50';
+            gaugeTiles.push({val:WAHIAWA_RESERVOIR.level.toFixed(1)+'ft',lbl:'Wahiawa Res.',color:wCol});
+          }
+          const s3=emSection('hydrology','💧 Hydrology',gaugeStatus,'',
             `<div class="emp-section">${emGauges}</div>
              <div class="emp-section"><div class="emp-label">☁️ Rainfall Accumulation</div>${accumHtml}</div>
              ${renderWahiawaReservoir(true)}
              ${renderActionDeadlines(true)}`,
-            gaugeStatus!=='ok');
+            gaugeStatus!=='ok', gaugeTiles);
 
           // ── SECTION 4: ALL-HAZARDS ──
           const rf=hazards.fireWeather?.status;
@@ -1215,28 +1236,46 @@ function render(){
           const lal=hazards.lightning?.level||1;
           const hazStatus=rf==='warning'||tsu==='warning'?'warning':
             rf==='watch'||rf==='advisory'||vog==='advisory'||tsu==='watch'||lal>=4?'watch':'ok';
-          const rfAlert=rf==='warning'?'🔥 Red Flag':rf==='watch'?'🔥 Watch':'🔥 OK';
           const windMph2=parseFloat(envData.windMph||0),gustMph2=parseFloat(envData.gustMph||0);
-          const windSt=gustMph2>=50?'💨⚠️':gustMph2>=35?'💨~':'💨OK';
-          const hazSummary=`${rfAlert} · ${windSt} ${gustMph2}mph gusts · ⚡ LAL${lal} · 🌫 AQI${envData.aqi||0} · 🌊 ${tsu==='ok'?'Tsunami OK':'⚠️ Tsunami'}`;
-          const s4=emSection('hazards','🌐 All-Hazards',hazStatus,hazSummary,
+          const fireCol=rf==='warning'?'#ef5350':rf==='watch'?'#f5a623':'#4caf50';
+          const windCol=gustMph2>=50?'#ef5350':gustMph2>=35?'#f5a623':'#4caf50';
+          const lalCol=lal>=4?'#ef5350':lal>=2?'#f5a623':'#4caf50';
+          const vogCol=(envData.aqi||0)>100?'#f5a623':'#4caf50';
+          const tsuCol=tsu!=='ok'?'#ef5350':'#4caf50';
+          const s4=emSection('hazards','🌐 All-Hazards',hazStatus,'',
             renderAllHazardsEnriched(),
-            hazStatus!=='ok');
+            hazStatus!=='ok',[
+              {val:rf==='warning'?'Warning':rf==='watch'?'Watch':'OK',lbl:'🔥 Fire',color:fireCol},
+              {val:`${gustMph2}mph`,lbl:'💨 Gusts',color:windCol},
+              {val:`LAL ${lal}`,lbl:'⚡ Lightning',color:lalCol},
+              {val:`AQI ${envData.aqi||0}`,lbl:'🌫 Vog',color:vogCol},
+              {val:tsu!=='ok'?'⚠️ Alert':'Clear',lbl:'🌊 Tsunami',color:tsuCol},
+            ]);
 
           // ── SECTION 5: INFRASTRUCTURE ──
           const roadRisk=GAUGE_SITES.some(g=>g.level&&ROAD_RISKS.some(r=>r.gauge<GAUGE_SITES.length&&g.level>=(r.threshold*0.75)));
           const commsRisk=gustMph2>=45;
           const infraStatus=roadRisk||commsRisk?'watch':'ok';
-          const infraSummary=`Roads: ${roadRisk?'⚠️ At risk':'Clear'} · Comms: ${commsRisk?'⚠️ Risk':'Stable'} · Shelters: ${OAHU_SHELTERS.length} sites · WEA ~100% / HNL ~11%`;
-          const s5=emSection('infra','🚗 Infrastructure',infraStatus,infraSummary,
+          const roadCol=roadRisk?'#f5a623':'#4caf50';
+          const commsCol=commsRisk?'#f5a623':'#4caf50';
+          const s5=emSection('infra','🚗 Infrastructure',infraStatus,'',
             `${renderRoadRisk(true)}${renderCommsRisk(true)}${renderShelters(true)}${renderNotificationReach(true)}`,
-            infraStatus!=='ok');
+            infraStatus!=='ok',[
+              {val:roadRisk?'At Risk':'Clear',lbl:'Roads',color:roadCol},
+              {val:commsRisk?'At Risk':'Stable',lbl:'Comms',color:commsCol},
+              {val:`${OAHU_SHELTERS.length} Sites`,lbl:'Shelters',color:'var(--text)'},
+              {val:'~100%',lbl:'WEA Reach',color:'#4caf50'},
+              {val:'~11%',lbl:'HNL Alert',color:'#f5a623'},
+            ]);
 
           // ── SECTION 6: INTELLIGENCE ──
           const radarDegraded=Object.values(hazards.radar||{}).some(r=>r.status!=='ok');
           const soilHigh=hazards.soilMoisture?.status==='warning';
           const intelStatus=radarDegraded?'warning':soilHigh?'watch':'ok';
-          const intelSummary=`Radar: ${radarDegraded?'⚠️ Degraded':'OK'} · Soil: ${soilHigh?'Saturated':hazards.soilMoisture?.status==='watch'?'Elevated':'Normal'} · AI briefing · Forecaster discussion`;
+          const radarCol=radarDegraded?'#ef5350':'#4caf50';
+          const soilCol=soilHigh?'#ef5350':hazards.soilMoisture?.status==='watch'?'#f5a623':'#4caf50';
+          const soilLabel=soilHigh?'Saturated':hazards.soilMoisture?.status==='watch'?'Elevated':'Normal';
+          const discAge=hazards.forecasterDiscussion?.issuanceTime?Math.round((Date.now()-new Date(hazards.forecasterDiscussion.issuanceTime).getTime())/3600000):null;
           const s6=emSection('intel','🧠 Intelligence',intelStatus,intelSummary,
             `${renderRadarStatus(true)}${renderSoilSaturation(true)}
             <div class="emp-section">
@@ -1252,7 +1291,12 @@ function render(){
             ${renderForecasterDiscussion(true)}
             <div class="emp-section"><div style="overflow-x:auto"><table class="prob-table"><thead><tr><th>Time</th><th>PoP</th><th>QPF</th><th>Conf.</th><th>35mph</th></tr></thead><tbody>${rows}</tbody></table></div></div>
             ${renderLifelines(true)}`,
-            radarDegraded);
+            radarDegraded,[
+              {val:radarDegraded?'⚠️ Degraded':'Nominal',lbl:'Radar',color:radarCol},
+              {val:soilLabel,lbl:'Soil Sat.',color:soilCol},
+              {val:hazards.soilMoisture?.surface?parseFloat(hazards.soilMoisture.surface).toFixed(2):'—',lbl:'m³/m³',color:soilCol},
+              {val:discAge!=null?discAge+'h ago':'—',lbl:'HFO Discussion',color:discAge!=null&&discAge>6?'#f5a623':'var(--text)'},
+            ]);
 
           return s1+s3+s4+s5+s6;
         })()}
@@ -1930,23 +1974,29 @@ function toggleEM(){
   setTimeout(()=>map?.invalidateSize(),50);
 }
 
-function emSection(id, label, status, summary, body, defaultOpen=false){
+// inlineData = [{val, lbl, color}] — mini metric tiles shown in header
+function emSection(id, label, status, summary, body, defaultOpen=false, inlineData=[]){
   const badgeClass={'ok':'esb-ok','watch':'esb-watch','warning':'esb-warning'}[status]||'esb-ok';
-  const badgeLabel={'ok':'OK','watch':'↑ Watch','warning':'⚠️ Warning'}[status]||'OK';
+  const badgeLabel={'ok':'OK','watch':'Watch','warning':'⚠️ Warn'}[status]||'OK';
   const open=defaultOpen||(status!=='ok');
-  // Strip emoji from summary for cleaner truncation
-  const cleanSummary=summary.replace(/[🟢🟡🔴]/g,'').trim();
+
+  const tiles=inlineData.length?`<div class="em-sec-tiles">${inlineData.map(d=>`
+    <div class="em-sec-tile">
+      <span class="est-val" style="color:${d.color||'var(--text)'};">${d.val}</span>
+      <span class="est-lbl">${d.lbl}</span>
+    </div>`).join('')}</div>`:'';
+
   return`<div class="em-section">
     <div class="em-sec-hdr" onclick="toggleSection('${id}')" role="button" aria-expanded="${open}">
       <div class="em-sec-left">
         <span class="em-sec-label">${label}</span>
-        <span class="em-sec-summary">${cleanSummary}</span>
       </div>
       <div class="em-sec-right">
         <span class="em-sec-badge ${badgeClass}">${badgeLabel}</span>
         <span class="em-sec-chev${open?' open':''}" id="sec-chev-${id}">▾</span>
       </div>
     </div>
+    ${tiles}
     <div class="em-sec-body${open?' open':''}" id="sec-body-${id}"><div>${body}</div></div>
   </div>`;
 }
