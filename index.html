@@ -1121,53 +1121,50 @@ function render(){
 
       <div class="em-panel" id="emPanel">
 
-        <!-- KPI Header — always visible -->
+        <!-- KPI Header — cross-cutting situation indicators -->
         ${(()=>{
+          // Tile 1: Active Alert level
           const alertCount=(wd.alerts||[]).length;
           const topAlert=(wd.alerts||[]).find(a=>a.properties.severity==='Extreme')||(wd.alerts||[])[0];
           const topAlertColor=!topAlert?'#4caf50':topAlert.properties.severity==='Extreme'?'#ef5350':'#f5a623';
           const topAlertLabel=!topAlert?'All Clear':topAlert.properties.event.split(' ').slice(-1)[0]||'Active';
-          const gaugesAtRisk=GAUGE_SITES.filter(g=>g.level&&g.level>=g.action*0.75).length;
-          const saved=JSON.parse(localStorage.getItem('em_checklist')||'{}');
-          const checkDone=Object.values(saved).filter(Boolean).length;
-          // Next deadline
-          const nextDeadlineMins=(()=>{
-            let min=Infinity;
-            GAUGE_SITES.forEach(g=>{
-              if(g.level==null) return;
-              if(g.level/g.action>=0.6){
-                const gap=g.action-g.level;
-                const mins=Math.max(0,Math.round((gap/0.3)*60)-45);
-                if(mins<min) min=mins;
-              }
-            });
-            return min===Infinity?null:min;
-          })();
-          const dlH=nextDeadlineMins!=null?Math.floor(nextDeadlineMins/60):null;
-          const dlM=nextDeadlineMins!=null?nextDeadlineMins%60:null;
-          const dlStr=nextDeadlineMins==null?'None':nextDeadlineMins===0?'NOW':`${dlH>0?dlH+'h ':''}${dlM}m`;
-          const dlColor=nextDeadlineMins==null?'#4caf50':nextDeadlineMins<60?'#ef5350':nextDeadlineMins<180?'#f5a623':'#4fc3f7';
+
+          // Tile 2: Overall weather risk (from public-side rk)
+          const rkColors={none:'#4caf50',low:'#4fc3f7',mod:'#f5a623',high:'#ef5350'};
+          const rkLabels={none:'Clear',low:'Low',mod:'Moderate',high:'High'};
+          const rkColor=rkColors[rk]||'#4caf50';
+          const rkLabel=rkLabels[rk]||'Clear';
+
+          // Tile 3: Active hazard count (non-OK across all hazard types)
+          const hazardTypes=[
+            hazards.fireWeather?.status,hazards.vog?.status,hazards.tsunami?.status,
+            hazards.lightning?.level>=4?'warning':null,
+            (wd.alerts||[]).some(a=>a.properties.event.includes('Flood'))?'watch':null
+          ].filter(s=>s&&s!=='ok');
+          const activeHazards=hazardTypes.length;
+          const hazColor=activeHazards>0?'#f5a623':'#4caf50';
+
+          // Tile 4: Radar / sensing status
+          const radarDeg=Object.values(hazards.radar||{}).some(r=>r.status!=='ok');
+          const radarColor=radarDeg?'#ef5350':'#4caf50';
+          const radarLabel=radarDeg?'⚠️ Degraded':'Nominal';
+
           return`<div class="em-kpi-bar">
             <div class="em-kpi">
               <div class="em-kpi-val" style="color:${topAlertColor}">${topAlertLabel}</div>
               <div class="em-kpi-lbl">${alertCount} Alert${alertCount!==1?'s':''}</div>
             </div>
             <div class="em-kpi">
-              <div class="em-kpi-val" style="color:${gaugesAtRisk>0?'#f5a623':'#4caf50'}">${gaugesAtRisk}</div>
-              <div class="em-kpi-lbl">Gauges at Risk</div>
+              <div class="em-kpi-val" style="color:${rkColor}">${rkLabel}</div>
+              <div class="em-kpi-lbl">Weather Risk</div>
             </div>
             <div class="em-kpi">
-              <div class="em-kpi-val" style="color:${dlColor}">${dlStr}</div>
-              <div class="em-kpi-lbl">Next Deadline</div>
+              <div class="em-kpi-val" style="color:${hazColor}">${activeHazards}</div>
+              <div class="em-kpi-lbl">Active Hazard${activeHazards!==1?'s':''}</div>
             </div>
             <div class="em-kpi">
-              ${(()=>{
-                const topGauge=GAUGE_SITES.filter(g=>g.level!=null).sort((a,b)=>(b.level/b.action)-(a.level/a.action))[0];
-                const pct=topGauge?Math.round((topGauge.level/topGauge.action)*100):0;
-                const col=pct>=100?'#ef5350':pct>=75?'#f5a623':'#4caf50';
-                return`<div class="em-kpi-val" style="color:${col}">${topGauge?pct+'%':'—'}</div>
-                <div class="em-kpi-lbl">${topGauge?topGauge.short+' of Stage':'Gauge Stage'}</div>`;
-              })()}
+              <div class="em-kpi-val" style="color:${radarColor}">${radarLabel}</div>
+              <div class="em-kpi-lbl">Radar / Sensing</div>
             </div>
           </div>`;
         })()}
