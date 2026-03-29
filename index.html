@@ -278,23 +278,35 @@ header{
 .em-section{border-bottom:1px solid var(--border);}
 .em-sec-hdr{
   display:flex;align-items:center;justify-content:space-between;
-  padding:11px 16px;cursor:pointer;user-select:none;
+  padding:12px 16px;cursor:pointer;user-select:none;
   position:sticky;top:0;z-index:10;
   background:var(--bg);border-bottom:1px solid var(--border);
+  transition:background .15s;gap:10px;
 }
-.em-sec-hdr:hover{background:rgba(255,255,255,.03);}
-.em-sec-left{display:flex;align-items:center;gap:8px;flex:1;min-width:0;}
-.em-sec-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);flex-shrink:0;}
-.em-sec-summary{font-size:11px;color:var(--text);opacity:.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-left:6px;}
+.em-sec-hdr:hover{background:rgba(255,255,255,.05);}
+.em-sec-hdr:active{background:rgba(255,255,255,.08);}
+.em-sec-left{display:flex;align-items:baseline;gap:0;flex:1;min-width:0;}
+.em-sec-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);flex-shrink:0;white-space:nowrap;}
+.em-sec-summary{font-size:11px;color:var(--text);opacity:.6;margin-left:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .em-sec-right{display:flex;align-items:center;gap:8px;flex-shrink:0;}
-.em-sec-badge{font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;text-transform:uppercase;}
-.esb-ok{color:#4caf50;background:rgba(76,175,80,.1);}
-.esb-watch{color:#f5a623;background:rgba(245,166,35,.15);}
-.esb-warning{color:#ef5350;background:rgba(229,34,7,.15);}
-.em-sec-chev{font-size:10px;color:var(--muted);transition:transform .2s;margin-left:4px;}
+.em-sec-badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:3px;text-transform:uppercase;letter-spacing:.3px;}
+.esb-ok{color:#4caf50;background:rgba(76,175,80,.12);border:1px solid rgba(76,175,80,.2);}
+.esb-watch{color:#f5a623;background:rgba(245,166,35,.15);border:1px solid rgba(245,166,35,.3);}
+.esb-warning{color:#ef5350;background:rgba(229,34,7,.15);border:1px solid rgba(229,34,7,.3);}
+.em-sec-chev{
+  font-size:11px;color:var(--muted);
+  transition:transform .25s ease;
+  width:20px;height:20px;display:flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,.05);border-radius:4px;flex-shrink:0;
+}
 .em-sec-chev.open{transform:rotate(180deg);}
-.em-sec-body{display:none;}
-.em-sec-body.open{display:block;}
+.em-sec-body{
+  display:grid;grid-template-rows:0fr;
+  transition:grid-template-rows .25s ease;
+  overflow:hidden;
+}
+.em-sec-body.open{grid-template-rows:1fr;}
+.em-sec-body > div{overflow:hidden;}
 
 /* Legacy collapse classes — kept for compatibility */
 .emp-collapse-hdr{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;cursor:pointer;border-bottom:1px solid var(--border);user-select:none;}
@@ -1920,20 +1932,22 @@ function toggleEM(){
 
 function emSection(id, label, status, summary, body, defaultOpen=false){
   const badgeClass={'ok':'esb-ok','watch':'esb-watch','warning':'esb-warning'}[status]||'esb-ok';
-  const badgeLabel={'ok':'OK','watch':'Watch','warning':'⚠️ Warning'}[status]||'OK';
+  const badgeLabel={'ok':'OK','watch':'↑ Watch','warning':'⚠️ Warning'}[status]||'OK';
   const open=defaultOpen||(status!=='ok');
+  // Strip emoji from summary for cleaner truncation
+  const cleanSummary=summary.replace(/[🟢🟡🔴]/g,'').trim();
   return`<div class="em-section">
-    <div class="em-sec-hdr" onclick="toggleSection('${id}')">
+    <div class="em-sec-hdr" onclick="toggleSection('${id}')" role="button" aria-expanded="${open}">
       <div class="em-sec-left">
         <span class="em-sec-label">${label}</span>
-        <span class="em-sec-summary">${summary}</span>
+        <span class="em-sec-summary">${cleanSummary}</span>
       </div>
       <div class="em-sec-right">
         <span class="em-sec-badge ${badgeClass}">${badgeLabel}</span>
         <span class="em-sec-chev${open?' open':''}" id="sec-chev-${id}">▾</span>
       </div>
     </div>
-    <div class="em-sec-body${open?' open':''}" id="sec-body-${id}">${body}</div>
+    <div class="em-sec-body${open?' open':''}" id="sec-body-${id}"><div>${body}</div></div>
   </div>`;
 }
 
