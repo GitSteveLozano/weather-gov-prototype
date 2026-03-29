@@ -1130,7 +1130,7 @@ function render(){
               Operations &amp; Emergency Management
               <span class="em-trigger-badge">EM VIEW</span>
             </div>
-            <div class="em-trigger-sub">Alerts · Actions · Hydrology · All-Hazards · Infrastructure · Intelligence</div></div>
+            <div class="em-trigger-sub">Alerts · Hydrology · Conditions &amp; Threats · Infrastructure · Briefing</div>
           </div>
         </div>
         <span class="em-chevron" id="emChevron">▼</span>
@@ -1229,27 +1229,48 @@ function render(){
              ${renderActionDeadlines(true)}`,
             gaugeStatus!=='ok', gaugeTiles);
 
-          // ── SECTION 4: ALL-HAZARDS ──
+          // ── SECTION 3 (cont): add soil saturation to Hydrology ──
+          const soilHigh2=hazards.soilMoisture?.status==='warning';
+          const soilWatch2=hazards.soilMoisture?.status==='watch';
+          const soilCol2=soilHigh2?'#ef5350':soilWatch2?'#f5a623':'#4caf50';
+          const soilLabel2=soilHigh2?'Saturated':soilWatch2?'Elevated':'Normal';
+          if(hazards.soilMoisture?.surface) gaugeTiles.push({val:soilLabel2,lbl:'Soil Sat.',color:soilCol2});
+          // rebuild s3 with soil included
+          const s3b=emSection('hydrology','💧 Hydrology',
+            gaugeStatus==='ok'&&soilHigh2?'watch':gaugeStatus,'',
+            `<div class="emp-section">${emGauges}</div>
+             <div class="emp-section"><div class="emp-label">☁️ Rainfall Accumulation</div>${accumHtml}</div>
+             ${renderWahiawaReservoir(true)}
+             ${renderSoilSaturation(true)}
+             ${renderActionDeadlines(true)}`,
+            false, gaugeTiles);
+
+          // ── SECTION 4: CONDITIONS & THREATS ──
           const rf=hazards.fireWeather?.status;
           const tsu=hazards.tsunami?.status;
           const vog=hazards.vog?.status;
           const lal=hazards.lightning?.level||1;
-          const hazStatus=rf==='warning'||tsu==='warning'?'warning':
-            rf==='watch'||rf==='advisory'||vog==='advisory'||tsu==='watch'||lal>=4?'watch':'ok';
+          const radarDegraded=Object.values(hazards.radar||{}).some(r=>r.status!=='ok');
+          const condStatus=rf==='warning'||tsu==='warning'?'warning':
+            rf==='watch'||rf==='advisory'||vog==='advisory'||tsu==='watch'||lal>=4||radarDegraded?'watch':'ok';
           const windMph2=parseFloat(envData.windMph||0),gustMph2=parseFloat(envData.gustMph||0);
           const fireCol=rf==='warning'?'#ef5350':rf==='watch'?'#f5a623':'#4caf50';
           const windCol=gustMph2>=50?'#ef5350':gustMph2>=35?'#f5a623':'#4caf50';
           const lalCol=lal>=4?'#ef5350':lal>=2?'#f5a623':'#4caf50';
           const vogCol=(envData.aqi||0)>100?'#f5a623':'#4caf50';
           const tsuCol=tsu!=='ok'?'#ef5350':'#4caf50';
-          const s4=emSection('hazards','🌐 All-Hazards',hazStatus,'',
-            renderAllHazardsEnriched(),
-            hazStatus!=='ok',[
+          const radarCol=radarDegraded?'#ef5350':'#4caf50';
+          const s4=emSection('conditions','🌤 Conditions & Threats',condStatus,'',
+            `${renderAllHazardsEnriched()}
+             ${renderRadarStatus(true)}
+             <div class="emp-section"><div style="overflow-x:auto"><table class="prob-table"><thead><tr><th>Time</th><th>PoP</th><th>QPF</th><th>Conf.</th><th>35mph</th></tr></thead><tbody>${rows}</tbody></table></div></div>`,
+            false,[
               {val:rf==='warning'?'Warning':rf==='watch'?'Watch':'OK',lbl:'🔥 Fire',color:fireCol},
               {val:`${gustMph2}mph`,lbl:'💨 Gusts',color:windCol},
               {val:`LAL ${lal}`,lbl:'⚡ Lightning',color:lalCol},
               {val:`AQI ${envData.aqi||0}`,lbl:'🌫 Vog',color:vogCol},
               {val:tsu!=='ok'?'⚠️ Alert':'Clear',lbl:'🌊 Tsunami',color:tsuCol},
+              {val:radarDegraded?'⚠️ Degraded':'Nominal',lbl:'📡 Radar',color:radarCol},
             ]);
 
           // ── SECTION 5: INFRASTRUCTURE ──
@@ -1259,26 +1280,21 @@ function render(){
           const roadCol=roadRisk?'#f5a623':'#4caf50';
           const commsCol=commsRisk?'#f5a623':'#4caf50';
           const s5=emSection('infra','🚗 Infrastructure',infraStatus,'',
-            `${renderRoadRisk(true)}${renderCommsRisk(true)}${renderShelters(true)}${renderNotificationReach(true)}`,
-            infraStatus!=='ok',[
+            `${renderRoadRisk(true)}${renderCommsRisk(true)}${renderShelters(true)}${renderNotificationReach(true)}${renderLifelines(true)}`,
+            false,[
               {val:roadRisk?'At Risk':'Clear',lbl:'Roads',color:roadCol},
               {val:commsRisk?'At Risk':'Stable',lbl:'Comms',color:commsCol},
               {val:`${OAHU_SHELTERS.length} Sites`,lbl:'Shelters',color:'var(--text)'},
-              {val:'~100%',lbl:'WEA Reach',color:'#4caf50'},
+              {val:'~100%',lbl:'WEA',color:'#4caf50'},
               {val:'~11%',lbl:'HNL Alert',color:'#f5a623'},
             ]);
 
-          // ── SECTION 6: INTELLIGENCE ──
-          const radarDegraded=Object.values(hazards.radar||{}).some(r=>r.status!=='ok');
-          const soilHigh=hazards.soilMoisture?.status==='warning';
-          const intelStatus=radarDegraded?'warning':soilHigh?'watch':'ok';
-          const radarCol=radarDegraded?'#ef5350':'#4caf50';
-          const soilCol=soilHigh?'#ef5350':hazards.soilMoisture?.status==='watch'?'#f5a623':'#4caf50';
-          const soilLabel=soilHigh?'Saturated':hazards.soilMoisture?.status==='watch'?'Elevated':'Normal';
+          // ── SECTION 6: BRIEFING ──
           const discAge=hazards.forecasterDiscussion?.issuanceTime?Math.round((Date.now()-new Date(hazards.forecasterDiscussion.issuanceTime).getTime())/3600000):null;
-          const s6=emSection('intel','🧠 Intelligence',intelStatus,'',
-            `${renderRadarStatus(true)}${renderSoilSaturation(true)}
-            <div class="emp-section">
+          const discCol=discAge!=null&&discAge>6?'#f5a623':'#4caf50';
+          const s6=emSection('briefing','📋 Briefing',
+            discAge!=null&&discAge>6?'watch':'ok','',
+            `<div class="emp-section">
               <div class="emp-label">⚡ AI Situation Analysis <span class="nim-badge">Llama 3.3 · NVIDIA NIM</span></div>
               <div class="ai-summary" style="margin-bottom:10px;">${FORECASTER_NARRATIVE}</div>
               <div style="background:rgba(79,195,247,.08);border:1px solid rgba(79,195,247,.2);border-radius:6px;padding:9px 12px;font-size:12px;color:var(--text);margin-bottom:10px;">📈 <strong>Probability trend:</strong> ${PROBABILITY_TREND}</div>
@@ -1288,17 +1304,13 @@ function render(){
                 <button class="share-btn" onclick="navigator.clipboard?.writeText(document.querySelector('.share-text').textContent).then(()=>alert('Copied!'))">Copy</button>
               </div>
             </div>
-            ${renderForecasterDiscussion(true)}
-            <div class="emp-section"><div style="overflow-x:auto"><table class="prob-table"><thead><tr><th>Time</th><th>PoP</th><th>QPF</th><th>Conf.</th><th>35mph</th></tr></thead><tbody>${rows}</tbody></table></div></div>
-            ${renderLifelines(true)}`,
-            radarDegraded,[
-              {val:radarDegraded?'⚠️ Degraded':'Nominal',lbl:'Radar',color:radarCol},
-              {val:soilLabel,lbl:'Soil Sat.',color:soilCol},
-              {val:hazards.soilMoisture?.surface?parseFloat(hazards.soilMoisture.surface).toFixed(2):'—',lbl:'m³/m³',color:soilCol},
-              {val:discAge!=null?discAge+'h ago':'—',lbl:'HFO Discussion',color:discAge!=null&&discAge>6?'#f5a623':'var(--text)'},
+            ${renderForecasterDiscussion(true)}`,
+            false,[
+              {val:discAge!=null?discAge+'h ago':'—',lbl:'HFO Discussion',color:discCol},
+              {val:'AI',lbl:'Llama 3.3 Summary',color:'#4fc3f7'},
             ]);
 
-          return s1+s3+s4+s5+s6;
+          return s1+s3b+s4+s5+s6;
         })()}
 
       </div>
