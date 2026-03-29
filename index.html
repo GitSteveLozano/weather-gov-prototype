@@ -467,6 +467,10 @@ header{
       <label class="lyr-row"><input type="checkbox" id="lyrRisk" checked onchange="toggleLyr('risk')"> Risk Zones</label>
       <label class="lyr-row"><input type="checkbox" id="lyrGauges" checked onchange="toggleLyr('gauges')"> Stream Gauges</label>
       <label class="lyr-row"><input type="checkbox" id="lyrStations" checked onchange="toggleLyr('stations')"> Obs Stations</label>
+      <label class="lyr-row"><input type="checkbox" id="lyrWarnings" onchange="toggleLyr('warnings')"> ⚠️ NWS Warnings</label>
+      <label class="lyr-row"><input type="checkbox" id="lyrShelters" onchange="toggleLyr('shelters')"> 🏠 Shelters</label>
+      <label class="lyr-row"><input type="checkbox" id="lyrRadar" onchange="toggleLyr('radar')"> 📡 Radar</label>
+      <label class="lyr-row"><input type="checkbox" id="lyrSoil" onchange="toggleLyr('soil')"> 🌱 Soil Saturation</label>
     </div>
   </div>
 </div>
@@ -1168,18 +1172,7 @@ function render(){
           </div>`;
         })()}
 
-        <!-- Map mode presets -->
-        <div class="map-mode-strip">
-          <button class="mm-btn${activeMode==='watch'?' active':''}" id="mode-watch" onclick="setMapMode('watch')">👁 Watch</button>
-          <button class="mm-btn${activeMode==='evac'?' active':''}" id="mode-evac" onclick="setMapMode('evac')">🚨 Evacuation</button>
-          <button class="mm-btn${activeMode==='storm'?' active':''}" id="mode-storm" onclick="setMapMode('storm')">⛈ Storm</button>
-        </div>
-        <div class="mm-extras">
-          <button class="mm-extra-btn" id="extra-radar" onclick="toggleExtraLayer('radar')">📡 Radar</button>
-          <button class="mm-extra-btn" id="extra-soil" onclick="toggleExtraLayer('soil')">🌱 Soil Sat.</button>
-          <button class="mm-extra-btn" id="extra-gauges" onclick="toggleExtraLayer('gauges')">💧 Gauges</button>
-          <button class="mm-extra-btn" id="extra-shelters" onclick="toggleExtraLayer('shelters')">🏠 Shelters</button>
-        </div>
+        <!-- Map layers now controlled via the map legend panel (top-right) -->
 
         <!-- NEWSPAPER SECTIONS — no tabs, single scroll -->
         ${(()=>{
@@ -1916,8 +1909,11 @@ function toggleEM(){
   if(isOpening){
     map?.eachLayer(l=>{if(l._url?.includes('openstreetmap'))map.removeLayer(l);});
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{attribution:'© CARTO © OpenStreetMap',maxZoom:19}).addTo(map);
-    // Auto-activate Watch mode when EM opens
-    setMapMode('watch');
+    // Auto-enable Warnings + Shelters layers when EM opens
+    ['lyrWarnings','lyrShelters'].forEach(id=>{
+      const cb=document.getElementById(id);
+      if(cb&&!cb.checked){cb.checked=true;cb.dispatchEvent(new Event('change'));}
+    });
   } else {
     map?.eachLayer(l=>{if(l._url?.includes('carto'))map.removeLayer(l);});
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap contributors',maxZoom:18}).addTo(map);
@@ -2203,9 +2199,15 @@ function drawGaugeMarkers(){
   if(document.getElementById('lyrGauges').checked)gaugeLyr.addTo(map);
 }
 function toggleLyr(name){
-  const lyr={risk:riskLyr,gauges:gaugeLyr,stations:stationsLyr}[name];
-  const chk=document.getElementById({risk:'lyrRisk',gauges:'lyrGauges',stations:'lyrStations'}[name]).checked;
-  if(lyr){chk?lyr.addTo(map):lyr.remove();}
+  const idMap={risk:'lyrRisk',gauges:'lyrGauges',stations:'lyrStations',warnings:'lyrWarnings',shelters:'lyrShelters',radar:'lyrRadar',soil:'lyrSoil'};
+  const chk=document.getElementById(idMap[name])?.checked;
+  if(name==='risk'&&riskLyr){chk?riskLyr.addTo(map):riskLyr.remove();}
+  else if(name==='gauges'&&gaugeLyr){chk?gaugeLyr.addTo(map):gaugeLyr.remove();}
+  else if(name==='stations'&&stationsLyr){chk?stationsLyr.addTo(map):stationsLyr.remove();}
+  else if(name==='warnings'){chk?drawWarningPolygons():warningLyr?.remove();}
+  else if(name==='shelters'&&shelterLyr){chk?shelterLyr.addTo(map):shelterLyr.remove();}
+  else if(name==='radar'){chk?drawRadarTile():radarLyr?.remove();}
+  else if(name==='soil'){chk?drawSoilHeatmap():soilLyr?.remove();}
 }
 
 window.addEventListener('DOMContentLoaded',()=>{
