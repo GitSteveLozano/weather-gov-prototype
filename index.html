@@ -1191,16 +1191,6 @@ function render(){
             alerts.length?renderIBWAlerts(true):`<div style="padding:12px 14px;font-size:12px;color:var(--muted);">No active NWS alerts for Hawaii.</div>`,
             alerts.length>0);
 
-          // ── SECTION 2: PENDING ACTIONS ──
-          const deadlineGauges=GAUGE_SITES.filter(g=>g.level&&g.level/g.action>=0.6);
-          const saved=JSON.parse(localStorage.getItem('em_checklist')||'{}');
-          const checkDone2=Object.values(saved).filter(Boolean).length;
-          const actStatus=deadlineGauges.length?'watch':'ok';
-          const actSummary=`${deadlineGauges.length?deadlineGauges.length+' deadline'+(deadlineGauges.length>1?'s':''):'No deadlines'} · Checklist ${checkDone2}/6`;
-          const s2=emSection('actions','⏰ Pending Actions',actStatus,actSummary,
-            `${renderActionDeadlines(true)}<div style="border-top:1px solid var(--border);">${renderChecklist(true)}</div>`,
-            actStatus!=='ok');
-
           // ── SECTION 3: HYDROLOGY ──
           const gaugeStatus=GAUGE_SITES.some(g=>g.level&&g.level>=g.action)?'warning':
             (GAUGE_SITES.some(g=>g.level&&g.level>=g.action*0.75)||(WAHIAWA_RESERVOIR.level!=null&&WAHIAWA_RESERVOIR.level>=WAHIAWA_RESERVOIR.prepare-8))?'watch':'ok';
@@ -1212,7 +1202,8 @@ function render(){
           const s3=emSection('hydrology','💧 Hydrology',gaugeStatus,gaugeSummary,
             `<div class="emp-section">${emGauges}</div>
              <div class="emp-section"><div class="emp-label">☁️ Rainfall Accumulation</div>${accumHtml}</div>
-             ${renderWahiawaReservoir(true)}`,
+             ${renderWahiawaReservoir(true)}
+             ${renderActionDeadlines(true)}`,
             gaugeStatus!=='ok');
 
           // ── SECTION 4: ALL-HAZARDS ──
@@ -1236,7 +1227,7 @@ function render(){
           const infraStatus=roadRisk||commsRisk?'watch':'ok';
           const infraSummary=`Roads: ${roadRisk?'⚠️ At risk':'Clear'} · Comms: ${commsRisk?'⚠️ Risk':'Stable'} · Shelters: ${OAHU_SHELTERS.length} sites · WEA ~100% / HNL ~11%`;
           const s5=emSection('infra','🚗 Infrastructure',infraStatus,infraSummary,
-            `${renderRoadRisk(true)}${renderCommsRisk(true)}${renderShelters(true)}${renderNotificationReach(true)}`,
+            `${renderRoadRisk(true)}${renderCommsRisk(true)}${renderShelters(true)}${renderNotificationReach(true)}${renderChecklist(true)}`,
             infraStatus!=='ok');
 
           // ── SECTION 6: INTELLIGENCE ──
@@ -1261,7 +1252,7 @@ function render(){
             ${renderLifelines(true)}`,
             radarDegraded);
 
-          return s1+s2+s3+s4+s5+s6;
+          return s1+s3+s4+s5+s6;
         })()}
 
       </div>
