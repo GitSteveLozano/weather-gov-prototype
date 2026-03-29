@@ -2157,7 +2157,7 @@ function toggleBW(){
 
 // ── Map ──
 function initMap(){
-  map=L.map('map',{zoomControl:true}).setView([20.5,-157.5],7);
+  map=L.map('map',{zoomControl:true}).setView([21.47,-157.97],10);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap contributors',maxZoom:18}).addTo(map);
   setTimeout(()=>map.invalidateSize(),250);
 }
