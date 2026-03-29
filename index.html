@@ -1227,7 +1227,7 @@ function render(){
           const infraStatus=roadRisk||commsRisk?'watch':'ok';
           const infraSummary=`Roads: ${roadRisk?'⚠️ At risk':'Clear'} · Comms: ${commsRisk?'⚠️ Risk':'Stable'} · Shelters: ${OAHU_SHELTERS.length} sites · WEA ~100% / HNL ~11%`;
           const s5=emSection('infra','🚗 Infrastructure',infraStatus,infraSummary,
-            `${renderRoadRisk(true)}${renderCommsRisk(true)}${renderShelters(true)}${renderNotificationReach(true)}${renderChecklist(true)}`,
+            `${renderRoadRisk(true)}${renderCommsRisk(true)}${renderShelters(true)}${renderNotificationReach(true)}`,
             infraStatus!=='ok');
 
           // ── SECTION 6: INTELLIGENCE ──
