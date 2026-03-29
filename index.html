@@ -255,7 +255,18 @@ header{
 .em-kpi-val{font-size:15px;font-weight:800;color:var(--text);line-height:1.2;}
 .em-kpi-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-top:2px;}
 
-/* Map overlay strip */
+/* Map mode strip */
+.map-mode-strip{display:flex;gap:0;background:var(--card);border-bottom:1px solid var(--border);}
+.mm-btn{flex:1;padding:8px 6px;font-size:11px;font-weight:700;color:var(--muted);background:none;border:none;border-right:1px solid var(--border);cursor:pointer;white-space:nowrap;transition:all .15s;text-align:center;}
+.mm-btn:last-child{border-right:none;}
+.mm-btn.active{color:#4fc3f7;background:rgba(79,195,247,.12);border-bottom:2px solid #4fc3f7;}
+.mm-btn:hover{color:var(--text);}
+.mm-extras{display:flex;gap:0;background:rgba(0,0,0,.2);border-bottom:1px solid var(--border);}
+.mm-extra-btn{flex:1;padding:5px 6px;font-size:10px;font-weight:600;color:var(--muted);background:none;border:none;border-right:1px solid rgba(255,255,255,.05);cursor:pointer;transition:all .15s;text-align:center;}
+.mm-extra-btn:last-child{border-right:none;}
+.mm-extra-btn.active{color:#4fc3f7;}
+
+/* Legacy mos-btn kept for any remaining references */
 .map-overlay-strip{display:flex;gap:0;background:var(--card);border-bottom:1px solid var(--border);overflow-x:auto;}
 .map-overlay-strip::-webkit-scrollbar{display:none;}
 .mos-btn{flex-shrink:0;padding:7px 12px;font-size:11px;font-weight:700;color:var(--muted);background:none;border:none;border-right:1px solid var(--border);cursor:pointer;white-space:nowrap;transition:all .15s;}
@@ -445,7 +456,7 @@ header{
 
 <script>
 const LAT=21.3069,LON=-157.8583;
-let map,riskLyr,gaugeLyr,stationsLyr,eqLyr;
+let map,riskLyr,gaugeLyr,stationsLyr,eqLyr,warningLyr,soilLyr,radarLyr,activeMode='watch';
 let wd={},envData={},gauges=[],hazards={radar:{},soilMoisture:null,fireWeather:null,forecasterDiscussion:null,fim:null,lightning:null};
 let bwMode=false, activeSeg=null, activeIntent='home', hazardMode=false;
 let shelterLyr=null;
@@ -805,6 +816,8 @@ async function loadHazards(){
   render();
   try{drawEQMarkers();}catch(e){console.error('eq markers error:',e);}
   try{drawShelterMarkers();}catch(e){console.error('shelter markers error:',e);}
+  // If watch mode is active, refresh warning polygons with latest alert data
+  if(activeMode==='watch'||activeMode==='evac'||activeMode==='storm') try{drawWarningPolygons();}catch(e){console.warn('warning poly refresh:',e);}
   }catch(e){console.error('hazard load error:',e);}
 }
 
@@ -1138,13 +1151,17 @@ function render(){
           </div>`;
         })()}
 
-        <!-- Map overlay strip -->
-        <div class="map-overlay-strip">
-          <button class="mos-btn" onclick="toggleMapLayer('warnings')">⚠️ Warnings</button>
-          <button class="mos-btn" onclick="toggleMapLayer('flood')">🌊 Flood Zones</button>
-          <button class="mos-btn" onclick="toggleMapLayer('soil')">🌱 Soil Sat.</button>
-          <button class="mos-btn" onclick="toggleMapLayer('shelters')">🏠 Shelters</button>
-          <button class="mos-btn" onclick="toggleMapLayer('gauges')">💧 Gauges</button>
+        <!-- Map mode presets -->
+        <div class="map-mode-strip">
+          <button class="mm-btn${activeMode==='watch'?' active':''}" id="mode-watch" onclick="setMapMode('watch')">👁 Watch</button>
+          <button class="mm-btn${activeMode==='evac'?' active':''}" id="mode-evac" onclick="setMapMode('evac')">🚨 Evacuation</button>
+          <button class="mm-btn${activeMode==='storm'?' active':''}" id="mode-storm" onclick="setMapMode('storm')">⛈ Storm</button>
+        </div>
+        <div class="mm-extras">
+          <button class="mm-extra-btn" id="extra-radar" onclick="toggleExtraLayer('radar')">📡 Radar</button>
+          <button class="mm-extra-btn" id="extra-soil" onclick="toggleExtraLayer('soil')">🌱 Soil Sat.</button>
+          <button class="mm-extra-btn" id="extra-gauges" onclick="toggleExtraLayer('gauges')">💧 Gauges</button>
+          <button class="mm-extra-btn" id="extra-shelters" onclick="toggleExtraLayer('shelters')">🏠 Shelters</button>
         </div>
 
         <!-- Sub-tabs -->
@@ -1214,7 +1231,7 @@ function render(){
               return'ok';
             })(),
             'Fire · Wind · Lightning · Visibility · Vog · Tsunami',
-            renderAllHazardsEnriched(), true)}
+            renderAllHazardsEnriched(), false)}
 
           ${emCollapse('radar-soil','📡 Sensing Infrastructure',
             Object.values(hazards.radar||{}).some(r=>r.status!=='ok')?'warning':hazards.soilMoisture?.status!=='ok'?'watch':'ok',
@@ -1901,16 +1918,8 @@ function toggleEM(){
   if(isOpening){
     map?.eachLayer(l=>{if(l._url?.includes('openstreetmap'))map.removeLayer(l);});
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{attribution:'© CARTO © OpenStreetMap',maxZoom:19}).addTo(map);
-    // Auto-activate core situational layers
-    ['shelters','gauges'].forEach(layer=>{
-      if(!activeMapLayers[layer]){
-        activeMapLayers[layer]=true;
-        const btn=document.querySelector(`.mos-btn[onclick*="${layer}"]`);
-        if(btn) btn.classList.add('active');
-      }
-    });
-    if(shelterLyr) shelterLyr.addTo(map);
-    if(gaugeLyr) gaugeLyr.addTo(map);
+    // Auto-activate Watch mode when EM opens
+    setMapMode('watch');
   } else {
     map?.eachLayer(l=>{if(l._url?.includes('carto'))map.removeLayer(l);});
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap contributors',maxZoom:18}).addTo(map);
@@ -1953,23 +1962,132 @@ function switchEMTab(tab){
 
 let activeMapLayers={};
 function toggleMapLayer(layer){
-  const btn=document.querySelector(`.mos-btn[onclick*="${layer}"]`);
   const active=activeMapLayers[layer];
   activeMapLayers[layer]=!active;
-  if(btn) btn.classList.toggle('active',!active);
-  // Layer logic
   if(layer==='shelters'){if(!active&&shelterLyr)shelterLyr.addTo(map);else if(shelterLyr)shelterLyr.remove();}
   if(layer==='gauges'){if(!active&&gaugeLyr)gaugeLyr.addTo(map);else if(gaugeLyr)gaugeLyr.remove();}
-  // Flood zones / soil / warnings: show a toast for now (these require additional tile services)
-  if(['flood','soil','warnings'].includes(layer)){
-    const msgs={flood:'Flood inundation: weather.gov/hfo/ahps2',soil:'Soil saturation overlay — coming soon',warnings:'NWS warnings shown as map polygons when active'};
-    // Simple toast
-    const t=document.createElement('div');
-    t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1e3a8a;color:#fff;padding:8px 16px;border-radius:6px;font-size:12px;z-index:9999;';
-    t.textContent=msgs[layer];
-    document.body.appendChild(t);
-    setTimeout(()=>t.remove(),2500);
-  }
+}
+
+// Map mode presets
+const MAP_MODES={
+  watch:{layers:['warnings','gauges'],label:'Watch'},
+  evac:{layers:['warnings','shelters','gauges'],label:'Evacuation'},
+  storm:{layers:['warnings','radar','gauges'],label:'Storm'}
+};
+
+function setMapMode(mode){
+  activeMode=mode;
+  // Update button states
+  ['watch','evac','storm'].forEach(m=>{
+    const btn=document.getElementById('mode-'+m);
+    if(btn) btn.classList.toggle('active',m===mode);
+  });
+  // Clear all toggleable layers
+  if(warningLyr) warningLyr.remove();
+  if(soilLyr) soilLyr.remove();
+  if(radarLyr) radarLyr.remove();
+  if(gaugeLyr) gaugeLyr.remove();
+  if(shelterLyr) shelterLyr.remove();
+  // Reset extra button states
+  ['radar','soil','gauges','shelters'].forEach(l=>{
+    activeMapLayers[l]=false;
+    const btn=document.getElementById('extra-'+l);
+    if(btn) btn.classList.remove('active');
+  });
+  // Activate mode layers
+  const layers=MAP_MODES[mode]?.layers||[];
+  layers.forEach(l=>{
+    activeMapLayers[l]=true;
+    const btn=document.getElementById('extra-'+l);
+    if(btn) btn.classList.add('active');
+    if(l==='warnings') drawWarningPolygons();
+    if(l==='gauges'&&gaugeLyr) gaugeLyr.addTo(map);
+    if(l==='shelters'&&shelterLyr) shelterLyr.addTo(map);
+    if(l==='radar') drawRadarTile();
+  });
+}
+
+function toggleExtraLayer(layer){
+  const active=activeMapLayers[layer];
+  activeMapLayers[layer]=!active;
+  const btn=document.getElementById('extra-'+layer);
+  if(btn) btn.classList.toggle('active',!active);
+  if(layer==='gauges'){if(!active&&gaugeLyr)gaugeLyr.addTo(map);else if(gaugeLyr)gaugeLyr.remove();}
+  if(layer==='shelters'){if(!active&&shelterLyr)shelterLyr.addTo(map);else if(shelterLyr)shelterLyr.remove();}
+  if(layer==='radar'){if(!active)drawRadarTile();else if(radarLyr)radarLyr.remove();}
+  if(layer==='soil'){if(!active)drawSoilHeatmap();else if(soilLyr)soilLyr.remove();}
+}
+
+// NWS warning polygons
+async function drawWarningPolygons(){
+  if(warningLyr) warningLyr.remove();
+  warningLyr=L.layerGroup();
+  try{
+    const alerts=wd.alerts||[];
+    const sevColor={Extreme:'#ef5350',Severe:'#f5a623',Moderate:'#fbbf24',Minor:'#4fc3f7'};
+    alerts.forEach(a=>{
+      const geo=a.geometry;
+      if(!geo||geo.type!=='Polygon'&&geo.type!=='MultiPolygon') return;
+      const col=sevColor[a.properties.severity]||'#f5a623';
+      const coords=geo.type==='Polygon'?[geo.coordinates]:geo.coordinates;
+      coords.forEach(ring=>{
+        L.polygon(ring[0].map(c=>[c[1],c[0]]),{
+          fillColor:col,fillOpacity:0.25,color:col,weight:2,opacity:0.8,dashArray:'6,3'
+        }).bindTooltip(`<b>⚠️ ${a.properties.event}</b><br>${a.properties.headline?.slice(0,60)||''}`,{sticky:true})
+          .addTo(warningLyr);
+      });
+    });
+    // Also draw NWS flood/watch polygons if no geometries in alerts
+    if(alerts.every(a=>!a.geometry)){
+      // Fetch with geometry
+      try{
+        const r=await fetch('https://api.weather.gov/alerts/active?area=HI&status=actual&message_type=alert,update&limit=20');
+        const d=await r.json();
+        (d.features||[]).forEach(a=>{
+          const geo=a.geometry;
+          if(!geo) return;
+          const col=sevColor[a.properties.severity]||'#f5a623';
+          const coords=geo.type==='Polygon'?[geo.coordinates]:geo.coordinates;
+          coords.forEach(ring=>{
+            L.polygon(ring[0].map(c=>[c[1],c[0]]),{
+              fillColor:col,fillOpacity:0.25,color:col,weight:2,opacity:0.8,dashArray:'6,3'
+            }).bindTooltip(`<b>⚠️ ${a.properties.event}</b><br>${a.properties.headline?.slice(0,60)||''}`,{sticky:true})
+              .addTo(warningLyr);
+          });
+        });
+      }catch(e){console.warn('warning geometry fetch:',e);}
+    }
+    warningLyr.addTo(map);
+  }catch(e){console.warn('warning polygon error:',e);}
+}
+
+// Animated radar tile (NOAA Ridge2 - nearest tile)
+function drawRadarTile(){
+  if(radarLyr) radarLyr.remove();
+  // NOAA RIDGE2 radar for Hawaii (PHMO/PHKI coverage)
+  radarLyr=L.tileLayer(
+    'https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/nexrad-n0q-900913/{z}/{x}/{y}.png',
+    {opacity:0.6,attribution:'NEXRAD via IEM',maxZoom:16,tms:false}
+  );
+  radarLyr.addTo(map);
+}
+
+// Soil saturation heatmap from zone data
+function drawSoilHeatmap(){
+  if(soilLyr) soilLyr.remove();
+  const sm=hazards.soilMoisture?.surface;
+  if(!sm) return;
+  soilLyr=L.layerGroup();
+  // Render zone polygons as soil saturation heatmap overlay
+  const satVal=parseFloat(sm);
+  const col=satVal>=0.35?'#3b82f6':satVal>=0.25?'#06b6d4':'#10b981';
+  Object.values(ZONES).forEach(z=>{
+    L.polygon(z.c[0].map(c=>[c[1],c[0]]),{
+      fillColor:col,fillOpacity:0.3,color:col,weight:0,opacity:0
+    }).bindTooltip(`💧 Soil moisture: ${satVal.toFixed(3)} m³/m³ (${satVal>=0.35?'Saturated':satVal>=0.25?'Elevated':'Normal'})`,{sticky:true})
+      .addTo(soilLyr);
+  });
+  soilLyr.addTo(map);
 }
 
 function saveChecklist(id,val){
