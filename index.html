@@ -274,12 +274,29 @@ header{
 .mos-btn.active{color:#4fc3f7;background:rgba(79,195,247,.1);}
 .mos-btn:hover{color:var(--text);}
 
-/* EM Sub-tabs */
-.em-tabs{display:flex;background:var(--card);border-bottom:2px solid var(--border);}
-.em-tab{flex:1;padding:10px;font-size:12px;font-weight:700;color:var(--muted);background:none;border:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;}
-.em-tab.active{color:#4fc3f7;border-bottom-color:#4fc3f7;}
+/* EM newspaper sections — no tabs */
+.em-section{border-bottom:1px solid var(--border);}
+.em-sec-hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:11px 16px;cursor:pointer;user-select:none;
+  position:sticky;top:0;z-index:10;
+  background:var(--bg);border-bottom:1px solid var(--border);
+}
+.em-sec-hdr:hover{background:rgba(255,255,255,.03);}
+.em-sec-left{display:flex;align-items:center;gap:8px;flex:1;min-width:0;}
+.em-sec-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);flex-shrink:0;}
+.em-sec-summary{font-size:11px;color:var(--text);opacity:.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-left:6px;}
+.em-sec-right{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.em-sec-badge{font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;text-transform:uppercase;}
+.esb-ok{color:#4caf50;background:rgba(76,175,80,.1);}
+.esb-watch{color:#f5a623;background:rgba(245,166,35,.15);}
+.esb-warning{color:#ef5350;background:rgba(229,34,7,.15);}
+.em-sec-chev{font-size:10px;color:var(--muted);transition:transform .2s;margin-left:4px;}
+.em-sec-chev.open{transform:rotate(180deg);}
+.em-sec-body{display:none;}
+.em-sec-body.open{display:block;}
 
-/* Collapsible section */
+/* Legacy collapse classes — kept for compatibility */
 .emp-collapse-hdr{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;cursor:pointer;border-bottom:1px solid var(--border);user-select:none;}
 .emp-collapse-hdr:hover{background:rgba(255,255,255,.02);}
 .emp-ch-left{display:flex;align-items:center;gap:8px;}
@@ -1092,7 +1109,7 @@ function render(){
               Operations &amp; Emergency Management
               <span class="em-trigger-badge">EM VIEW</span>
             </div>
-            <div class="em-trigger-sub">Probabilistic data · Stream gauges · Community Lifelines · Road risk · Shelters</div>
+            <div class="em-trigger-sub">Alerts · Actions · Hydrology · All-Hazards · Infrastructure · Intelligence</div></div>
           </div>
         </div>
         <span class="em-chevron" id="emChevron">▼</span>
@@ -1164,84 +1181,72 @@ function render(){
           <button class="mm-extra-btn" id="extra-shelters" onclick="toggleExtraLayer('shelters')">🏠 Shelters</button>
         </div>
 
-        <!-- Sub-tabs -->
-        <div class="em-tabs">
-          <button class="em-tab active" id="tab-ops" onclick="switchEMTab('ops')">⚡ Actions</button>
-          <button class="em-tab" id="tab-intel" onclick="switchEMTab('intel')">📡 Situation</button>
-        </div>
+        <!-- NEWSPAPER SECTIONS — no tabs, single scroll -->
+        ${(()=>{
+          // ── SECTION 1: ACTIVE ALERTS ──
+          const alerts=wd.alerts||[];
+          const alertStatus=alerts.some(a=>a.properties.severity==='Extreme')?'warning':alerts.length?'watch':'ok';
+          const alertSummary=alerts.length?`${alerts.length} active · ${alerts[0]?.properties?.event||''}`:'No active NWS alerts';
+          const s1=emSection('alerts','🚨 Active Alerts',alertStatus,alertSummary,
+            alerts.length?renderIBWAlerts(true):`<div style="padding:12px 14px;font-size:12px;color:var(--muted);">No active NWS alerts for Hawaii.</div>`,
+            alerts.length>0);
 
-        <!-- ACTIONS TAB -->
-        <div id="em-tab-ops">
-          ${emCollapse('act-deadlines','⏰ Action Deadlines',
-            (()=>{const d=GAUGE_SITES.filter(g=>g.level&&g.level/g.action>=0.6);return d.length?'watch':'ok';})(),
-            (()=>{const d=GAUGE_SITES.filter(g=>g.level&&g.level/g.action>=0.6);return d.length?`${d.length} gauge${d.length>1?'s':''} approaching threshold`:'All gauges within normal range';})(),
-            renderActionDeadlines(true), true)}
+          // ── SECTION 2: PENDING ACTIONS ──
+          const deadlineGauges=GAUGE_SITES.filter(g=>g.level&&g.level/g.action>=0.6);
+          const saved=JSON.parse(localStorage.getItem('em_checklist')||'{}');
+          const checkDone2=Object.values(saved).filter(Boolean).length;
+          const actStatus=deadlineGauges.length?'watch':'ok';
+          const actSummary=`${deadlineGauges.length?deadlineGauges.length+' deadline'+(deadlineGauges.length>1?'s':''):'No deadlines'} · Checklist ${checkDone2}/6`;
+          const s2=emSection('actions','⏰ Pending Actions',actStatus,actSummary,
+            `${renderActionDeadlines(true)}<div style="border-top:1px solid var(--border);">${renderChecklist(true)}</div>`,
+            actStatus!=='ok');
 
-          ${emCollapse('shelters-ops','🏠 Shelters · Resource State',
-            'ok',`${OAHU_SHELTERS.length} sites · Verify status before activation`,
-            renderShelters(true), false)}
-
-          ${emCollapse('checklist','✅ Pre-Event Checklist',
-            (()=>{const s=JSON.parse(localStorage.getItem('em_checklist')||'{}');const d=Object.values(s).filter(Boolean).length;return d===6?'ok':d>0?'watch':'ok';})(),
-            (()=>{const s=JSON.parse(localStorage.getItem('em_checklist')||'{}');const d=Object.values(s).filter(Boolean).length;return`${d}/6 complete`;})(),
-            renderChecklist(true), false)}
-
-          ${emCollapse('road-comms','🚗 Road Risk &amp; Communications',
-            (()=>{
-              const roadRisk=GAUGE_SITES.some(g=>g.level&&ROAD_RISKS.some(r=>r.gauge<GAUGE_SITES.length&&g.level>=(r.threshold*0.75)));
-              const commsRisk=parseFloat(envData.gustMph||0)>=45;
-              return roadRisk||commsRisk?'watch':'ok';
-            })(),
-            (()=>{
-              const roadRisk=GAUGE_SITES.some(g=>g.level&&ROAD_RISKS.some(r=>r.gauge<GAUGE_SITES.length&&g.level>=(r.threshold*0.75)));
-              const g=parseFloat(envData.gustMph||0);
-              return [roadRisk?'Roads at risk':'Roads clear', g>=45?`Comms risk (gusts ${g}mph)`:'Comms stable'].join(' · ');
-            })(),
-            `${renderRoadRisk(true)}${renderCommsRisk(true)}`, false)}
-
-          ${emCollapse('notif','📣 Notification Reach',
-            'watch','WEA ~100% · HNL Alert ~11% — structural gap',
-            renderNotificationReach(true), false)}
-        </div>
-
-        <!-- SITUATION TAB -->
-        <div id="em-tab-intel" style="display:none;">
-          ${emCollapse('ibw-situation','🚨 Active Alerts',
-            (wd.alerts||[]).some(a=>a.properties.severity==='Extreme')?'warning':(wd.alerts||[]).length?'watch':'ok',
-            (wd.alerts||[]).length?`${(wd.alerts||[]).length} active · ${(wd.alerts||[])[0]?.properties?.event||''}`:'No active alerts',
-            (wd.alerts||[]).length?renderIBWAlerts(true):`<div style="padding:12px 14px;font-size:12px;color:var(--muted);">No active NWS alerts for Hawaii.</div>`,
-            (wd.alerts||[]).length>0)}
-
-          ${emCollapse('gauges-situation','💧 Stream Gauges + Reservoir',
-            GAUGE_SITES.some(g=>g.level&&g.level>=g.action)?'warning':
-            (GAUGE_SITES.some(g=>g.level&&g.level>=g.action*0.75)||(WAHIAWA_RESERVOIR.level!=null&&WAHIAWA_RESERVOIR.level>=WAHIAWA_RESERVOIR.prepare-8))?'watch':'ok',
-            `${GAUGE_SITES.filter(g=>g.level).map(g=>`${g.short} ${g.level?.toFixed(1)}ft`).join(' · ')||'Loading…'} · Wahiawa ${WAHIAWA_RESERVOIR.level!=null?WAHIAWA_RESERVOIR.level.toFixed(1)+'ft':'—'}`,
+          // ── SECTION 3: HYDROLOGY ──
+          const gaugeStatus=GAUGE_SITES.some(g=>g.level&&g.level>=g.action)?'warning':
+            (GAUGE_SITES.some(g=>g.level&&g.level>=g.action*0.75)||(WAHIAWA_RESERVOIR.level!=null&&WAHIAWA_RESERVOIR.level>=WAHIAWA_RESERVOIR.prepare-8))?'watch':'ok';
+          const gaugeSummary=GAUGE_SITES.filter(g=>g.level).map(g=>{
+            const pct=Math.round((g.level/g.action)*100);
+            const col=g.level>=g.action?'🔴':g.level>=g.action*0.75?'🟡':'🟢';
+            return`${col} ${g.short} ${g.level.toFixed(1)}ft`;
+          }).join(' · ')||'Loading gauges…';
+          const s3=emSection('hydrology','💧 Hydrology',gaugeStatus,gaugeSummary,
             `<div class="emp-section">${emGauges}</div>
              <div class="emp-section"><div class="emp-label">☁️ Rainfall Accumulation</div>${accumHtml}</div>
              ${renderWahiawaReservoir(true)}`,
-            GAUGE_SITES.some(g=>g.level&&g.level>=g.action*0.75))}
+            gaugeStatus!=='ok');
 
-          ${emCollapse('all-hazards-sit','🌐 All-Hazards Threat Picture',
-            (()=>{
-              const rf=hazards.fireWeather?.status;
-              const vog=hazards.vog?.status;
-              const tsu=hazards.tsunami?.status;
-              if(rf==='warning'||tsu==='warning') return'warning';
-              if(rf==='watch'||rf==='advisory'||vog==='advisory'||tsu==='watch') return'watch';
-              return'ok';
-            })(),
-            'Fire · Wind · Lightning · Visibility · Vog · Tsunami',
-            renderAllHazardsEnriched(), false)}
+          // ── SECTION 4: ALL-HAZARDS ──
+          const rf=hazards.fireWeather?.status;
+          const tsu=hazards.tsunami?.status;
+          const vog=hazards.vog?.status;
+          const lal=hazards.lightning?.level||1;
+          const hazStatus=rf==='warning'||tsu==='warning'?'warning':
+            rf==='watch'||rf==='advisory'||vog==='advisory'||tsu==='watch'||lal>=4?'watch':'ok';
+          const rfAlert=rf==='warning'?'🔥 Red Flag':rf==='watch'?'🔥 Watch':'🔥 OK';
+          const windMph2=parseFloat(envData.windMph||0),gustMph2=parseFloat(envData.gustMph||0);
+          const windSt=gustMph2>=50?'💨⚠️':gustMph2>=35?'💨~':'💨OK';
+          const hazSummary=`${rfAlert} · ${windSt} ${gustMph2}mph gusts · ⚡ LAL${lal} · 🌫 AQI${envData.aqi||0} · 🌊 ${tsu==='ok'?'Tsunami OK':'⚠️ Tsunami'}`;
+          const s4=emSection('hazards','🌐 All-Hazards',hazStatus,hazSummary,
+            renderAllHazardsEnriched(),
+            hazStatus!=='ok');
 
-          ${emCollapse('radar-soil','📡 Sensing Infrastructure',
-            Object.values(hazards.radar||{}).some(r=>r.status!=='ok')?'warning':hazards.soilMoisture?.status!=='ok'?'watch':'ok',
-            `Radar: ${Object.values(hazards.radar||{}).some(r=>r.status!=='ok')?'⚠️ Degraded':'OK'} · Ground: ${hazards.soilMoisture?.status==='warning'?'Saturated':hazards.soilMoisture?.status==='watch'?'Elevated':'Normal'}`,
-            `${renderRadarStatus(true)}${renderSoilSaturation(true)}`,
-            Object.values(hazards.radar||{}).some(r=>r.status!=='ok'))}
+          // ── SECTION 5: INFRASTRUCTURE ──
+          const roadRisk=GAUGE_SITES.some(g=>g.level&&ROAD_RISKS.some(r=>r.gauge<GAUGE_SITES.length&&g.level>=(r.threshold*0.75)));
+          const commsRisk=gustMph2>=45;
+          const infraStatus=roadRisk||commsRisk?'watch':'ok';
+          const infraSummary=`Roads: ${roadRisk?'⚠️ At risk':'Clear'} · Comms: ${commsRisk?'⚠️ Risk':'Stable'} · Shelters: ${OAHU_SHELTERS.length} sites · WEA ~100% / HNL ~11%`;
+          const s5=emSection('infra','🚗 Infrastructure',infraStatus,infraSummary,
+            `${renderRoadRisk(true)}${renderCommsRisk(true)}${renderShelters(true)}${renderNotificationReach(true)}`,
+            infraStatus!=='ok');
 
-          ${emCollapse('expert-synthesis','🧠 Expert Synthesis',
-            'ok','AI · NWS Forecaster · Probabilistic Forecast · Community Lifelines',
-            `<div class="emp-section">
+          // ── SECTION 6: INTELLIGENCE ──
+          const radarDegraded=Object.values(hazards.radar||{}).some(r=>r.status!=='ok');
+          const soilHigh=hazards.soilMoisture?.status==='warning';
+          const intelStatus=radarDegraded?'warning':soilHigh?'watch':'ok';
+          const intelSummary=`Radar: ${radarDegraded?'⚠️ Degraded':'OK'} · Soil: ${soilHigh?'Saturated':hazards.soilMoisture?.status==='watch'?'Elevated':'Normal'} · AI briefing · Forecaster discussion`;
+          const s6=emSection('intel','🧠 Intelligence',intelStatus,intelSummary,
+            `${renderRadarStatus(true)}${renderSoilSaturation(true)}
+            <div class="emp-section">
               <div class="emp-label">⚡ AI Situation Analysis <span class="nim-badge">Llama 3.3 · NVIDIA NIM</span></div>
               <div class="ai-summary" style="margin-bottom:10px;">${FORECASTER_NARRATIVE}</div>
               <div style="background:rgba(79,195,247,.08);border:1px solid rgba(79,195,247,.2);border-radius:6px;padding:9px 12px;font-size:12px;color:var(--text);margin-bottom:10px;">📈 <strong>Probability trend:</strong> ${PROBABILITY_TREND}</div>
@@ -1254,8 +1259,10 @@ function render(){
             ${renderForecasterDiscussion(true)}
             <div class="emp-section"><div style="overflow-x:auto"><table class="prob-table"><thead><tr><th>Time</th><th>PoP</th><th>QPF</th><th>Conf.</th><th>35mph</th></tr></thead><tbody>${rows}</tbody></table></div></div>
             ${renderLifelines(true)}`,
-            false)}
-        </div>
+            radarDegraded);
+
+          return s1+s2+s3+s4+s5+s6;
+        })()}
 
       </div>
     </div>
@@ -1927,6 +1934,33 @@ function toggleEM(){
   setTimeout(()=>map?.invalidateSize(),50);
 }
 
+function emSection(id, label, status, summary, body, defaultOpen=false){
+  const badgeClass={'ok':'esb-ok','watch':'esb-watch','warning':'esb-warning'}[status]||'esb-ok';
+  const badgeLabel={'ok':'OK','watch':'Watch','warning':'⚠️ Warning'}[status]||'OK';
+  const open=defaultOpen||(status!=='ok');
+  return`<div class="em-section">
+    <div class="em-sec-hdr" onclick="toggleSection('${id}')">
+      <div class="em-sec-left">
+        <span class="em-sec-label">${label}</span>
+        <span class="em-sec-summary">${summary}</span>
+      </div>
+      <div class="em-sec-right">
+        <span class="em-sec-badge ${badgeClass}">${badgeLabel}</span>
+        <span class="em-sec-chev${open?' open':''}" id="sec-chev-${id}">▾</span>
+      </div>
+    </div>
+    <div class="em-sec-body${open?' open':''}" id="sec-body-${id}">${body}</div>
+  </div>`;
+}
+
+function toggleSection(id){
+  const body=document.getElementById('sec-body-'+id);
+  const chev=document.getElementById('sec-chev-'+id);
+  if(!body||!chev) return;
+  const open=body.classList.toggle('open');
+  chev.classList.toggle('open',open);
+}
+
 function emCollapse(id, label, status, summary, body, defaultOpen=false){
   const statusClass={'ok':'emp-ch-ok','watch':'emp-ch-watch','warning':'emp-ch-warning'}[status]||'emp-ch-ok';
   const statusLabel={'ok':'OK','watch':'Watch','warning':'⚠️ Warning'}[status]||'OK';
@@ -1952,13 +1986,7 @@ function toggleCollapse(id){
   chev.classList.toggle('open',open);
 }
 
-function switchEMTab(tab){
-  document.getElementById('em-tab-ops').style.display=tab==='ops'?'block':'none';
-  document.getElementById('em-tab-intel').style.display=tab==='intel'?'block':'none';
-  document.getElementById('tab-ops').classList.toggle('active',tab==='ops');
-  document.getElementById('tab-intel').classList.toggle('active',tab==='intel');
-  // tab IDs unchanged, labels updated
-}
+function switchEMTab(tab){ /* tabs removed — single-page scroll */ }
 
 let activeMapLayers={};
 function toggleMapLayer(layer){
