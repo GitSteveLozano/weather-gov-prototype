@@ -491,7 +491,9 @@ header{
       <label class="lyr-row"><input type="checkbox" id="lyrStations" checked onchange="toggleLyr('stations')"> Obs Stations</label>
       <label class="lyr-row"><input type="checkbox" id="lyrWarnings" onchange="toggleLyr('warnings')"> ⚠️ NWS Warnings</label>
       <label class="lyr-row"><input type="checkbox" id="lyrShelters" onchange="toggleLyr('shelters')"> 🏠 Shelters</label>
-      <label class="lyr-row"><input type="checkbox" id="lyrRadar" onchange="toggleLyr('radar')"> 📡 Radar</label>
+      <label class="lyr-row"><input type="checkbox" id="lyrRadar" onchange="toggleLyr('radar')"> 📡 Radar (animated)</label>
+      <label class="lyr-row"><input type="checkbox" id="lyrPrecip" onchange="toggleLyr('precip')"> 🌧 Precip 24hr</label>
+      <label class="lyr-row"><input type="checkbox" id="lyrWind" onchange="toggleLyr('wind')"> 💨 Wind Speed</label>
       <label class="lyr-row"><input type="checkbox" id="lyrSoil" onchange="toggleLyr('soil')"> 🌱 Soil Saturation</label>
     </div>
   </div>
@@ -499,7 +501,7 @@ header{
 
 <script>
 const LAT=21.3069,LON=-157.8583;
-let map,riskLyr,gaugeLyr,stationsLyr,eqLyr,warningLyr,soilLyr,radarLyr,activeMode='watch';
+let map,riskLyr,gaugeLyr,stationsLyr,eqLyr,warningLyr,soilLyr,radarLyr,precipLyr,windLyr,radarAnim=null,activeMode='watch';
 let wd={},envData={},gauges=[],hazards={radar:{},soilMoisture:null,fireWeather:null,forecasterDiscussion:null,fim:null,lightning:null};
 let bwMode=false, activeSeg=null, activeIntent='home', hazardMode=false;
 let shelterLyr=null;
@@ -2097,7 +2099,7 @@ function setMapMode(mode){
     if(l==='warnings') drawWarningPolygons();
     if(l==='gauges'&&gaugeLyr) gaugeLyr.addTo(map);
     if(l==='shelters'&&shelterLyr) shelterLyr.addTo(map);
-    if(l==='radar') drawRadarTile();
+    if(l==="radar") drawAnimatedRadar();
   });
 }
 
@@ -2108,7 +2110,7 @@ function toggleExtraLayer(layer){
   if(btn) btn.classList.toggle('active',!active);
   if(layer==='gauges'){if(!active&&gaugeLyr)gaugeLyr.addTo(map);else if(gaugeLyr)gaugeLyr.remove();}
   if(layer==='shelters'){if(!active&&shelterLyr)shelterLyr.addTo(map);else if(shelterLyr)shelterLyr.remove();}
-  if(layer==='radar'){if(!active)drawRadarTile();else if(radarLyr)radarLyr.remove();}
+  if(layer==='radar'){if(!active)drawAnimatedRadar();else stopAnimatedRadar();}
   if(layer==='soil'){if(!active)drawSoilHeatmap();else if(soilLyr)soilLyr.remove();}
 }
 
@@ -2155,15 +2157,69 @@ async function drawWarningPolygons(){
   }catch(e){console.warn('warning polygon error:',e);}
 }
 
-// Animated radar tile (NOAA Ridge2 - nearest tile)
-function drawRadarTile(){
-  if(radarLyr) radarLyr.remove();
-  // NOAA RIDGE2 radar for Hawaii (PHMO/PHKI coverage)
-  radarLyr=L.tileLayer(
-    'https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/nexrad-n0q-900913/{z}/{x}/{y}.png',
-    {opacity:0.6,attribution:'NEXRAD via IEM',maxZoom:16,tms:false}
+// Animated radar via RainViewer (free, no API key, global composite)
+async function drawAnimatedRadar(){
+  stopAnimatedRadar();
+  try{
+    const r=await fetch('https://api.rainviewer.com/public/weather-maps.json');
+    const d=await r.json();
+    const host=d.host;
+    const frames=(d.radar?.past||[]).slice(-12); // last ~2hrs
+    if(!frames.length) return;
+    // Pre-create tile layers for all frames
+    const layers=frames.map(f=>L.tileLayer(
+      `${host}${f.path}/256/{z}/{x}/{y}/6/1_0.png`,
+      {opacity:0.6,attribution:'RainViewer',tileSize:256,zIndex:5}
+    ));
+    let cur=0;
+    layers[cur].addTo(map);
+    radarLyr=layers[cur]; // keep reference for removal
+    radarAnim=setInterval(()=>{
+      const prev=cur;
+      cur=(cur+1)%layers.length;
+      map.removeLayer(layers[prev]);
+      layers[cur].addTo(map);
+      radarLyr=layers[cur];
+    },500);
+  }catch(e){console.warn('RainViewer error:',e);
+    // Fallback to static IEM NEXRAD
+    radarLyr=L.tileLayer('https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/nexrad-n0q/{z}/{x}/{y}.png',{opacity:0.6,attribution:'NEXRAD via IEM',tileSize:256});
+    radarLyr.addTo(map);
+  }
+}
+
+function stopAnimatedRadar(){
+  if(radarAnim){clearInterval(radarAnim);radarAnim=null;}
+  if(radarLyr){radarLyr.remove();radarLyr=null;}
+}
+
+// 24hr Precipitation accumulation (IEM MRMS)
+function drawPrecipLayer(){
+  if(precipLyr) precipLyr.remove();
+  precipLyr=L.tileLayer(
+    'https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/q2-p24h/{z}/{x}/{y}.png',
+    {opacity:0.55,attribution:'MRMS 24hr Precip via IEM',tileSize:256,zIndex:4}
   );
-  radarLyr.addTo(map);
+  precipLyr.addTo(map);
+}
+
+// Wind speed overlay (NOAA NDFD WMS)
+function drawWindLayer(){
+  if(windLyr) windLyr.remove();
+  windLyr=L.tileLayer.wms(
+    'https://digital.weather.gov/wms',
+    {layers:'ndfd.conus.wspd',format:'image/png',transparent:true,version:'1.3.0',
+     opacity:0.5,attribution:'NOAA NDFD Wind',crs:L.CRS.EPSG4326}
+  );
+  // Fallback: IEM wind layer isn't available — show a note if WMS fails
+  windLyr.on('tileerror',()=>{
+    if(windLyr) windLyr.remove();
+    const t=document.createElement('div');
+    t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1e3a8a;color:#fff;padding:8px 16px;border-radius:6px;font-size:12px;z-index:9999;';
+    t.textContent='Wind tile layer unavailable — check NOAA NDFD service status';
+    document.body.appendChild(t);setTimeout(()=>t.remove(),3000);
+  });
+  windLyr.addTo(map);
 }
 
 // Soil saturation heatmap from zone data
@@ -2278,14 +2334,16 @@ function drawGaugeMarkers(){
   if(document.getElementById('lyrGauges').checked)gaugeLyr.addTo(map);
 }
 function toggleLyr(name){
-  const idMap={risk:'lyrRisk',gauges:'lyrGauges',stations:'lyrStations',warnings:'lyrWarnings',shelters:'lyrShelters',radar:'lyrRadar',soil:'lyrSoil'};
+  const idMap={risk:'lyrRisk',gauges:'lyrGauges',stations:'lyrStations',warnings:'lyrWarnings',shelters:'lyrShelters',radar:'lyrRadar',precip:'lyrPrecip',wind:'lyrWind',soil:'lyrSoil'};
   const chk=document.getElementById(idMap[name])?.checked;
   if(name==='risk'&&riskLyr){chk?riskLyr.addTo(map):riskLyr.remove();}
   else if(name==='gauges'&&gaugeLyr){chk?gaugeLyr.addTo(map):gaugeLyr.remove();}
   else if(name==='stations'&&stationsLyr){chk?stationsLyr.addTo(map):stationsLyr.remove();}
   else if(name==='warnings'){chk?drawWarningPolygons():warningLyr?.remove();}
   else if(name==='shelters'&&shelterLyr){chk?shelterLyr.addTo(map):shelterLyr.remove();}
-  else if(name==='radar'){chk?drawRadarTile():radarLyr?.remove();}
+  else if(name==='radar'){chk?drawAnimatedRadar():stopAnimatedRadar();}
+  else if(name==='precip'){chk?drawPrecipLayer():precipLyr?.remove();}
+  else if(name==='wind'){chk?drawWindLayer():windLyr?.remove();}
   else if(name==='soil'){chk?drawSoilHeatmap():soilLyr?.remove();}
 }
 
