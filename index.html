@@ -1957,6 +1957,7 @@ function toggleEM(){
   const chevron=document.getElementById('emChevron');
   const isOpening=!panel.classList.contains('open');
   panel.classList.toggle('open');
+  if(isOpening) setTimeout(()=>panel.scrollIntoView({behavior:'smooth',block:'start'}),50);
   chevron.classList.toggle('open');
   // Auto-switch map tiles
   if(isOpening){
@@ -1978,7 +1979,7 @@ function toggleEM(){
 function emSection(id, label, status, summary, body, defaultOpen=false, inlineData=[]){
   const badgeClass={'ok':'esb-ok','watch':'esb-watch','warning':'esb-warning'}[status]||'esb-ok';
   const badgeLabel={'ok':'OK','watch':'Watch','warning':'⚠️ Warn'}[status]||'OK';
-  const open=defaultOpen||(status!=='ok');
+  const open=defaultOpen;
 
   const tiles=inlineData.length?`<div class="em-sec-tiles">${inlineData.map(d=>`
     <div class="em-sec-tile">
@@ -2012,7 +2013,7 @@ function toggleSection(id){
 function emCollapse(id, label, status, summary, body, defaultOpen=false){
   const statusClass={'ok':'emp-ch-ok','watch':'emp-ch-watch','warning':'emp-ch-warning'}[status]||'emp-ch-ok';
   const statusLabel={'ok':'OK','watch':'Watch','warning':'⚠️ Warning'}[status]||'OK';
-  const open=defaultOpen||(status!=='ok');
+  const open=defaultOpen;
   return`<div class="emp-collapse">
     <div class="emp-collapse-hdr" onclick="toggleCollapse('${id}')">
       <div class="emp-ch-left">
