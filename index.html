@@ -2305,35 +2305,29 @@ async function drawWarningPolygons(){
   }catch(e){console.warn('warning polygon error:',e);}
 }
 
-// Animated radar via RainViewer (free, no API key, global composite)
-async function drawAnimatedRadar(){
+// Animated radar via IEM NEXRAD (12 frames, last 55 min)
+function drawAnimatedRadar(){
   stopAnimatedRadar();
-  try{
-    const r=await fetch('https://api.rainviewer.com/public/weather-maps.json');
-    const d=await r.json();
-    const host=d.host;
-    const frames=(d.radar?.past||[]).slice(-12); // last ~2hrs
-    if(!frames.length) return;
-    // Pre-create tile layers for all frames
-    const layers=frames.map(f=>L.tileLayer(
-      `${host}${f.path}/256/{z}/{x}/{y}/6/1_0.png`,
-      {opacity:0.6,attribution:'RainViewer',tileSize:256,zIndex:5,maxNativeZoom:8,maxZoom:13}
-    ));
-    let cur=0;
+  const frames=[
+    'nexrad-n0q-m55m','nexrad-n0q-m50m','nexrad-n0q-m45m',
+    'nexrad-n0q-m40m','nexrad-n0q-m35m','nexrad-n0q-m30m',
+    'nexrad-n0q-m25m','nexrad-n0q-m20m','nexrad-n0q-m15m',
+    'nexrad-n0q-m10m','nexrad-n0q-m05m','nexrad-n0q'
+  ];
+  const opts={opacity:0.65,attribution:'NEXRAD via IEM',tileSize:256,maxNativeZoom:8,maxZoom:19,crossOrigin:true};
+  const layers=frames.map(f=>L.tileLayer(
+    `https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/${f}/{z}/{x}/{y}.png`,opts
+  ));
+  let cur=0;
+  layers[cur].addTo(map);
+  radarLyr=layers[cur];
+  radarAnim=setInterval(()=>{
+    const prev=cur;
+    cur=(cur+1)%layers.length;
+    map.removeLayer(layers[prev]);
     layers[cur].addTo(map);
-    radarLyr=layers[cur]; // keep reference for removal
-    radarAnim=setInterval(()=>{
-      const prev=cur;
-      cur=(cur+1)%layers.length;
-      map.removeLayer(layers[prev]);
-      layers[cur].addTo(map);
-      radarLyr=layers[cur];
-    },500);
-  }catch(e){console.warn('RainViewer error:',e);
-    // Fallback to static IEM NEXRAD
-    radarLyr=L.tileLayer('https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/nexrad-n0q/{z}/{x}/{y}.png',{opacity:0.6,attribution:'NEXRAD via IEM',tileSize:256,maxNativeZoom:8,maxZoom:13});
-    radarLyr.addTo(map);
-  }
+    radarLyr=layers[cur];
+  },600);
 }
 
 function stopAnimatedRadar(){
