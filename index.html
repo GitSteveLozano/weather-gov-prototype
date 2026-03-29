@@ -2135,7 +2135,7 @@ function drawSatelliteLayer(){
   if(satelliteLyr) satelliteLyr.remove();
   satelliteLyr=L.tileLayer(
     'https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/goes_east_conus_ch13/{z}/{x}/{y}.png',
-    {opacity:0.55,attribution:'GOES-East IR via IEM',tileSize:256,zIndex:3}
+    {opacity:0.55,attribution:'GOES-East IR via IEM',tileSize:256,zIndex:3,maxNativeZoom:8,maxZoom:13}
   );
   satelliteLyr.addTo(map);
 }
@@ -2314,7 +2314,7 @@ async function drawAnimatedRadar(){
     // Pre-create tile layers for all frames
     const layers=frames.map(f=>L.tileLayer(
       `${host}${f.path}/256/{z}/{x}/{y}/6/1_0.png`,
-      {opacity:0.6,attribution:'RainViewer',tileSize:256,zIndex:5}
+      {opacity:0.6,attribution:'RainViewer',tileSize:256,zIndex:5,maxNativeZoom:8,maxZoom:13}
     ));
     let cur=0;
     layers[cur].addTo(map);
@@ -2328,7 +2328,7 @@ async function drawAnimatedRadar(){
     },500);
   }catch(e){console.warn('RainViewer error:',e);
     // Fallback to static IEM NEXRAD
-    radarLyr=L.tileLayer('https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/nexrad-n0q/{z}/{x}/{y}.png',{opacity:0.6,attribution:'NEXRAD via IEM',tileSize:256});
+    radarLyr=L.tileLayer('https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/nexrad-n0q/{z}/{x}/{y}.png',{opacity:0.6,attribution:'NEXRAD via IEM',tileSize:256,maxNativeZoom:8,maxZoom:13});
     radarLyr.addTo(map);
   }
 }
@@ -2343,7 +2343,7 @@ function drawPrecipLayer(){
   if(precipLyr) precipLyr.remove();
   precipLyr=L.tileLayer(
     'https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/q2-p24h/{z}/{x}/{y}.png',
-    {opacity:0.55,attribution:'MRMS 24hr Precip via IEM',tileSize:256,zIndex:4}
+    {opacity:0.55,attribution:'MRMS 24hr Precip via IEM',tileSize:256,zIndex:4,maxNativeZoom:8,maxZoom:13}
   );
   precipLyr.addTo(map);
 }
