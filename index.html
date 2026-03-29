@@ -1276,7 +1276,7 @@ function render(){
           const soilCol=soilHigh?'#ef5350':hazards.soilMoisture?.status==='watch'?'#f5a623':'#4caf50';
           const soilLabel=soilHigh?'Saturated':hazards.soilMoisture?.status==='watch'?'Elevated':'Normal';
           const discAge=hazards.forecasterDiscussion?.issuanceTime?Math.round((Date.now()-new Date(hazards.forecasterDiscussion.issuanceTime).getTime())/3600000):null;
-          const s6=emSection('intel','🧠 Intelligence',intelStatus,intelSummary,
+          const s6=emSection('intel','🧠 Intelligence',intelStatus,'',
             `${renderRadarStatus(true)}${renderSoilSaturation(true)}
             <div class="emp-section">
               <div class="emp-label">⚡ AI Situation Analysis <span class="nim-badge">Llama 3.3 · NVIDIA NIM</span></div>
