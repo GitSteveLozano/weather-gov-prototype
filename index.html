@@ -278,33 +278,38 @@ header{
 .em-section{border-bottom:1px solid var(--border);}
 .em-sec-hdr{
   display:flex;align-items:center;justify-content:space-between;
-  padding:12px 16px;cursor:pointer;user-select:none;
+  padding:13px 16px;cursor:pointer;user-select:none;
   position:sticky;top:0;z-index:10;
-  background:var(--bg);border-bottom:1px solid var(--border);
-  transition:background .15s;gap:10px;
+  background:#1a2030;
+  border-bottom:1px solid var(--border);
+  border-left:3px solid var(--border);
+  transition:background .15s,border-color .15s;gap:10px;
 }
-.em-sec-hdr:hover{background:rgba(255,255,255,.05);}
-.em-sec-hdr:active{background:rgba(255,255,255,.08);}
-.em-sec-left{display:flex;align-items:baseline;gap:0;flex:1;min-width:0;}
-.em-sec-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);flex-shrink:0;white-space:nowrap;}
-.em-sec-summary{font-size:11px;color:var(--text);opacity:.6;margin-left:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.em-sec-hdr:hover{background:#1e2640;}
+.em-sec-hdr:active{background:#222c4a;}
+.em-sec-hdr.status-ok{border-left-color:#4caf50;}
+.em-sec-hdr.status-watch{border-left-color:#f5a623;}
+.em-sec-hdr.status-warning{border-left-color:#ef5350;}
+.em-sec-left{display:flex;align-items:center;gap:8px;flex:1;min-width:0;}
+.em-sec-label{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:#e6edf3;flex-shrink:0;white-space:nowrap;}
+.em-sec-summary{font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .em-sec-right{display:flex;align-items:center;gap:8px;flex-shrink:0;}
-.em-sec-badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:3px;text-transform:uppercase;letter-spacing:.3px;}
-.esb-ok{color:#4caf50;background:rgba(76,175,80,.12);border:1px solid rgba(76,175,80,.2);}
-.esb-watch{color:#f5a623;background:rgba(245,166,35,.15);border:1px solid rgba(245,166,35,.3);}
-.esb-warning{color:#ef5350;background:rgba(229,34,7,.15);border:1px solid rgba(229,34,7,.3);}
+.em-sec-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:.3px;}
+.esb-ok{color:#4caf50;background:rgba(76,175,80,.12);border:1px solid rgba(76,175,80,.25);}
+.esb-watch{color:#f5a623;background:rgba(245,166,35,.15);border:1px solid rgba(245,166,35,.35);}
+.esb-warning{color:#ef5350;background:rgba(229,34,7,.15);border:1px solid rgba(229,34,7,.35);}
 .em-sec-chev{
-  font-size:11px;color:var(--muted);
+  font-size:12px;color:#8b949e;
   transition:transform .25s ease;
-  width:20px;height:20px;display:flex;align-items:center;justify-content:center;
-  background:rgba(255,255,255,.05);border-radius:4px;flex-shrink:0;
+  width:22px;height:22px;display:flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:5px;flex-shrink:0;
 }
 .em-sec-chev.open{transform:rotate(180deg);}
-.em-sec-tiles{display:flex;gap:0;border-bottom:1px solid var(--border);background:rgba(0,0,0,.15);}
-.em-sec-tile{flex:1;padding:7px 12px;border-right:1px solid var(--border);text-align:center;}
+.em-sec-tiles{display:flex;gap:0;border-bottom:1px solid var(--border);background:rgba(0,0,0,.25);}
+.em-sec-tile{flex:1;padding:9px 10px;border-right:1px solid var(--border);text-align:center;}
 .em-sec-tile:last-child{border-right:none;}
-.est-val{display:block;font-size:13px;font-weight:800;line-height:1.2;}
-.est-lbl{display:block;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-top:2px;}
+.est-val{display:block;font-size:14px;font-weight:800;line-height:1.2;}
+.est-lbl{display:block;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-top:3px;}
 .em-sec-body{
   display:grid;grid-template-rows:0fr;
   transition:grid-template-rows .25s ease;
@@ -2000,7 +2005,7 @@ function emSection(id, label, status, summary, body, defaultOpen=false, inlineDa
     </div>`).join('')}</div>`:'';
 
   return`<div class="em-section">
-    <div class="em-sec-hdr" onclick="toggleSection('${id}')" role="button" aria-expanded="${open}">
+    <div class="em-sec-hdr status-${status}" onclick="toggleSection('${id}')" role="button" aria-expanded="${open}">
       <div class="em-sec-left">
         <span class="em-sec-label">${label}</span>
       </div>
