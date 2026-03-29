@@ -547,7 +547,7 @@ const GAUGE_SITES=[
   {id:'16247100',name:'Manoa-Palolo Canal',short:'Manoa Canal',lat:21.295,lon:-157.826,flood:5.0,action:3.5},
   {id:'16229000',name:'Kalihi Stream',short:'Kalihi Stream',lat:21.37,lon:-157.875,flood:8.0,action:5.5},
   {id:'16213000',name:'Waikele Stream',short:'Waikele Stream',lat:21.385,lon:-158.01,flood:12.0,action:8.0},
-  {id:'16068500',name:'Kaukonahua Stream',short:'Kaukonahua',lat:21.538,lon:-158.03,flood:28.0,action:20.0}
+  {id:'16210500',name:'Kaukonahua Stream at Waialua',short:'Kaukonahua',lat:21.565,lon:-158.12,flood:28.0,action:20.0}
 ];
 
 // Wahiawa Reservoir — standalone critical infrastructure gauge
@@ -2214,7 +2214,7 @@ async function drawOSMLayer(type){
       lyrVar:'fireStationsLyr'
     },
     dams:{
-      query:`[out:json][timeout:10];(node[waterway=dam](21.2,-158.3,21.7,-157.6);node[man_made=dam](21.2,-158.3,21.7,-157.6);node[waterway=weir](21.2,-158.3,21.7,-157.6););out body;`,
+      query:`[out:json][timeout:10];(way[waterway=dam](21.2,-158.3,21.7,-157.6);way[man_made=dam](21.2,-158.3,21.7,-157.6););out center;`,
       icon:'🏔',color:'#8b5cf6',label:'Dam/Reservoir',
       popup:(t)=>`<b>🏔 ${t.name||'Dam/Reservoir'}</b>${t.operator?'<br>Operator: '+t.operator:''}`,
       lyrVar:'damsLyr'
@@ -2235,7 +2235,10 @@ async function drawOSMLayer(type){
     const d=await r.json();
     const els=d.elements||[];
     els.forEach(e=>{
-      if(!e.lat||!e.lon) return;
+      const lat=e.lat||e.center?.lat;
+      const lon=e.lon||e.center?.lon;
+      if(!lat||!lon) return;
+      e.lat=lat;e.lon=lon;
       const t=e.tags||{};
       const icon=L.divIcon({
         html:`<div style="background:${cfg.color};color:#fff;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:14px;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4);">${cfg.icon}</div>`,
