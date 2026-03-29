@@ -506,6 +506,9 @@ header{
         <div class="lyr-title">🏗 Infrastructure</div>
         <label class="lyr-row"><input type="checkbox" id="lyrGauges" checked onchange="toggleLyr('gauges')"> 💧 Stream Gauges</label>
         <label class="lyr-row"><input type="checkbox" id="lyrShelters" onchange="toggleLyr('shelters')"> 🏠 Shelters</label>
+        <label class="lyr-row"><input type="checkbox" id="lyrHospitals" onchange="toggleLyr('hospitals')"> 🏥 Hospitals</label>
+        <label class="lyr-row"><input type="checkbox" id="lyrFireStations" onchange="toggleLyr('firestations')"> 🚒 Fire / EMS Stations</label>
+        <label class="lyr-row"><input type="checkbox" id="lyrDams" onchange="toggleLyr('dams')"> 🏔 Dams & Reservoirs</label>
         <label class="lyr-row"><input type="checkbox" id="lyrStations" checked onchange="toggleLyr('stations')"> 📍 Obs Stations</label>
       </div>
     </div>
@@ -514,7 +517,7 @@ header{
 
 <script>
 const LAT=21.3069,LON=-157.8583;
-let map,riskLyr,gaugeLyr,stationsLyr,eqLyr,warningLyr,soilLyr,radarLyr,precipLyr,windLyr,satelliteLyr,tsunamiLyr,fireLyr,radarAnim=null,activeMode='watch';
+let map,riskLyr,gaugeLyr,stationsLyr,eqLyr,warningLyr,soilLyr,radarLyr,precipLyr,windLyr,satelliteLyr,tsunamiLyr,fireLyr,hospitalsLyr,fireStationsLyr,damsLyr,radarAnim=null,activeMode='watch';
 let wd={},envData={},gauges=[],hazards={radar:{},soilMoisture:null,fireWeather:null,forecasterDiscussion:null,fim:null,lightning:null};
 let bwMode=false, activeSeg=null, activeIntent='home', hazardMode=false;
 let shelterLyr=null;
@@ -2195,6 +2198,67 @@ async function drawFirePerimeters(){
   }catch(e){console.warn('fire perimeters error:',e);}
 }
 
+// OSM infrastructure layers (hospitals, fire stations, dams)
+async function drawOSMLayer(type){
+  const configs={
+    hospitals:{
+      query:`[out:json][timeout:10];node[amenity=hospital](21.2,-158.3,21.7,-157.6);out body;`,
+      icon:'🏥',color:'#ec4899',label:'Hospital',
+      popup:(t)=>`<b>🏥 ${t.name||'Hospital'}</b>${t['addr:street']?'<br>'+t['addr:street']:''}${t.phone?'<br>📞 '+t.phone:''}`,
+      lyrVar:'hospitalsLyr'
+    },
+    firestations:{
+      query:`[out:json][timeout:10];node[amenity=fire_station](21.2,-158.3,21.7,-157.6);out body;`,
+      icon:'🚒',color:'#f97316',label:'Fire/EMS Station',
+      popup:(t)=>`<b>🚒 ${t.name||'Fire Station'}</b>${t['addr:street']?'<br>'+t['addr:street']:''}`,
+      lyrVar:'fireStationsLyr'
+    },
+    dams:{
+      query:`[out:json][timeout:10];(node[waterway=dam](21.2,-158.3,21.7,-157.6);node[man_made=dam](21.2,-158.3,21.7,-157.6);node[waterway=weir](21.2,-158.3,21.7,-157.6););out body;`,
+      icon:'🏔',color:'#8b5cf6',label:'Dam/Reservoir',
+      popup:(t)=>`<b>🏔 ${t.name||'Dam/Reservoir'}</b>${t.operator?'<br>Operator: '+t.operator:''}`,
+      lyrVar:'damsLyr'
+    }
+  };
+  const cfg=configs[type];
+  if(!cfg) return;
+
+  // Remove existing
+  const existing={hospitals:hospitalsLyr,firestations:fireStationsLyr,dams:damsLyr}[type];
+  if(existing) existing.remove();
+
+  const lyr=L.layerGroup();
+  try{
+    const r=await fetch('https://overpass-api.de/api/interpreter',{
+      method:'POST',body:cfg.query,signal:AbortSignal.timeout(12000)
+    });
+    const d=await r.json();
+    const els=d.elements||[];
+    els.forEach(e=>{
+      if(!e.lat||!e.lon) return;
+      const t=e.tags||{};
+      const icon=L.divIcon({
+        html:`<div style="background:${cfg.color};color:#fff;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:14px;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4);">${cfg.icon}</div>`,
+        className:'',iconSize:[26,26],iconAnchor:[13,13]
+      });
+      L.marker([e.lat,e.lon],{icon})
+        .bindTooltip(cfg.popup(t),{sticky:true})
+        .addTo(lyr);
+    });
+    if(els.length===0){
+      const t2=document.createElement('div');
+      t2.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#374151;color:#fff;padding:8px 16px;border-radius:6px;font-size:12px;z-index:9999;';
+      t2.textContent=`No ${cfg.label} data found for Oahu`;
+      document.body.appendChild(t2);setTimeout(()=>t2.remove(),2500);
+    }
+  }catch(e){console.warn(`OSM ${type} error:`,e);}
+
+  lyr.addTo(map);
+  if(type==='hospitals') hospitalsLyr=lyr;
+  else if(type==='firestations') fireStationsLyr=lyr;
+  else if(type==='dams') damsLyr=lyr;
+}
+
 // NWS warning polygons
 async function drawWarningPolygons(){
   if(warningLyr) warningLyr.remove();
@@ -2415,7 +2479,7 @@ function drawGaugeMarkers(){
   if(document.getElementById('lyrGauges').checked)gaugeLyr.addTo(map);
 }
 function toggleLyr(name){
-  const idMap={risk:'lyrRisk',gauges:'lyrGauges',stations:'lyrStations',warnings:'lyrWarnings',shelters:'lyrShelters',radar:'lyrRadar',precip:'lyrPrecip',wind:'lyrWind',soil:'lyrSoil',satellite:'lyrSatellite',tsunami:'lyrTsunami',fire:'lyrFire'};
+  const idMap={risk:'lyrRisk',gauges:'lyrGauges',stations:'lyrStations',warnings:'lyrWarnings',shelters:'lyrShelters',radar:'lyrRadar',precip:'lyrPrecip',wind:'lyrWind',soil:'lyrSoil',satellite:'lyrSatellite',tsunami:'lyrTsunami',fire:'lyrFire',hospitals:'lyrHospitals',firestations:'lyrFireStations',dams:'lyrDams'};
   const chk=document.getElementById(idMap[name])?.checked;
   if(name==='risk'&&riskLyr){chk?riskLyr.addTo(map):riskLyr.remove();}
   else if(name==='gauges'&&gaugeLyr){chk?gaugeLyr.addTo(map):gaugeLyr.remove();}
@@ -2429,6 +2493,9 @@ function toggleLyr(name){
   else if(name==='satellite'){chk?drawSatelliteLayer():satelliteLyr?.remove();}
   else if(name==='tsunami'){chk?drawTsunamiZones():tsunamiLyr?.remove();}
   else if(name==='fire'){chk?drawFirePerimeters():fireLyr?.remove();}
+  else if(name==='hospitals'){chk?drawOSMLayer('hospitals'):hospitalsLyr?.remove();}
+  else if(name==='firestations'){chk?drawOSMLayer('firestations'):fireStationsLyr?.remove();}
+  else if(name==='dams'){chk?drawOSMLayer('dams'):damsLyr?.remove();}
 }
 
 window.addEventListener('DOMContentLoaded',()=>{
