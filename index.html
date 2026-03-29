@@ -491,7 +491,7 @@ header{
         <div class="lyr-title">🌦 Weather</div>
         <label class="lyr-row"><input type="checkbox" id="lyrRadar" onchange="toggleLyr('radar')"> 📡 Radar (animated)</label>
         <label class="lyr-row"><input type="checkbox" id="lyrPrecip" onchange="toggleLyr('precip')"> 🌧 Precip 24hr</label>
-        <label class="lyr-row"><input type="checkbox" id="lyrWind" onchange="toggleLyr('wind')"> 💨 Wind Speed</label>
+        <label class="lyr-row"><input type="checkbox" id="lyrPrecipRate" onchange="toggleLyr('preciprate')"> ⛈ Precip Rate (current)</label>
         <label class="lyr-row"><input type="checkbox" id="lyrSatellite" onchange="toggleLyr('satellite')"> 🛰 Satellite (IR)</label>
         <label class="lyr-row"><input type="checkbox" id="lyrSoil" onchange="toggleLyr('soil')"> 🌱 Soil Saturation</label>
       </div>
@@ -2485,7 +2485,7 @@ function toggleLyr(name){
   else if(name==='shelters'&&shelterLyr){chk?shelterLyr.addTo(map):shelterLyr.remove();}
   else if(name==='radar'){chk?drawAnimatedRadar():stopAnimatedRadar();}
   else if(name==='precip'){chk?drawPrecipLayer():precipLyr?.remove();}
-  else if(name==='wind'){chk?drawWindLayer():windLyr?.remove();}
+  else if(name==='wind'||name==='preciprate'){chk?drawWindLayer():windLyr?.remove();}
   else if(name==='soil'){chk?drawSoilHeatmap():soilLyr?.remove();}
   else if(name==='satellite'){chk?drawSatelliteLayer():satelliteLyr?.remove();}
   else if(name==='tsunami'){chk?drawTsunamiZones():tsunamiLyr?.remove();}
