@@ -2,285 +2,507 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#061525">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>NWS · Honolulu</title>
-<link rel="manifest" href="manifest.json">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=IBM+Plex+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=IBM+Plex+Mono:wght@300;400;500&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+/* ── TOKENS ── */
 :root{
-  --bg:#030c1e;--surface:#061525;--card:#0b1f3a;
-  --border:#152d52;--border-light:#1e3d6e;
-  --text:#e8f2fc;--muted:#5b84ac;--dim:#2a4a6e;
-  --accent:#22d3ee;--accent-dim:rgba(34,211,238,0.12);
-  --advisory:#f59e0b;--advisory-dim:rgba(245,158,11,0.1);
-  --danger:#ef4444;--safe:#10b981;
-  --tab-h:62px;
+  --bg:#04091c;--s1:#070f26;--s2:#0b1630;--card:rgba(255,255,255,0.055);
+  --card-b:rgba(255,255,255,0.09);--card-b2:rgba(255,255,255,0.14);
+  --text:#eef4ff;--muted:#6b8ab0;--dim:#2d4770;
+  --accent:#38bdf8;--accent-d:rgba(56,189,248,0.12);
+  --warn:#f59e0b;--warn-d:rgba(245,158,11,0.1);
+  --ok:#34d399;--danger:#f87171;
+  --serif:'DM Serif Display',serif;
+  --mono:'IBM Plex Mono',monospace;
+  --sans:'Manrope',sans-serif;
 }
-@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.45}}
-@keyframes advisoryGlow{0%,100%{box-shadow:0 0 0 0 rgba(245,158,11,0.3)}50%{box-shadow:0 0 0 6px rgba(245,158,11,0)}}
-@keyframes spin{to{transform:rotate(360deg)}}
 
-html{height:100%;-webkit-text-size-adjust:100%}
+/* ── ANIMATIONS ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(200%)}}
+@keyframes rainDrop{0%{opacity:0;transform:translateY(-4px)}50%{opacity:.7}100%{opacity:0;transform:translateY(4px)}}
+@keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(245,158,11,.35)}50%{box-shadow:0 0 0 8px rgba(245,158,11,0)}}
+@keyframes floatUp{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+
+html,body{min-height:100%;font-family:var(--sans);-webkit-font-smoothing:antialiased}
 body{
-  min-height:100%;font-family:'DM Sans',system-ui,sans-serif;
-  background:var(--bg);color:var(--text);
-  display:flex;justify-content:center;
-  -webkit-font-smoothing:antialiased;
+  background:radial-gradient(ellipse 90% 70% at 50% 30%,#061638 0%,#020812 65%);
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;
+  justify-content:flex-start;padding:32px 20px 56px;
 }
 
-/* Phone frame for desktop demo */
-.frame{
-  width:100%;max-width:430px;min-height:100vh;position:relative;
-  display:flex;flex-direction:column;
-  background:var(--bg);
+/* ── PHONE SHELL ── */
+.phone{
+  width:390px;flex-shrink:0;background:var(--bg);
+  border-radius:54px;border:9px solid #0a0e22;
+  position:relative;display:flex;flex-direction:column;
+  overflow:hidden;
+  box-shadow:0 0 0 1.5px #050816,0 70px 140px rgba(0,0,0,.95),
+             0 0 100px rgba(56,189,248,.05),inset 0 0 0 1px rgba(255,255,255,.04);
 }
-@media(min-width:500px){
-  body{background:#010610;padding:20px 0}
-  .frame{
-    min-height:0;height:92vh;border-radius:44px;
-    border:6px solid #10162a;overflow:hidden;
-    box-shadow:0 40px 100px rgba(0,0,0,0.8),0 0 60px rgba(34,211,238,0.04);
-  }
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:122px;height:33px;background:#0a0e22;border-radius:0 0 22px 22px;z-index:40}
+.vol-l{position:absolute;left:-17px;top:104px;width:4px;height:36px;background:#0a0e22;border-radius:4px 0 0 4px}
+.vol-l2{position:absolute;left:-17px;top:150px;width:4px;height:36px;background:#0a0e22;border-radius:4px 0 0 4px}
+.pwr-r{position:absolute;right:-17px;top:130px;width:4px;height:64px;background:#0a0e22;border-radius:0 4px 4px 0}
+
+/* ── STATUS ── */
+.status{background:transparent;padding:36px 24px 0;
+  display:flex;justify-content:space-between;align-items:center;flex-shrink:0;position:relative;z-index:10}
+.s-time{font-family:var(--mono);font-size:14.5px;font-weight:500;color:var(--text)}
+.s-right{display:flex;gap:6px;align-items:center;opacity:.8}
+
+/* ── SCROLL AREA ── */
+.scroll{flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0}
+.panel{display:none;height:100%;flex-direction:column;overflow:hidden}
+.panel.active{display:flex}
+.inner{flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:none}
+.inner::-webkit-scrollbar{display:none}
+
+/* ── DYNAMIC SKY HERO ── */
+.hero{position:relative;overflow:hidden;flex-shrink:0;padding:14px 20px 22px}
+.sky-bg{
+  position:absolute;inset:0;z-index:0;
+  background:linear-gradient(175deg,#0f3768 0%,#063060 35%,#042040 65%,#04091c 100%);
+  transition:background 0.6s ease;
 }
-
-/* Content area */
-.content{flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0}
-.tab-panel{display:none;height:100%;flex-direction:column;overflow:hidden}
-.tab-panel.active{display:flex}
-
-/* Alert banner */
-.alert-banner{
-  background:rgba(245,158,11,0.08);border-bottom:1px solid rgba(245,158,11,0.22);
-  padding:12px 16px;display:flex;align-items:center;gap:10px;
-  animation:advisoryGlow 3s infinite;flex-shrink:0;cursor:pointer;
+.sky-sun{
+  position:absolute;top:18px;right:36px;width:56px;height:56px;border-radius:50%;
+  background:radial-gradient(circle,rgba(251,191,36,.9) 20%,rgba(251,191,36,0) 70%);
+  filter:blur(1px);z-index:1;animation:floatUp 6s ease-in-out infinite;
 }
-.alert-banner.sev-warning{background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.3)}
-.alert-banner.sev-warning .a-dot{background:var(--danger)}
-.alert-banner.sev-warning .a-type{color:var(--danger)}
-.a-dot{width:6px;height:6px;border-radius:50%;background:var(--advisory);animation:pulse 1.5s infinite;flex-shrink:0}
-.a-type{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;color:var(--advisory);letter-spacing:0.07em}
-.a-sub{font-size:10px;color:rgba(245,158,11,0.55);margin-top:1px}
-.a-arr{margin-left:auto;color:rgba(245,158,11,0.5);font-size:15px}
-
-/* Hero */
-.hero{padding:24px 20px 14px;text-align:center;flex-shrink:0;animation:fadeUp 0.5s ease}
-.loc-row{display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:6px}
-.loc-dot{width:5px;height:5px;border-radius:50%;background:var(--accent)}
-.loc-city{font-size:15px;font-weight:500;color:var(--text)}
-.loc-reg{font-size:13px;color:var(--muted)}
-.nws-badge{
+.sky-cloud{
+  position:absolute;z-index:1;
+  background:rgba(255,255,255,.06);border-radius:30px;filter:blur(1px);
+}
+.hero-content{position:relative;z-index:2}
+.loc-pill{
   display:inline-flex;align-items:center;gap:6px;
-  background:rgba(34,211,238,0.07);border:1px solid rgba(34,211,238,0.18);
-  border-radius:20px;padding:3px 12px;margin-bottom:14px;
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
+  border-radius:20px;padding:4px 12px 4px 8px;margin-bottom:14px;
 }
-.badge-dot{width:5px;height:5px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite}
-.badge-text{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:500;color:var(--accent);letter-spacing:0.1em}
-.temp-big{font-family:'DM Serif Display',serif;font-size:96px;line-height:1;color:var(--text);letter-spacing:-3px}
-.temp-deg{font-size:36px;color:var(--muted);vertical-align:super;margin-left:1px}
-.condition{font-size:18px;font-weight:300;color:var(--text);margin-top:4px}
-.cond-detail{font-size:12px;color:var(--muted);line-height:1.6;margin-top:6px;padding:0 10px}
-.feels{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--dim);margin-top:8px}
-
-/* Stats grid */
-.stats-grid{
-  margin:0 14px 12px;background:var(--card);border:1px solid var(--border);
-  border-radius:16px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;overflow:hidden;flex-shrink:0;
+.loc-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite}
+.loc-text{font-size:13px;font-weight:500;color:var(--text)}
+.nws-chip{
+  display:inline-flex;align-items:center;gap:5px;
+  background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.2);
+  border-radius:4px;padding:2px 8px;margin-left:6px;
 }
-.stat{padding:12px 4px;text-align:center;border-right:1px solid var(--border)}
-.stat:last-child{border-right:none}
-.stat-ico{font-size:14px;margin-bottom:3px}
-.stat-val{font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:400;color:var(--text);line-height:1}
-.stat-u{font-size:8.5px;color:var(--muted)}
-.stat-lbl{font-family:'IBM Plex Mono',monospace;font-size:7.5px;color:var(--muted);letter-spacing:0.08em;margin-top:3px}
-.stat-sub{font-size:9px;color:var(--dim);margin-top:2px}
+.nws-chip span{font-family:var(--mono);font-size:8px;color:var(--accent);letter-spacing:.1em}
+.summary-line{font-size:13.5px;font-weight:400;color:rgba(238,244,255,.65);line-height:1.55;margin-bottom:16px}
+.summary-line strong{color:var(--text);font-weight:600}
+.temp-row{display:flex;align-items:flex-end;gap:14px;margin-bottom:4px}
+.temp-num{font-family:var(--serif);font-size:96px;line-height:1;color:var(--text);letter-spacing:-3px}
+.temp-deg{font-size:34px;color:var(--muted);vertical-align:super;margin-left:2px}
+.temp-side{display:flex;flex-direction:column;gap:5px;padding-bottom:10px}
+.cond-label{font-size:16px;font-weight:500;color:var(--text)}
+.hl-row{display:flex;gap:8px}
+.hl-chip{font-family:var(--mono);font-size:10.5px;color:var(--muted);background:rgba(255,255,255,.05);border-radius:4px;padding:2px 7px}
 
-/* Section label */
-.sec{font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:500;color:var(--muted);letter-spacing:0.12em;margin:4px 14px 8px;flex-shrink:0}
+/* ── NEXT HOUR RAIN ── */
+.rain-section{padding:0 16px 14px;flex-shrink:0;position:relative;z-index:2}
+.rain-label{font-family:var(--mono);font-size:9.5px;color:var(--accent);letter-spacing:.1em;margin-bottom:7px;display:flex;align-items:center;gap:7px}
+.rain-label::after{content:'';flex:1;height:1px;background:rgba(56,189,248,.15)}
+.rain-bars{display:flex;gap:2px;height:34px;align-items:flex-end}
+.rbar{flex:1;border-radius:2px 2px 0 0;min-height:2px;background:var(--accent);opacity:.18;transition:opacity .2s}
+.rbar.med{opacity:.45}.rbar.hi{opacity:.75}.rbar.vhi{opacity:1}
+.rain-legend{display:flex;justify-content:space-between;margin-top:5px}
+.rain-leg-t{font-family:var(--mono);font-size:8.5px;color:var(--dim)}
 
-/* Hourly scroll */
-.hourly{
-  margin:0 14px 12px;background:var(--card);border:1px solid var(--border);
-  border-radius:14px;display:flex;overflow-x:auto;scrollbar-width:none;flex-shrink:0;
-}
+/* ── SECTION HEADER ── */
+.sec{font-family:var(--mono);font-size:9px;font-weight:500;color:var(--muted);letter-spacing:.13em;margin:0 16px 8px;flex-shrink:0;display:flex;align-items:center;gap:8px}
+.sec::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.06)}
+
+/* ── TEMPERATURE CURVE ── */
+.curve-wrap{margin:0 16px 14px;background:var(--card);border:1px solid var(--card-b);border-radius:16px;overflow:hidden;flex-shrink:0}
+.curve-svg-wrap{padding:12px 14px 0;position:relative}
+.curve-hours{display:flex;justify-content:space-between;padding:8px 14px 10px}
+.ch{text-align:center}.ch-t{font-family:var(--mono);font-size:8.5px;color:var(--muted)}
+.ch-v{font-family:var(--serif);font-size:13px;color:var(--text)}
+.ch.now .ch-t{color:var(--accent)}.ch.now .ch-v{color:var(--accent)}
+
+/* ── HEALTH STRIP ── */
+.health-strip{margin:0 16px 14px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;flex-shrink:0}
+.hs-card{background:var(--card);border:1px solid var(--card-b);border-radius:12px;padding:11px 12px;display:flex;flex-direction:column;gap:3px}
+.hs-lbl{font-family:var(--mono);font-size:7.5px;color:var(--muted);letter-spacing:.09em}
+.hs-val{font-size:18px;font-weight:600;color:var(--text);line-height:1}
+.hs-sub{font-size:10px;color:var(--muted);margin-top:1px}
+.hs-bar{height:3px;border-radius:2px;margin-top:6px;background:var(--dim);overflow:hidden}
+.hs-fill{height:100%;border-radius:2px;transition:width .4s ease}
+
+/* ── OCEAN CARD ── */
+.ocean-card{margin:0 16px 14px;background:var(--card);border:1px solid var(--card-b);border-radius:16px;overflow:hidden;flex-shrink:0}
+.ocean-head{background:linear-gradient(135deg,rgba(8,30,70,.9) 0%,rgba(4,20,50,.9) 100%);padding:12px 15px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--card-b)}
+.ocean-ico{font-size:20px}.ocean-title{font-size:13px;font-weight:600;color:var(--text)}
+.ocean-sub{font-size:10.5px;color:var(--muted);margin-top:1px}
+.ocean-grid{display:grid;grid-template-columns:1fr 1fr 1fr}
+.og-cell{padding:11px 14px;border-right:1px solid var(--card-b);text-align:center}
+.og-cell:last-child{border-right:none}
+.og-v{font-family:var(--serif);font-size:19px;color:var(--text)}
+.og-l{font-family:var(--mono);font-size:7.5px;color:var(--muted);letter-spacing:.09em;margin-top:2px}
+.tide-row{padding:10px 14px;border-top:1px solid var(--card-b);display:flex;gap:10px;align-items:center;overflow-x:auto;scrollbar-width:none}
+.tide-row::-webkit-scrollbar{display:none}
+.tide-item{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:3px}
+.tide-t{font-family:var(--mono);font-size:9px;color:var(--muted)}
+.tide-v{font-family:var(--serif);font-size:13px;color:var(--text)}
+.tide-hl{font-size:9px;font-weight:600}
+.tide-bar-wrap{height:28px;display:flex;align-items:flex-end;width:24px}
+.tide-bar{width:100%;border-radius:2px 2px 0 0;background:var(--accent);opacity:.4}
+.tide-div{width:1px;height:28px;background:var(--dim);flex-shrink:0;margin:0 4px}
+
+/* ── HOURLY SCROLL ── */
+.hourly{margin:0 16px 14px;background:var(--card);border:1px solid var(--card-b);border-radius:14px;display:flex;overflow-x:auto;scrollbar-width:none;flex-shrink:0}
 .hourly::-webkit-scrollbar{display:none}
-.hr{min-width:62px;padding:11px 6px;text-align:center;border-right:1px solid var(--border);flex-shrink:0}
+.hr{min-width:62px;padding:11px 5px;text-align:center;border-right:1px solid rgba(255,255,255,.05)}
 .hr:last-child{border-right:none}
-.hr.now{background:rgba(34,211,238,0.05)}
-.hr-time{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted);margin-bottom:5px}
-.hr.now .hr-time{color:var(--accent);font-weight:500}
-.hr-ico{font-size:17px;margin-bottom:5px}
-.hr-temp{font-family:'DM Serif Display',serif;font-size:13px;color:var(--text)}
-.hr-pct{font-family:'IBM Plex Mono',monospace;font-size:8px;margin-top:4px}
-.hr-bar{width:20px;height:2px;background:var(--border);border-radius:1px;margin:3px auto 0;overflow:hidden}
-.hr-fill{height:100%;background:var(--accent);border-radius:1px;opacity:0.65}
+.hr.now{background:rgba(56,189,248,.05)}
+.hr-time{font-family:var(--mono);font-size:8.5px;color:var(--muted);margin-bottom:5px}
+.hr.now .hr-time{color:var(--accent)}
+.hr-ico{font-size:18px;margin-bottom:5px}
+.hr-temp{font-family:var(--serif);font-size:13px;color:var(--text)}
+.hr-pct{font-family:var(--mono);font-size:8px;margin-top:4px;color:var(--dim)}
+.hr-bar{width:22px;height:2px;background:rgba(255,255,255,.08);border-radius:1px;margin:3px auto 0;overflow:hidden}
+.hr-fill{height:100%;background:var(--accent);border-radius:1px}
 
-/* Alert card */
-.alert-card{
-  margin:0 14px 12px;background:rgba(245,158,11,0.06);
-  border:1px solid rgba(245,158,11,0.2);border-radius:14px;padding:13px 15px;flex-shrink:0;
-}
-.alert-card.sev-warning{background:rgba(239,68,68,0.06);border-color:rgba(239,68,68,0.25)}
-.ac-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-.ac-lbl{font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:500;color:var(--advisory);letter-spacing:0.06em}
-.ac-badge{margin-left:auto;background:rgba(245,158,11,0.14);color:var(--advisory);font-size:8.5px;padding:2px 8px;border-radius:10px;font-family:'IBM Plex Mono',monospace;letter-spacing:0.06em}
-.ac-text{font-size:12px;color:rgba(232,242,252,0.72);line-height:1.65}
-.ac-exp{font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--muted);margin-top:8px}
+/* ── CONFIDENCE NOTE ── */
+.conf-note{margin:0 16px 12px;background:rgba(56,189,248,.04);border:1px solid rgba(56,189,248,.12);border-radius:10px;padding:9px 12px;display:flex;align-items:flex-start;gap:9px;flex-shrink:0}
+.conf-ico{font-size:13px;flex-shrink:0;margin-top:1px}
+.conf-text{font-size:11px;color:rgba(238,244,255,.58);line-height:1.55}
+.conf-text strong{color:var(--accent);font-weight:500}
 
-/* Sun card */
-.sun-card{
-  margin:0 14px 14px;background:var(--card);border:1px solid var(--border);
-  border-radius:14px;padding:13px 20px;display:flex;align-items:center;justify-content:space-around;flex-shrink:0;
-}
-.sun-info{text-align:center}
-.sun-ico{font-size:18px;margin-bottom:3px}
-.sun-t{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--text)}
-.sun-lbl{font-family:'IBM Plex Mono',monospace;font-size:7.5px;color:var(--muted);letter-spacing:0.1em;margin-top:2px}
-.sun-arc{flex:1;padding:0 10px}
-
-/* Map tab */
-.map-wrap{height:100%;display:flex;flex-direction:column;overflow:hidden}
-.layer-bar{padding:10px 14px;display:flex;gap:8px;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0}
-.layer-btn{
-  flex:1;padding:8px 4px;border-radius:10px;border:1px solid var(--border);
-  background:transparent;color:var(--muted);font-size:11px;
-  font-family:'DM Sans',sans-serif;cursor:pointer;
-  display:flex;flex-direction:column;align-items:center;gap:3px;transition:all 0.18s;
-}
-.layer-btn.on{border-color:var(--accent);background:rgba(34,211,238,0.08);color:var(--accent)}
-.l-ico{font-size:14px}
-.map-area{flex:1;position:relative;background:#020910;overflow:hidden}
-#map{width:100%;height:100%}
-.leaflet-control-attribution{font-size:8px!important;background:rgba(3,12,30,0.85)!important;color:var(--dim)!important}
-.leaflet-control-attribution a{color:var(--muted)!important}
-.leaflet-control-zoom a{background:var(--card)!important;color:var(--text)!important;border-color:var(--border)!important}
-.leaflet-popup-content-wrapper{background:var(--card)!important;color:var(--text)!important;border:1px solid var(--border)!important;border-radius:10px!important}
-.leaflet-popup-tip{background:var(--card)!important}
-.leaflet-tooltip{background:var(--card)!important;color:var(--text)!important;border:1px solid var(--border)!important;font-size:11px!important}
-
-/* Prepare tab */
-.prep-scroll{height:100%;overflow-y:auto;scrollbar-width:none;padding:14px}
-.prep-scroll::-webkit-scrollbar{display:none}
-.fc-card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:16px}
-.fc-row{display:flex;align-items:center;padding:11px 14px;border-bottom:1px solid var(--border)}
+/* ── 7-DAY FORECAST ── */
+.fc-card{background:var(--card);border:1px solid var(--card-b);border-radius:14px;overflow:hidden;margin:0 16px 14px;flex-shrink:0}
+.fc-row{display:flex;align-items:center;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.05)}
 .fc-row:last-child{border-bottom:none}
-.fc-row.today{background:rgba(34,211,238,0.04)}
-.fc-day{width:40px;font-size:12.5px;color:var(--text)}
-.fc-row.today .fc-day{color:var(--accent);font-weight:500}
-.fc-ico{font-size:17px;margin-right:10px}
+.fc-row.today{background:rgba(56,189,248,.03)}
+.fc-day{width:38px;font-size:12.5px;font-weight:500;color:var(--text)}
+.fc-row.today .fc-day{color:var(--accent)}
+.fc-ico{font-size:18px;margin-right:10px}
 .fc-cond{flex:1;font-size:11.5px;color:var(--muted)}
-.fc-pct{font-family:'IBM Plex Mono',monospace;font-size:10.5px;width:30px;text-align:right;margin-right:12px}
-.fc-temps{font-family:'IBM Plex Mono',monospace;font-size:12.5px;display:flex;gap:8px}
+.fc-pct{font-family:var(--mono);font-size:10px;width:30px;text-align:right;margin-right:14px}
+.fc-temps{font-family:var(--mono);font-size:12.5px;display:flex;gap:9px}
 .fc-hi{color:var(--text)}.fc-lo{color:var(--dim)}
+.fc-bar-wrap{width:40px;height:4px;background:rgba(255,255,255,.06);border-radius:2px;margin-right:10px;overflow:hidden}
+.fc-bar-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--accent),rgba(56,189,248,.4))}
 
-.shelter-card{
-  background:rgba(34,211,238,0.05);border:1px solid rgba(34,211,238,0.18);
-  border-radius:13px;padding:13px 14px;margin-bottom:16px;display:flex;align-items:center;gap:12px;
+/* ── RADAR TAB ── */
+.radar-wrap{height:100%;display:flex;flex-direction:column;overflow:hidden;position:relative}
+.radar-area{flex:1;background:#020810;position:relative;overflow:hidden}
+.radar-grid{
+  position:absolute;inset:0;
+  background-image:
+    repeating-radial-gradient(circle at 50% 55%,transparent 0,transparent 38px,rgba(21,45,82,.12) 39px),
+    linear-gradient(rgba(21,45,82,.08) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(21,45,82,.08) 1px,transparent 1px);
+  background-size:auto,40px 40px,40px 40px;
 }
-.sh-ico{font-size:24px}
-.sh-name{font-size:14px;font-weight:500;color:var(--text)}
-.sh-addr{font-size:11px;color:var(--muted);margin-top:2px}
-.sh-meta{display:flex;gap:12px;margin-top:5px}
-.sh-dist{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--accent)}
-.sh-cap{font-size:10.5px;color:var(--dim)}
+.radar-sv{width:100%;height:100%;position:absolute;inset:0}
+.radar-hud{position:absolute;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none}
+.radar-mode{background:rgba(2,8,16,.88);border:1px solid var(--card-b);border-radius:10px;padding:7px 12px}
+.rm-label{font-family:var(--mono);font-size:8.5px;color:var(--muted);letter-spacing:.1em}
+.rm-val{font-family:var(--mono);font-size:11px;color:var(--accent);font-weight:500;margin-top:2px}
+.radar-time{background:rgba(2,8,16,.88);border:1px solid var(--card-b);border-radius:10px;padding:7px 12px;text-align:right}
+.rt-dot{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--ok);animation:pulse 1.5s infinite;margin-right:5px;vertical-align:middle}
+.rt-lbl{font-family:var(--mono);font-size:9.5px;color:var(--ok)}
+.radar-legend{position:absolute;bottom:10px;left:12px;background:rgba(2,8,16,.9);border:1px solid var(--card-b);border-radius:10px;padding:10px 12px}
+.rl-title{font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:.1em;margin-bottom:6px}
+.rl-ramp{display:flex;gap:2px;margin-bottom:3px}
+.rl-swatch{width:16px;height:12px;border-radius:2px}
+.rl-range{display:flex;justify-content:space-between}
+.rl-t{font-family:var(--mono);font-size:7.5px;color:var(--dim)}
+.layer-strip{padding:10px 14px;background:var(--s1);border-bottom:1px solid rgba(255,255,255,.06);display:flex;gap:8px;flex-shrink:0}
+.ly-btn{flex:1;padding:7px 4px;border-radius:10px;border:1px solid var(--card-b);background:transparent;color:var(--muted);font-size:10.5px;font-family:var(--sans);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .18s}
+.ly-btn.on{border-color:var(--accent);background:var(--accent-d);color:var(--accent)}
+.ly-ico{font-size:14px}
+.play-btn{position:absolute;bottom:14px;right:14px;width:44px;height:44px;border-radius:50%;background:rgba(56,189,248,.1);border:1.5px solid rgba(56,189,248,.3);color:var(--accent);font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.play-btn:hover{background:rgba(56,189,248,.18)}
 
-.disc-card{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:15px;margin-bottom:16px}
-.disc-head{display:flex;align-items:center;gap:10px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border)}
-.disc-badge{background:rgba(34,211,238,0.07);border:1px solid rgba(34,211,238,0.18);border-radius:7px;padding:3px 10px;font-family:'IBM Plex Mono',monospace;font-size:8.5px;color:var(--accent);letter-spacing:0.08em}
-.disc-iss{font-size:10px;color:var(--dim)}
-.disc-text{font-size:12px;color:rgba(232,242,252,0.7);line-height:1.7}
+/* ── ALERT BANNER ── */
+.alert-bar{background:rgba(245,158,11,.08);border-bottom:1px solid rgba(245,158,11,.2);padding:9px 16px;display:flex;align-items:center;gap:9px;animation:glow 3s infinite;flex-shrink:0;cursor:pointer}
+.al-dot{width:6px;height:6px;border-radius:50%;background:var(--warn);animation:pulse 1.5s infinite;flex-shrink:0}
+.al-type{font-family:var(--mono);font-size:10px;font-weight:500;color:var(--warn);letter-spacing:.07em}
+.al-sub{font-size:10px;color:rgba(245,158,11,.5);margin-top:1px}
+.al-arr{margin-left:auto;color:rgba(245,158,11,.4);font-size:15px}
 
-.gauges-card{background:var(--card);border:1px solid var(--border);border-radius:13px;overflow:hidden;margin-bottom:16px}
-.gauge-row{display:flex;align-items:center;padding:11px 14px;border-bottom:1px solid var(--border)}
-.gauge-row:last-child{border-bottom:none}
-.gauge-dot{width:8px;height:8px;border-radius:50%;margin-right:12px;flex-shrink:0}
-.gauge-name{font-size:12px;color:var(--text)}
-.gauge-read{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);margin-top:2px}
-.gauge-st{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;letter-spacing:0.04em}
-
-.hazard-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
-.haz-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 12px}
-.haz-card.hz-warn{border-color:rgba(239,68,68,0.3);background:rgba(239,68,68,0.05)}
-.haz-card.hz-adv{border-color:rgba(245,158,11,0.3);background:rgba(245,158,11,0.05)}
-.haz-ico{font-size:16px;margin-bottom:4px}
-.haz-name{font-size:10px;font-weight:500;color:var(--text)}
-.haz-status{font-family:'IBM Plex Mono',monospace;font-size:9px;margin-top:3px}
-.hz-ok{color:var(--safe)}.hz-advisory{color:var(--advisory)}.hz-warning{color:var(--danger)}.hz-watch{color:var(--advisory)}
-
-/* Bottom nav */
-.bottom-nav{
-  background:rgba(6,21,37,0.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
-  border-top:1px solid var(--border);display:flex;
-  padding:6px 0 calc(8px + env(safe-area-inset-bottom,0px));flex-shrink:0;
-}
-.nav-btn{
-  flex:1;background:transparent;border:none;cursor:pointer;
-  display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;
-  -webkit-tap-highlight-color:transparent;
-}
-.n-ico{font-size:18px;transition:opacity 0.2s}
-.n-ico.dim{opacity:0.35}
-.n-lbl{font-size:10px;font-family:'DM Sans',sans-serif;color:var(--muted);transition:color 0.2s}
-.n-lbl.on{color:var(--accent);font-weight:500}
-.n-pip{width:14px;height:2px;border-radius:1px;background:var(--accent);margin-top:1px}
-.n-pip.hidden{visibility:hidden}
-
-/* Loading state */
-.loading-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;gap:12px}
-.spinner{width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite}
-.load-text{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted)}
+/* ── BOTTOM NAV ── */
+.bottom-nav{background:rgba(7,15,38,.95);border-top:1px solid rgba(255,255,255,.06);display:flex;padding:10px 0 26px;flex-shrink:0;backdrop-filter:blur(20px)}
+.nb{flex:1;background:transparent;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 0}
+.ni{font-size:18px;transition:filter .2s}.ni.dim{filter:grayscale(1) opacity(.3)}
+.nl{font-size:10px;font-family:var(--sans);color:var(--muted);transition:color .2s;font-weight:500}
+.nl.on{color:var(--accent)}
+.npip{width:14px;height:2px;border-radius:1px;background:var(--accent);margin-top:2px}
+.npip.h{visibility:hidden}
+.wm{margin-top:20px;font-family:var(--mono);font-size:9.5px;color:rgba(56,189,248,.2);letter-spacing:.14em;text-align:center}
 </style>
 </head>
 <body>
-<div class="frame">
-  <div class="content">
+<div class="phone">
+  <div class="notch"></div>
+  <div class="vol-l"></div><div class="vol-l2"></div><div class="pwr-r"></div>
+
+  <div class="status">
+    <span class="s-time">12:42</span>
+    <div class="s-right">
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><rect x="0" y="4" width="3" height="8" rx="1" fill="rgba(238,244,255,.6)"/><rect x="4.5" y="2.5" width="3" height="9.5" rx="1" fill="rgba(238,244,255,.6)"/><rect x="9" y="0" width="3" height="12" rx="1" fill="rgba(238,244,255,.6)"/><rect x="13.5" y="0" width="2.5" height="12" rx="1" fill="rgba(238,244,255,.25)"/></svg>
+      <svg width="16" height="11" viewBox="0 0 16 11" fill="none"><path d="M8 2.5 C5.2 2.5 2.7 3.7 1 5.6 L2.3 6.9 C3.7 5.3 5.7 4.3 8 4.3 C10.3 4.3 12.3 5.3 13.7 6.9 L15 5.6 C13.3 3.7 10.8 2.5 8 2.5Z" fill="rgba(238,244,255,.6)"/><path d="M8 5.5 C6.4 5.5 5 6.2 4 7.3 L5.3 8.6 C6 7.8 6.9 7.3 8 7.3 C9.1 7.3 10 7.8 10.7 8.6 L12 7.3 C11 6.2 9.6 5.5 8 5.5Z" fill="rgba(238,244,255,.6)"/><circle cx="8" cy="10" r="1.2" fill="rgba(238,244,255,.9)"/></svg>
+      <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0" y="1" width="21" height="10" rx="2.5" stroke="rgba(238,244,255,.55)" stroke-width="1.2"/><rect x="1.5" y="2.5" width="14" height="7" rx="1.5" fill="var(--ok)"/><path d="M22.5 4.5 V7.5" stroke="rgba(238,244,255,.4)" stroke-width="1.5" stroke-linecap="round"/><path d="M23.8 4.5 V7.5" stroke="rgba(238,244,255,.4)" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </div>
+  </div>
+
+  <div class="scroll">
 
     <!-- NOW TAB -->
-    <div id="tab-now" class="tab-panel active">
-      <div id="alert-banner-wrap"></div>
-      <div style="flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:none" id="now-scroll">
-        <div id="now-hero" class="hero">
-          <div class="loading-wrap"><div class="spinner"></div><div class="load-text">Loading NWS data…</div></div>
+    <div id="tab-now" class="panel active">
+      <div class="alert-bar">
+        <div class="al-dot"></div>
+        <div><div class="al-type">TRADE WIND ADVISORY</div><div class="al-sub">Until 6:00 PM HST · Oahu Windward</div></div>
+        <div class="al-arr">›</div>
+      </div>
+      <div class="inner">
+        <div class="hero">
+          <div class="sky-bg"></div>
+          <div class="sky-sun"></div>
+          <div class="sky-cloud" style="width:90px;height:22px;top:38px;left:28px;opacity:.5"></div>
+          <div class="sky-cloud" style="width:58px;height:16px;top:52px;left:50px;opacity:.3"></div>
+          <div class="hero-content">
+            <div class="loc-pill">
+              <div class="loc-dot"></div>
+              <span class="loc-text">Honolulu, Oahu</span>
+              <div class="nws-chip"><span>NWS</span></div>
+            </div>
+            <div class="summary-line"><strong>Warm trade wind afternoon.</strong> Enjoy the morning — afternoon showers arrive after 4 PM along windward slopes. UV is extreme; sunscreen before noon.</div>
+            <div class="temp-row">
+              <div class="temp-num">82<span class="temp-deg">°</span></div>
+              <div class="temp-side">
+                <div class="cond-label">Partly Cloudy</div>
+                <div class="hl-row"><div class="hl-chip">H 86°</div><div class="hl-chip">L 74°</div></div>
+                <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:3px">Feels 88°</div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div id="now-stats"></div>
-        <div id="now-hourly-wrap"></div>
-        <div id="now-alerts"></div>
-        <div id="now-sun"></div>
+
+        <div class="rain-section">
+          <div class="rain-label">NEXT 60 MINUTES</div>
+          <div class="rain-bars" id="rainBars"></div>
+          <div class="rain-legend"><span class="rain-leg-t">Now</span><span class="rain-leg-t">+15 min</span><span class="rain-leg-t">+30 min</span><span class="rain-leg-t">+45 min</span><span class="rain-leg-t">+60 min</span></div>
+        </div>
+
+        <div class="sec">TODAY'S TEMPERATURE</div>
+        <div class="curve-wrap">
+          <div class="curve-svg-wrap">
+            <svg width="100%" viewBox="0 0 340 80" preserveAspectRatio="none" style="display:block">
+              <defs>
+                <linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#38bdf8" stop-opacity=".25"/><stop offset="100%" stop-color="#38bdf8" stop-opacity="0"/></linearGradient>
+                <linearGradient id="bandg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#38bdf8" stop-opacity=".06"/><stop offset="100%" stop-color="#38bdf8" stop-opacity=".02"/></linearGradient>
+              </defs>
+              <path d="M0,54 C40,50 80,44 120,38 C160,32 200,24 240,20 C280,16 320,22 340,28 L340,48 C320,40 280,34 240,36 C200,38 160,46 120,52 C80,58 40,62 0,64 Z" fill="url(#bandg)" stroke="none"/>
+              <path d="M0,58 C40,54 80,48 120,42 C160,36 200,28 240,24 C280,20 320,26 340,32" fill="none" stroke="#38bdf8" stroke-width="1.8" stroke-linecap="round"/>
+              <path d="M0,58 C40,54 80,48 120,42 C160,36 200,28 240,24 C280,20 320,26 340,32 L340,80 L0,80 Z" fill="url(#cg)"/>
+              <circle cx="155" cy="40" r="4" fill="#38bdf8"/><circle cx="155" cy="40" r="7" fill="none" stroke="#38bdf8" stroke-width="1" opacity=".35"/>
+              <line x1="155" y1="0" x2="155" y2="80" stroke="rgba(56,189,248,.15)" stroke-width="1" stroke-dasharray="3 3"/>
+            </svg>
+          </div>
+          <div class="curve-hours">
+            <div class="ch"><div class="ch-t">6 AM</div><div class="ch-v">76°</div></div>
+            <div class="ch"><div class="ch-t">9 AM</div><div class="ch-v">79°</div></div>
+            <div class="ch now"><div class="ch-t">Now</div><div class="ch-v">82°</div></div>
+            <div class="ch"><div class="ch-t">3 PM</div><div class="ch-v">86°</div></div>
+            <div class="ch"><div class="ch-t">6 PM</div><div class="ch-v">83°</div></div>
+            <div class="ch"><div class="ch-t">9 PM</div><div class="ch-v">78°</div></div>
+          </div>
+        </div>
+
+        <div class="conf-note">
+          <div class="conf-ico">〰</div>
+          <div class="conf-text"><strong>Forecast confidence: High</strong> for the next 6 hours. Shaded band shows alternate model outcomes — tight today, widening Thursday as a system approaches.</div>
+        </div>
+
+        <div class="sec">CONDITIONS FOR YOU</div>
+        <div class="health-strip">
+          <div class="hs-card"><div class="hs-lbl">UV INDEX</div><div class="hs-val" style="color:#f59e0b">9</div><div class="hs-sub" style="color:#f59e0b">Very High</div><div class="hs-bar"><div class="hs-fill" style="width:78%;background:linear-gradient(90deg,#fcd34d,#f59e0b)"></div></div><div style="font-size:9px;color:var(--dim);margin-top:5px">Burns in ~15 min</div></div>
+          <div class="hs-card"><div class="hs-lbl">AIR QUALITY</div><div class="hs-val" style="color:var(--ok)">42</div><div class="hs-sub" style="color:var(--ok)">Good</div><div class="hs-bar"><div class="hs-fill" style="width:28%;background:var(--ok)"></div></div><div style="font-size:9px;color:var(--dim);margin-top:5px">AQI · Ideal outside</div></div>
+          <div class="hs-card"><div class="hs-lbl">HUMIDITY</div><div class="hs-val">71<span style="font-size:11px;color:var(--muted)">%</span></div><div class="hs-sub" style="color:#f59e0b">Muggy</div><div class="hs-bar"><div class="hs-fill" style="width:71%;background:linear-gradient(90deg,var(--accent),#f59e0b)"></div></div><div style="font-size:9px;color:var(--dim);margin-top:5px">Dew point 68°</div></div>
+        </div>
+        <div class="sec">OCEAN & SURF</div>
+        <div class="ocean-card">
+          <div class="ocean-head">
+            <div class="ocean-ico">🌊</div>
+            <div><div class="ocean-title">South Shore · NWS Marine</div><div class="ocean-sub">Updated 11:48 AM HST · HFO Marine Forecast</div></div>
+          </div>
+          <div class="ocean-grid">
+            <div class="og-cell"><div class="og-v" style="font-size:22px">3–4 <span style="font-size:13px;color:var(--muted)">ft</span></div><div class="og-l">SWELL HEIGHT</div></div>
+            <div class="og-cell"><div class="og-v">14 <span style="font-size:13px;color:var(--muted)">s</span></div><div class="og-l">PERIOD</div></div>
+            <div class="og-cell"><div class="og-v">80<span style="font-size:14px;color:var(--muted)">°</span></div><div class="og-l">WATER TEMP</div></div>
+          </div>
+          <div class="tide-row">
+            <div class="tide-item"><div class="tide-t">6:14 AM</div><div class="tide-bar-wrap"><div class="tide-bar" style="height:100%;opacity:.5"></div></div><div class="tide-v">1.8 <span style="font-size:9px;color:var(--muted)">ft</span></div><div class="tide-hl" style="color:var(--ok)">HIGH</div></div>
+            <div class="tide-div"></div>
+            <div class="tide-item"><div class="tide-t">12:41 PM</div><div class="tide-bar-wrap"><div class="tide-bar" style="height:25%"></div></div><div class="tide-v">0.3 <span style="font-size:9px;color:var(--muted)">ft</span></div><div class="tide-hl" style="color:var(--muted)">LOW</div></div>
+            <div class="tide-div"></div>
+            <div class="tide-item"><div class="tide-t">6:58 PM</div><div class="tide-bar-wrap"><div class="tide-bar" style="height:80%"></div></div><div class="tide-v">2.0 <span style="font-size:9px;color:var(--muted)">ft</span></div><div class="tide-hl" style="color:var(--ok)">HIGH</div></div>
+            <div class="tide-div"></div>
+            <div class="tide-item"><div class="tide-t">1:02 AM</div><div class="tide-bar-wrap"><div class="tide-bar" style="height:20%"></div></div><div class="tide-v">0.1 <span style="font-size:9px;color:var(--muted)">ft</span></div><div class="tide-hl" style="color:var(--muted)">LOW</div></div>
+          </div>
+        </div>
+
+        <div class="sec">HOURLY</div>
+        <div class="hourly">
+          <div class="hr now"><div class="hr-time">Now</div><div class="hr-ico">⛅</div><div class="hr-temp">82°</div><div class="hr-pct" style="color:var(--dim)">10%</div><div class="hr-bar"><div class="hr-fill" style="width:10%"></div></div></div>
+          <div class="hr"><div class="hr-time">1 PM</div><div class="hr-ico">🌤️</div><div class="hr-temp">83°</div><div class="hr-pct" style="color:var(--dim)">5%</div><div class="hr-bar"><div class="hr-fill" style="width:5%"></div></div></div>
+          <div class="hr"><div class="hr-time">2 PM</div><div class="hr-ico">☀️</div><div class="hr-temp">85°</div><div class="hr-pct" style="color:var(--dim)">0%</div><div class="hr-bar"><div class="hr-fill" style="width:0%"></div></div></div>
+          <div class="hr"><div class="hr-time">3 PM</div><div class="hr-ico">⛅</div><div class="hr-temp">86°</div><div class="hr-pct" style="color:var(--dim)">15%</div><div class="hr-bar"><div class="hr-fill" style="width:15%"></div></div></div>
+          <div class="hr"><div class="hr-time">4 PM</div><div class="hr-ico">🌦️</div><div class="hr-temp">83°</div><div class="hr-pct" style="color:var(--accent)">40%</div><div class="hr-bar"><div class="hr-fill" style="width:40%"></div></div></div>
+          <div class="hr"><div class="hr-time">5 PM</div><div class="hr-ico">🌧️</div><div class="hr-temp">80°</div><div class="hr-pct" style="color:var(--accent)">65%</div><div class="hr-bar"><div class="hr-fill" style="width:65%"></div></div></div>
+          <div class="hr"><div class="hr-time">6 PM</div><div class="hr-ico">⛅</div><div class="hr-temp">78°</div><div class="hr-pct" style="color:var(--dim)">25%</div><div class="hr-bar"><div class="hr-fill" style="width:25%"></div></div></div>
+          <div class="hr"><div class="hr-time">7 PM</div><div class="hr-ico">🌙</div><div class="hr-temp">77°</div><div class="hr-pct" style="color:var(--dim)">10%</div><div class="hr-bar"><div class="hr-fill" style="width:10%"></div></div></div>
+        </div>
+        <div style="height:16px"></div>
+      </div>
+    </div>
+
+    <!-- RADAR TAB -->
+    <div id="tab-radar" class="panel">
+      <div class="radar-wrap">
+        <div class="layer-strip">
+          <button class="ly-btn on" onclick="setRLayer('precip',this)"><span class="ly-ico">🌧️</span>Precip</button>
+          <button class="ly-btn" onclick="setRLayer('wind',this)"><span class="ly-ico">💨</span>Wind</button>
+          <button class="ly-btn" onclick="setRLayer('temp',this)"><span class="ly-ico">🌡️</span>Temp</button>
+          <button class="ly-btn" onclick="setRLayer('sat',this)"><span class="ly-ico">🛰️</span>Satellite</button>
+        </div>
+        <div class="radar-area">
+          <div class="radar-grid"></div>
+          <svg class="radar-sv" viewBox="0 0 374 420" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="rbg" cx="50%" cy="55%" r="60%"><stop offset="0%" stop-color="#061020"/><stop offset="100%" stop-color="#020810"/></radialGradient>
+              <radialGradient id="pr1" cx="65%" cy="35%" r="22%"><stop offset="0%" stop-color="rgba(56,189,248,.55)"/><stop offset="100%" stop-color="rgba(56,189,248,0)"/></radialGradient>
+              <radialGradient id="pr2" cx="70%" cy="28%" r="14%"><stop offset="0%" stop-color="rgba(99,102,241,.7)"/><stop offset="100%" stop-color="rgba(99,102,241,0)"/></radialGradient>
+              <radialGradient id="pr3" cx="62%" cy="40%" r="10%"><stop offset="0%" stop-color="rgba(52,211,153,.5)"/><stop offset="100%" stop-color="rgba(52,211,153,0)"/></radialGradient>
+              <filter id="rblur"><feGaussianBlur stdDeviation="5"/></filter>
+              <filter id="rblur2"><feGaussianBlur stdDeviation="3"/></filter>
+            </defs>
+            <rect width="374" height="420" fill="url(#rbg)"/>
+            <circle cx="187" cy="230" r="60" stroke="rgba(56,189,248,.05)" stroke-width="1" fill="none"/>
+            <circle cx="187" cy="230" r="120" stroke="rgba(56,189,248,.05)" stroke-width="1" fill="none"/>
+            <circle cx="187" cy="230" r="180" stroke="rgba(56,189,248,.04)" stroke-width="1" fill="none"/>
+            <line x1="187" y1="10" x2="187" y2="420" stroke="rgba(56,189,248,.04)" stroke-width="1"/>
+            <line x1="0" y1="230" x2="374" y2="230" stroke="rgba(56,189,248,.04)" stroke-width="1"/>
+            <path d="M62,208 C46,176 54,138 74,112 C94,86 122,66 156,56 C184,48 216,46 246,52 C274,58 300,70 318,90 C336,110 342,136 337,160 C332,182 318,200 300,215 C282,230 260,240 238,248 C216,256 192,259 170,256 C160,254 152,250 147,246 C138,250 128,255 115,258 C98,262 82,258 72,246 C62,234 60,220 62,208 Z" fill="#0d2010" stroke="rgba(28,55,28,.6)" stroke-width="1.2" filter="url(#rblur2)"/>
+
+            <g id="rl-precip">
+              <ellipse cx="270" cy="120" rx="75" ry="60" fill="url(#pr1)" filter="url(#rblur)"/>
+              <ellipse cx="292" cy="100" rx="45" ry="35" fill="url(#pr2)" filter="url(#rblur)"/>
+              <ellipse cx="258" cy="140" rx="32" ry="28" fill="url(#pr3)" filter="url(#rblur)"/>
+              <g opacity=".5"><line x1="296" y1="104" x2="230" y2="168" stroke="rgba(245,158,11,.6)" stroke-width="1.2" stroke-dasharray="4 3"/><polygon points="230,168 225,158 237,162" fill="rgba(245,158,11,.6)"/></g>
+              <text x="242" y="152" font-family="IBM Plex Mono,monospace" font-size="7.5" fill="rgba(245,158,11,.7)" letter-spacing=".04em">APPROACHING</text>
+            </g>
+            <g id="rl-wind" display="none">
+              <g opacity=".45">
+                <g transform="translate(100,100) rotate(225)"><line x1="0" y1="0" x2="22" y2="0" stroke="#38bdf8" stroke-width="1.5"/><polygon points="22,0 16,-4 16,4" fill="#38bdf8"/></g>
+                <g transform="translate(170,80) rotate(225)"><line x1="0" y1="0" x2="22" y2="0" stroke="#38bdf8" stroke-width="1.5"/><polygon points="22,0 16,-4 16,4" fill="#38bdf8"/></g>
+                <g transform="translate(240,110) rotate(225)"><line x1="0" y1="0" x2="22" y2="0" stroke="#38bdf8" stroke-width="1.5"/><polygon points="22,0 16,-4 16,4" fill="#38bdf8"/></g>
+                <g transform="translate(130,170) rotate(225)"><line x1="0" y1="0" x2="22" y2="0" stroke="#38bdf8" stroke-width="1.5"/><polygon points="22,0 16,-4 16,4" fill="#38bdf8"/></g>
+                <g transform="translate(200,200) rotate(225)"><line x1="0" y1="0" x2="18" y2="0" stroke="#38bdf8" stroke-width="1.5"/><polygon points="18,0 13,-3 13,3" fill="#38bdf8"/></g>
+                <g transform="translate(80,160) rotate(220)"><line x1="0" y1="0" x2="24" y2="0" stroke="#38bdf8" stroke-width="1.5"/><polygon points="24,0 18,-4 18,4" fill="#38bdf8"/></g>
+                <g transform="translate(290,160) rotate(230)"><line x1="0" y1="0" x2="20" y2="0" stroke="#38bdf8" stroke-width="1.5"/><polygon points="20,0 15,-3 15,3" fill="#38bdf8"/></g>
+              </g>
+              <text x="14" y="370" font-family="IBM Plex Mono,monospace" font-size="8" fill="rgba(91,132,172,.5)">NE TRADE WINDS · 14–22 MPH</text>
+            </g>
+            <g id="rl-temp" display="none">
+              <text x="90" y="195" font-family="IBM Plex Mono,monospace" font-size="14" fill="rgba(245,158,11,.7)" font-weight="500">82°</text>
+              <text x="160" y="165" font-family="IBM Plex Mono,monospace" font-size="13" fill="rgba(245,158,11,.6)">84°</text>
+              <text x="240" y="178" font-family="IBM Plex Mono,monospace" font-size="12" fill="rgba(56,189,248,.7)">79°</text>
+              <text x="280" y="220" font-family="IBM Plex Mono,monospace" font-size="12" fill="rgba(56,189,248,.6)">77°</text>
+              <text x="120" y="238" font-family="IBM Plex Mono,monospace" font-size="13" fill="rgba(245,158,11,.65)">81°</text>
+            </g>
+            <g id="rl-sat" display="none">
+              <ellipse cx="260" cy="110" rx="80" ry="65" fill="rgba(220,220,240,.06)" filter="url(#rblur)"/>
+              <ellipse cx="290" cy="88" rx="50" ry="40" fill="rgba(240,240,255,.1)" filter="url(#rblur)"/>
+              <text x="14" y="370" font-family="IBM Plex Mono,monospace" font-size="8" fill="rgba(91,132,172,.5)">GOES-18 · INFRARED · 11:30Z</text>
+            </g>
+
+            <text x="26" y="28" font-family="IBM Plex Mono,monospace" font-size="8" fill="rgba(91,132,172,.35)">21.31°N  157.86°W</text>
+            <text x="14" y="390" font-family="IBM Plex Mono,monospace" font-size="8" fill="rgba(91,132,172,.35)">NWS HONOLULU HFO</text>
+            <circle cx="172" cy="242" r="6" fill="#38bdf8" filter="url(#rblur2)" opacity=".5"/>
+            <circle cx="172" cy="242" r="4.5" fill="#38bdf8"/>
+            <circle cx="172" cy="242" r="9" fill="none" stroke="#38bdf8" stroke-width="1" opacity=".4"/>
+            <circle cx="172" cy="242" r="15" fill="none" stroke="#38bdf8" stroke-width=".6" opacity=".2"/>
+            <line x1="18" y1="408" x2="68" y2="408" stroke="rgba(91,132,172,.3)" stroke-width="1"/><line x1="18" y1="404" x2="18" y2="412" stroke="rgba(91,132,172,.3)" stroke-width="1"/><line x1="68" y1="404" x2="68" y2="412" stroke="rgba(91,132,172,.3)" stroke-width="1"/>
+            <text x="25" y="418" font-family="IBM Plex Mono,monospace" font-size="7.5" fill="rgba(91,132,172,.35)">10 mi</text>
+          </svg>
+
+          <div class="radar-hud">
+            <div class="radar-mode"><div class="rm-label">LAYER</div><div class="rm-val" id="rm-val">NEXRAD PRECIP</div></div>
+            <div class="radar-time"><div><span class="rt-dot"></span><span class="rt-lbl">LIVE</span></div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:2px">12:42 PM HST</div></div>
+          </div>
+          <div class="radar-legend" id="rl-precip-legend">
+            <div class="rl-title">PRECIP INTENSITY</div>
+            <div class="rl-ramp"><div class="rl-swatch" style="background:rgba(52,211,153,.25)"></div><div class="rl-swatch" style="background:rgba(56,189,248,.35)"></div><div class="rl-swatch" style="background:rgba(56,189,248,.6)"></div><div class="rl-swatch" style="background:rgba(99,102,241,.65)"></div><div class="rl-swatch" style="background:rgba(239,68,68,.7)"></div></div>
+            <div class="rl-range"><span class="rl-t">Light</span><span class="rl-t">Heavy</span></div>
+          </div>
+          <button class="play-btn" title="Animate">▶</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- WEEK TAB -->
+    <div id="tab-week" class="panel">
+      <div class="inner" style="padding:16px 0">
+        <div class="sec">7-DAY FORECAST</div>
+        <div class="fc-card">
+          <div class="fc-row today"><div class="fc-day">Today</div><div class="fc-ico">⛅</div><div class="fc-cond">Partly Cloudy</div><div class="fc-bar-wrap"><div class="fc-bar-fill" style="width:20%"></div></div><div class="fc-pct" style="color:var(--dim)">20%</div><div class="fc-temps"><span class="fc-hi">86°</span><span class="fc-lo">74°</span></div></div>
+          <div class="fc-row"><div class="fc-day">Wed</div><div class="fc-ico">🌤️</div><div class="fc-cond">Mostly Sunny</div><div class="fc-bar-wrap"><div class="fc-bar-fill" style="width:10%"></div></div><div class="fc-pct" style="color:var(--dim)">10%</div><div class="fc-temps"><span class="fc-hi">85°</span><span class="fc-lo">73°</span></div></div>
+          <div class="fc-row"><div class="fc-day">Thu</div><div class="fc-ico">🌦️</div><div class="fc-cond">Showers Likely</div><div class="fc-bar-wrap"><div class="fc-bar-fill" style="width:48%"></div></div><div class="fc-pct" style="color:var(--accent)">48%</div><div class="fc-temps"><span class="fc-hi">82°</span><span class="fc-lo">72°</span></div></div>
+          <div class="fc-row"><div class="fc-day">Fri</div><div class="fc-ico">🌧️</div><div class="fc-cond">Rainy</div><div class="fc-bar-wrap"><div class="fc-bar-fill" style="width:72%"></div></div><div class="fc-pct" style="color:var(--accent)">72%</div><div class="fc-temps"><span class="fc-hi">80°</span><span class="fc-lo">71°</span></div></div>
+          <div class="fc-row"><div class="fc-day">Sat</div><div class="fc-ico">⛅</div><div class="fc-cond">Partly Cloudy</div><div class="fc-bar-wrap"><div class="fc-bar-fill" style="width:25%"></div></div><div class="fc-pct" style="color:var(--dim)">25%</div><div class="fc-temps"><span class="fc-hi">82°</span><span class="fc-lo">72°</span></div></div>
+          <div class="fc-row"><div class="fc-day">Sun</div><div class="fc-ico">☀️</div><div class="fc-cond">Sunny</div><div class="fc-bar-wrap"><div class="fc-bar-fill" style="width:5%"></div></div><div class="fc-pct" style="color:var(--dim)">5%</div><div class="fc-temps"><span class="fc-hi">84°</span><span class="fc-lo">73°</span></div></div>
+          <div class="fc-row"><div class="fc-day">Mon</div><div class="fc-ico">🌤️</div><div class="fc-cond">Mostly Sunny</div><div class="fc-bar-wrap"><div class="fc-bar-fill" style="width:10%"></div></div><div class="fc-pct" style="color:var(--dim)">10%</div><div class="fc-temps"><span class="fc-hi">85°</span><span class="fc-lo">74°</span></div></div>
+        </div>
+
+        <div class="sec">FORECAST DISCUSSION</div>
+        <div style="margin:0 16px 14px;background:var(--card);border:1px solid var(--card-b);border-radius:14px;padding:14px 15px">
+          <div style="display:flex;align-items:center;gap:9px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.06)">
+            <div style="background:var(--accent-d);border:1px solid rgba(56,189,248,.2);border-radius:5px;padding:3px 10px;font-family:var(--mono);font-size:8px;color:var(--accent);letter-spacing:.09em">NWS HONOLULU HFO</div>
+            <div style="font-size:10px;color:var(--dim);margin-left:auto">Issued 12:00 PM HST</div>
+          </div>
+          <div style="font-size:12px;color:rgba(238,244,255,.65);line-height:1.7">Upper-level high pressure continues to dominate the region, maintaining trade wind flow across the islands. A mid-level disturbance approaching from the northeast Thursday may briefly enhance shower activity, particularly over windward slopes. No significant tropical weather threats at this time. Seas 4 to 6 feet.</div>
+        </div>
+
+        <div class="sec">SUN & MOON</div>
+        <div style="margin:0 16px 16px;display:grid;grid-template-columns:1fr 1fr;gap:9px">
+          <div style="background:var(--card);border:1px solid var(--card-b);border-radius:12px;padding:12px;text-align:center">
+            <div style="font-size:20px;margin-bottom:5px">🌅</div>
+            <div style="font-family:var(--serif);font-size:17px;color:var(--text)">6:12 AM</div>
+            <div style="font-family:var(--mono);font-size:8px;color:var(--muted);margin-top:3px;letter-spacing:.08em">SUNRISE</div>
+            <div style="font-family:var(--mono);font-size:8px;color:var(--dim);margin-top:6px">Golden hour 5:44–6:12</div>
+          </div>
+          <div style="background:var(--card);border:1px solid var(--card-b);border-radius:12px;padding:12px;text-align:center">
+            <div style="font-size:20px;margin-bottom:5px">🌇</div>
+            <div style="font-family:var(--serif);font-size:17px;color:var(--text)">7:08 PM</div>
+            <div style="font-family:var(--mono);font-size:8px;color:var(--muted);margin-top:3px;letter-spacing:.08em">SUNSET</div>
+            <div style="font-family:var(--mono);font-size:8px;color:var(--dim);margin-top:6px">Golden hour 7:08–7:36</div>
+          </div>
+          <div style="background:var(--card);border:1px solid var(--card-b);border-radius:12px;padding:12px;text-align:center">
+            <div style="font-size:20px;margin-bottom:5px">🌔</div>
+            <div style="font-family:var(--serif);font-size:17px;color:var(--text)">Waxing</div>
+            <div style="font-family:var(--mono);font-size:8px;color:var(--muted);margin-top:3px;letter-spacing:.08em">MOON PHASE</div>
+            <div style="font-family:var(--mono);font-size:8px;color:var(--dim);margin-top:6px">67% illuminated</div>
+          </div>
+          <div style="background:var(--card);border:1px solid var(--card-b);border-radius:12px;padding:12px;text-align:center">
+            <div style="font-size:20px;margin-bottom:5px">🕐</div>
+            <div style="font-family:var(--serif);font-size:17px;color:var(--text)">13:26</div>
+            <div style="font-family:var(--mono);font-size:8px;color:var(--muted);margin-top:3px;letter-spacing:.08em">DAYLIGHT</div>
+            <div style="font-family:var(--mono);font-size:8px;color:var(--dim);margin-top:6px">+2 min from yesterday</div>
+          </div>
+        </div>
         <div style="height:12px"></div>
-      </div>
-    </div>
-
-    <!-- MAP TAB -->
-    <div id="tab-map" class="tab-panel">
-      <div class="map-wrap">
-        <div class="layer-bar">
-          <button class="layer-btn on" id="lbtn-weather" onclick="setLayer('weather')"><span class="l-ico">🌦️</span>Weather</button>
-          <button class="layer-btn" id="lbtn-hazards" onclick="setLayer('hazards')"><span class="l-ico">⚠️</span>Hazards</button>
-          <button class="layer-btn" id="lbtn-infra" onclick="setLayer('infra')"><span class="l-ico">🏗️</span>Infrastructure</button>
-        </div>
-        <div class="map-area">
-          <div id="map"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- PREPARE TAB -->
-    <div id="tab-prepare" class="tab-panel">
-      <div class="prep-scroll" id="prepare-scroll">
-        <div id="prep-forecast"></div>
-        <div id="prep-shelter"></div>
-        <div id="prep-discussion"></div>
-        <div id="prep-gauges"></div>
-        <div id="prep-hazards"></div>
-        <div style="height:8px"></div>
       </div>
     </div>
 
@@ -288,639 +510,35 @@ body{
 
   <!-- BOTTOM NAV -->
   <div class="bottom-nav">
-    <button class="nav-btn" onclick="setTab('now')">
-      <div class="n-ico" id="ni-now">🌤️</div>
-      <div class="n-lbl on" id="nl-now">Now</div>
-      <div class="n-pip" id="np-now"></div>
-    </button>
-    <button class="nav-btn" onclick="setTab('map')">
-      <div class="n-ico dim" id="ni-map">🗺️</div>
-      <div class="n-lbl" id="nl-map">Map</div>
-      <div class="n-pip hidden" id="np-map"></div>
-    </button>
-    <button class="nav-btn" onclick="setTab('prepare')">
-      <div class="n-ico dim" id="ni-prepare">📋</div>
-      <div class="n-lbl" id="nl-prepare">Prepare</div>
-      <div class="n-pip hidden" id="np-prepare"></div>
-    </button>
+    <button class="nb" onclick="setTab('now')"><div class="ni" id="ni-now">🌤️</div><div class="nl on" id="nl-now">Now</div><div class="npip" id="np-now"></div></button>
+    <button class="nb" onclick="setTab('radar')"><div class="ni dim" id="ni-radar">📡</div><div class="nl" id="nl-radar">Radar</div><div class="npip h" id="np-radar"></div></button>
+    <button class="nb" onclick="setTab('week')"><div class="ni dim" id="ni-week">📅</div><div class="nl" id="nl-week">Week</div><div class="npip h" id="np-week"></div></button>
   </div>
 </div>
+
+<div class="wm">weather.gov · NWS HONOLULU HFO · v2 PROTOTYPE</div>
+
 <script>
-// ── Config ──
-const LAT=21.3069,LON=-157.8583;
-let map,riskLyr,gaugeLyr,stationsLyr,eqLyr,warningLyr,soilLyr,radarLyr,precipLyr,windLyr,satelliteLyr,tsunamiLyr,fireLyr,hospitalsLyr,fireStationsLyr,damsLyr,radarAnim=null;
-let wd={},envData={},gauges=[],hazards={radar:{},soilMoisture:null,fireWeather:null,forecasterDiscussion:null};
-let activeLayer='weather';
+(function(){
+  const data=[0,0,0,0,0,.02,.05,.08,.1,.12,.15,.18,.2,.22,.25,.28,.3,.32,.34,.35,.38,.4,.42,.45,.5,.55,.6,.62,.65,.7,.72,.75,.78,.8,.82,.85,.88,.85,.82,.8,.75,.7,.65,.6,.55,.5,.45,.4,.35,.28,.2,.15,.1,.08,.05,.03,.02,.01,0,0];
+  const c=document.getElementById('rainBars');
+  data.forEach(v=>{const b=document.createElement('div');b.className='rbar'+(v>.6?' vhi':v>.4?' hi':v>.2?' med':'');b.style.height=Math.max(2,Math.round(v*100))+'%';c.appendChild(b);});
+})();
 
-const ZONES={
-  HIZ006:{name:'Waianae Coast',c:[[[-158.16,21.37],[-158.20,21.43],[-158.19,21.52],[-158.15,21.56],[-158.12,21.52],[-158.12,21.41],[-158.16,21.37]]]},
-  HIZ007:{name:'North Shore',c:[[[-158.10,21.57],[-158.03,21.62],[-157.92,21.65],[-157.82,21.63],[-157.78,21.59],[-157.86,21.56],[-157.98,21.55],[-158.10,21.57]]]},
-  HIZ009:{name:'Windward Coast',c:[[[-157.80,21.56],[-157.76,21.58],[-157.71,21.53],[-157.72,21.40],[-157.76,21.31],[-157.81,21.34],[-157.83,21.44],[-157.82,21.54],[-157.80,21.56]]]},
-  HIZ010:{name:'Central Oahu',c:[[[-157.95,21.51],[-157.87,21.50],[-157.83,21.44],[-157.88,21.38],[-157.96,21.36],[-158.03,21.39],[-158.07,21.47],[-157.95,21.51]]]},
-  HIZ011:{name:'Waianae Mountains',c:[[[-158.12,21.41],[-158.11,21.51],[-158.04,21.48],[-158.03,21.39],[-157.96,21.36],[-157.97,21.30],[-158.06,21.31],[-158.12,21.37],[-158.12,21.41]]]},
-  HIZ012:{name:'Koolau Mountains',c:[[[-157.83,21.44],[-157.80,21.54],[-157.80,21.56],[-157.76,21.54],[-157.73,21.45],[-157.76,21.37],[-157.81,21.34],[-157.83,21.44]]]},
-  HIZ013:{name:'Honolulu',c:[[[-157.83,21.34],[-157.81,21.34],[-157.76,21.31],[-157.76,21.26],[-157.85,21.25],[-157.96,21.26],[-157.97,21.30],[-157.88,21.38],[-157.83,21.34]]]},
-  HIZ014:{name:'Ewa Plain',c:[[[-157.97,21.30],[-157.96,21.26],[-158.06,21.26],[-158.12,21.30],[-158.12,21.37],[-158.06,21.31],[-157.97,21.30]]]}
-};
-const ZONE_VAR={HIZ006:4,HIZ007:6,HIZ009:10,HIZ010:-6,HIZ011:2,HIZ012:8,HIZ013:-10,HIZ014:-5};
-
-const GAUGE_SITES=[
-  {id:'16247100',name:'Manoa-Palolo Canal',short:'Manoa Canal',lat:21.295,lon:-157.826,flood:5.0,action:3.5},
-  {id:'16229000',name:'Kalihi Stream',short:'Kalihi Stream',lat:21.37,lon:-157.875,flood:8.0,action:5.5},
-  {id:'16213000',name:'Waikele Stream',short:'Waikele Stream',lat:21.385,lon:-158.01,flood:12.0,action:8.0},
-  {id:'16210500',name:'Kaukonahua Stream at Waialua',short:'Kaukonahua',lat:21.565,lon:-158.12,flood:28.0,action:20.0}
-];
-
-const WAHIAWA_RESERVOIR={id:'16210000',name:'Wahiawa Reservoir',prepare:82.8,critical:90.0,level:null,levelTime:null};
-
-const OAHU_SHELTERS=[
-  {name:'Neal S. Blaisdell Center',addr:'777 Ward Ave, Honolulu',lat:21.2954,lon:-157.8518,cap:2000,status:'standby'},
-  {name:'Farrington High School',addr:'1564 N King St, Honolulu',lat:21.3368,lon:-157.8718,cap:800,status:'standby'},
-  {name:'Kailua District Park',addr:'21 S Kainalu Dr, Kailua',lat:21.3963,lon:-157.7397,cap:500,status:'standby'},
-  {name:'Waipahu High School',addr:'94-1211 Farrington Hwy, Waipahu',lat:21.3856,lon:-158.0094,cap:600,status:'standby'},
-  {name:'Aiea District Park',addr:'99-350 Aiea Heights Dr, Aiea',lat:21.3820,lon:-157.9310,cap:400,status:'standby'},
-];
-
-// ── Helpers ──
-function popColor(p){if(p>=60)return{fill:'#e52207',op:.22};if(p>=30)return{fill:'#f5a623',op:.18};if(p>=10)return{fill:'#4fc3f7',op:.15};return{fill:'#1a9850',op:.10};}
-function barCol(p){return p>=60?'#e52207':p>=30?'#f5a623':p>=10?'#4fc3f7':'#aaa';}
-function degToCompass(d){const dirs=['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];return dirs[Math.round(d/22.5)%16];}
-function parseDur(d){const m=d.match(/PT(\d+)H/);if(m)return+m[1];const x=d.match(/P(\d+)D/);return x?+x[1]*24:6;}
-function expand(vals){const out=[];for(const e of vals){const[s,d]=e.validTime.split('/');const h=parseDur(d);const ms=new Date(s).getTime();for(let i=0;i<h;i+=(h>6?6:h))out.push({time:new Date(ms+i*3600000).toISOString(),value:e.value||0});}return out;}
-function forecastIcon(txt){
-  const t=(txt||'').toLowerCase();
-  if(t.includes('thunder')||t.includes('storm'))return'⛈️';
-  if(t.includes('rain')||t.includes('showers'))return t.includes('light')?'🌦️':'🌧️';
-  if(t.includes('drizzle'))return'🌦️';
-  if(t.includes('cloudy')&&t.includes('partly'))return'⛅';
-  if(t.includes('cloudy')&&t.includes('mostly'))return'🌥️';
-  if(t.includes('cloudy')||t.includes('overcast'))return'☁️';
-  if(t.includes('fog')||t.includes('haze'))return'🌫️';
-  if(t.includes('wind'))return'💨';
-  if(t.includes('sunny')||t.includes('clear'))return t.includes('mostly')?'🌤️':'☀️';
-  if(t.includes('night')||t.includes('tonight'))return'🌙';
-  return'🌤️';
-}
-function uvWord(v){return v==null?'—':v<=2?'Low':v<=5?'Moderate':v<=7?'High':'Very High';}
-function aqiWord(v){return v==null?'—':v<=50?'Good':v<=100?'Moderate':'Unhealthy';}
-function dist(lat1,lon1,lat2,lon2){const R=3959;const dLat=(lat2-lat1)*Math.PI/180;const dLon=(lon2-lon1)*Math.PI/180;const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));}
-function sunTimes(){
-  const now=new Date();const doy=Math.floor((now-new Date(now.getFullYear(),0,0))/(1000*60*60*24));
-  const dec=23.45*Math.sin(2*Math.PI*(284+doy)/365)*Math.PI/180;
-  const latR=LAT*Math.PI/180;
-  const ha=Math.acos(-Math.tan(latR)*Math.tan(dec))*180/Math.PI;
-  const noon=12-(LON/15)-(-10);
-  const rise=noon-ha/15;const set=noon+ha/15;
-  const fmt=h=>{const hr=Math.floor(h);const mn=Math.round((h-hr)*60);const ap=hr>=12?'PM':'AM';const h12=hr>12?hr-12:hr===0?12:hr;return`${h12}:${mn.toString().padStart(2,'0')} ${ap}`;};
-  const progress=Math.max(0,Math.min(1,(now.getHours()+now.getMinutes()/60-rise)/(set-rise)));
-  return{rise:fmt(rise),set:fmt(set),progress};
-}
-// ── API: Load Weather ──
-async function loadWeather(){
-  const[ptR,alR]=await Promise.all([
-    fetch(`https://api.weather.gov/points/${LAT},${LON}`),
-    fetch('https://api.weather.gov/alerts/active?area=HI')
-  ]);
-  const pt=await ptR.json(),al=await alR.json();
-  const pr=pt.properties;
-  const[fcR,grR,hrR]=await Promise.all([fetch(pr.forecast),fetch(pr.forecastGridData),fetch(pr.forecastHourly)]);
-  const fc=await fcR.json(),gr=await grR.json(),hr=await hrR.json();
-  const gp=gr.properties;
-  wd={
-    city:(pr.relativeLocation?.properties?.city||'Honolulu').replace(/^Urban /,''),
-    state:pr.relativeLocation?.properties?.state||'HI',
-    office:pr.cwa,
-    periods:fc.properties.periods.slice(0,14),
-    hourly:hr.properties.periods.slice(0,12),
-    pop:expand(gp.probabilityOfPrecipitation?.values||[]),
-    qpf:expand(gp.quantitativePrecipitation?.values||[]),
-    alerts:al.features||[]
-  };
-  const base=wd.pop[0]?.value||0;
-  Object.keys(ZONES).forEach(z=>{
-    const p=Math.max(0,Math.min(100,Math.round(base+(ZONE_VAR[z]||0))));
-    ZONES[z].pop=p;const c=popColor(p);ZONES[z].fill=c.fill;ZONES[z].op=c.op;
-  });
-  renderNow();
-  renderPrepare();
-}
-
-// ── API: Load Env ──
-async function loadEnv(){
-  try{
-    const[wxR,marR,aqR]=await Promise.all([
-      fetch('https://api.open-meteo.com/v1/forecast?latitude=21.3069&longitude=-157.8583&current=uv_index,wind_speed_10m,wind_direction_10m,wind_gusts_10m,relative_humidity_2m,apparent_temperature,visibility,surface_pressure&timezone=Pacific/Honolulu&forecast_days=1'),
-      fetch('https://marine-api.open-meteo.com/v1/marine?latitude=21.3069&longitude=-157.8583&current=wave_height,wave_direction,wave_period,swell_wave_height&timezone=Pacific/Honolulu'),
-      fetch('https://air-quality-api.open-meteo.com/v1/air-quality?latitude=21.3069&longitude=-157.8583&current=us_aqi,pm2_5&timezone=Pacific/Honolulu')
-    ]);
-    const[wx,mar,aq]=await Promise.all([wxR.json(),marR.json(),aqR.json()]);
-    const c=wx.current||{},m=mar.current||{},a=aq.current||{};
-    envData={
-      windMph:c.wind_speed_10m?(c.wind_speed_10m*0.621371).toFixed(0):null,
-      gustMph:c.wind_gusts_10m?(c.wind_gusts_10m*0.621371).toFixed(0):null,
-      windDir:c.wind_direction_10m!=null?degToCompass(c.wind_direction_10m):null,
-      uv:c.uv_index!=null?Math.round(c.uv_index):null,
-      humidity:c.relative_humidity_2m!=null?Math.round(c.relative_humidity_2m):null,
-      feelsF:c.apparent_temperature!=null?Math.round(c.apparent_temperature*9/5+32):null,
-      pressure:c.surface_pressure!=null?Math.round(c.surface_pressure):null,
-      visibMi:c.visibility?(c.visibility/1609.34).toFixed(0):null,
-      wavesFt:m.wave_height?(m.wave_height*3.28084).toFixed(1):null,
-      waveDir:m.wave_direction!=null?degToCompass(m.wave_direction):null,
-      wavePeriod:m.wave_period?Math.round(m.wave_period):null,
-      aqi:a.us_aqi!=null?Math.round(a.us_aqi):null,
-      pm25:a.pm2_5!=null?a.pm2_5.toFixed(1):null
-    };
-    renderNow();
-  }catch(e){console.error('env error:',e);}
-}
-
-// ── API: Load Gauges ──
-async function loadGauges(){
-  try{
-    const ids=GAUGE_SITES.map(g=>g.id).join(',');
-    const r=await fetch(`https://waterservices.usgs.gov/nwis/iv/?format=json&sites=${ids}&parameterCd=00065,00060&siteStatus=active`);
-    const d=await r.json();
-    const ts=d.value.timeSeries;
-    GAUGE_SITES.forEach(gs=>{
-      const stage=ts.find(s=>s.sourceInfo.siteCode[0].value===gs.id&&s.variable.variableCode[0].value==='00065');
-      const flow=ts.find(s=>s.sourceInfo.siteCode[0].value===gs.id&&s.variable.variableCode[0].value==='00060');
-      if(stage){const v=stage.values[0].value;gs.level=v.length?parseFloat(v[v.length-1].value):null;}
-      if(flow){const v=flow.values[0].value;gs.flow=v.length?parseFloat(v[v.length-1].value):null;}
-    });
-    gauges=[...GAUGE_SITES];
-    renderPrepare();
-    drawGaugeMarkers();
-  }catch(e){console.error('gauge error:',e);}
-}
-
-// ── API: Load Hazards ──
-async function loadHazards(){
-  try{
-  try{
-    const eqR=await fetch('https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&minlatitude=18.5&maxlatitude=22.5&minlongitude=-160.5&maxlongitude=-154.5&minmagnitude=2.5&orderby=time&limit=10&starttime='+(new Date(Date.now()-86400000).toISOString().split('.')[0]));
-    const eq=await eqR.json();
-    const eqFeats=eq.features||[];
-    const maxMag=eqFeats.length?Math.max(...eqFeats.map(f=>f.properties.mag)):0;
-    hazards.earthquake={status:eqFeats.length?'advisory':'ok',count:eqFeats.length,maxMag:maxMag.toFixed(1),detail:eqFeats.length?`${eqFeats.length} event${eqFeats.length>1?'s':''} · M${maxMag.toFixed(1)}`:'No activity 24hr'};
-
-    const surfAlertR=await fetch('https://api.weather.gov/alerts/active?area=HI&event=High+Surf+Advisory,High+Surf+Warning,Rip+Current+Statement');
-    const surfAlertD=await surfAlertR.json();
-    const surfAlerts=surfAlertD.features||[];
-    const wavesFt=envData.wavesFt?parseFloat(envData.wavesFt):null;
-    hazards.surf={status:surfAlerts.length?'warning':'ok',detail:surfAlerts.length?surfAlerts[0].properties.event:wavesFt?`${wavesFt.toFixed(1)}ft — ${wavesFt>=8?'High':'Calm'}`:'No advisories'};
-
-    const tropR=await fetch('https://api.weather.gov/alerts/active?area=HI&event=Hurricane+Warning,Hurricane+Watch,Tropical+Storm+Warning,Tropical+Storm+Watch');
-    const trop=await tropR.json();
-    const tropAlerts=trop.features||[];
-    hazards.tropical={status:tropAlerts.length?'warning':'ok',detail:tropAlerts.length?tropAlerts[0].properties.event:'No threats'};
-
-    const tsuR=await fetch('https://api.weather.gov/alerts/active?area=HI&event=Tsunami+Warning,Tsunami+Watch,Tsunami+Advisory');
-    const tsu=await tsuR.json();
-    const tsuAlerts=tsu.features||[];
-    hazards.tsunami={status:tsuAlerts.length?'warning':'ok',detail:tsuAlerts.length?tsuAlerts[0].properties.event:'No warnings'};
-
-    const humidity=envData.humidity||70;const windMph=parseFloat(envData.windMph||10);
-    hazards.fire={status:(humidity<30&&windMph>20)?'warning':(humidity<40&&windMph>15)?'advisory':'ok',detail:`${humidity}% RH · ${windMph}mph wind`};
-
-    const aqiVal=envData.aqi||0;const windDir=envData.windDir||'';
-    const southWind=['S','SSW','SW','WSW','SSE','SE'].includes(windDir);
-    hazards.vog={status:(aqiVal>100||(southWind&&aqiVal>50))?'advisory':'ok',detail:`AQI: ${aqiVal} · ${windDir}`};
-
-    try{
-      const wahR=await fetch(`https://waterservices.usgs.gov/nwis/iv/?format=json&sites=${WAHIAWA_RESERVOIR.id}&parameterCd=00065&siteStatus=active`);
-      const wahD=await wahR.json();
-      const wahTs=wahD.value.timeSeries;
-      if(wahTs&&wahTs.length){const v=wahTs[0].values[0].value;if(v&&v.length){WAHIAWA_RESERVOIR.level=parseFloat(v[v.length-1].value);WAHIAWA_RESERVOIR.levelTime=v[v.length-1].dateTime;}}
-    }catch(e){console.warn('Wahiawa error:',e);}
-
-    try{
-      const discR=await fetch('https://api.weather.gov/products?office=HFO&type=AFD&limit=1');
-      const discD=await discR.json();
-      const latest=discD['@graph']?.[0];
-      if(latest){
-        const prodR=await fetch(`https://api.weather.gov/products/${latest.id}`);
-        const prod=await prodR.json();
-        hazards.forecasterDiscussion={text:(prod.productText||'').slice(0,600),issued:latest.issuanceTime,id:latest.id};
-      }
-    }catch(e){console.warn('AFD error:',e);}
-
-    try{
-      const smR=await fetch('https://api.open-meteo.com/v1/forecast?latitude=21.3069&longitude=-157.8583&hourly=soil_moisture_0_to_1cm,soil_moisture_1_to_3cm&forecast_days=1&timezone=Pacific/Honolulu');
-      const smD=await smR.json();
-      const sm0=smD.hourly?.soil_moisture_0_to_1cm?.[0];
-      hazards.soilMoisture={surface:sm0!=null?sm0.toFixed(3):null,status:sm0>=0.35?'warning':sm0>=0.25?'advisory':'ok'};
-    }catch(e){console.warn('soil error:',e);}
-
-  }catch(e){console.error('hazard inner error:',e);}
-  renderPrepare();
-  try{drawEQMarkers();}catch(e){}
-  try{drawWarningPolygons();}catch(e){}
-  }catch(e){console.error('hazard load error:',e);}
-}
-// ── Render: Now Tab ──
-function renderNow(){
-  if(!wd.periods) return;
-  const p0=wd.periods[0];
-  const temp=p0.temperature;
-  const unit=p0.temperatureUnit==='C'?'C':'F';
-  const cond=p0.shortForecast;
-  const detail=p0.detailedForecast||'';
-  const windSpd=envData.windMph||p0.windSpeed?.replace(/[^\d]/g,'')||'—';
-  const windDir=envData.windDir||p0.windDirection||'';
-  const gustMph=envData.gustMph;
-  const feelsF=envData.feelsF;
-  const humidity=envData.humidity;
-  const uv=envData.uv;
-  const pressure=envData.pressure;
-
-  // Alert banner
-  const bannerEl=document.getElementById('alert-banner-wrap');
-  if(wd.alerts.length){
-    const a=wd.alerts[0].properties;
-    const sev=a.severity;
-    const isWarn=sev==='Extreme'||sev==='Severe';
-    bannerEl.innerHTML=`<div class="alert-banner${isWarn?' sev-warning':''}">
-      <div class="a-dot"></div>
-      <div><div class="a-type">${a.event.toUpperCase()}</div>
-      <div class="a-sub">${(a.headline||'').slice(0,60)}</div></div>
-      <div class="a-arr">›</div></div>`;
-  } else { bannerEl.innerHTML=''; }
-
-  // Hero
-  document.getElementById('now-hero').innerHTML=`
-    <div class="loc-row">
-      <div class="loc-dot"></div>
-      <span class="loc-city">${wd.city||'Honolulu'}</span>
-      <span style="color:var(--dim)">·</span>
-      <span class="loc-reg">Oahu, ${wd.state||'HI'}</span>
-    </div>
-    <div class="nws-badge"><div class="badge-dot"></div><span class="badge-text">NWS OFFICIAL DATA</span></div>
-    <div class="temp-big">${temp}<span class="temp-deg">°</span></div>
-    <div class="condition">${cond}</div>
-    <div class="cond-detail">${detail.slice(0,150)}</div>
-    <div class="feels">${feelsF?'Feels like '+feelsF+'°':''}${humidity?' · Humidity '+humidity+'%':''}</div>`;
-
-  // Stats grid
-  document.getElementById('now-stats').innerHTML=`<div class="stats-grid">
-    <div class="stat"><div class="stat-ico">💨</div><div class="stat-val">${windSpd}<span class="stat-u">mph</span></div><div class="stat-lbl">WIND</div><div class="stat-sub">${windDir}${gustMph?' · G'+gustMph:''}</div></div>
-    <div class="stat"><div class="stat-ico">💧</div><div class="stat-val">${humidity||'—'}<span class="stat-u">%</span></div><div class="stat-lbl">HUMIDITY</div><div class="stat-sub">${feelsF?'Feels '+feelsF+'°':''}</div></div>
-    <div class="stat"><div class="stat-ico">☀️</div><div class="stat-val">${uv!=null?uv:'—'}</div><div class="stat-lbl">UV INDEX</div><div class="stat-sub">${uvWord(uv)}</div></div>
-    <div class="stat"><div class="stat-ico">🌡️</div><div class="stat-val">${pressure||'—'}<span class="stat-u">mb</span></div><div class="stat-lbl">PRESSURE</div><div class="stat-sub">${envData.aqi!=null?'AQI '+envData.aqi:''}</div></div>
-  </div>`;
-
-  // Hourly forecast
-  const hrs=wd.hourly.map((h,i)=>{
-    const t=new Date(h.startTime);
-    const lbl=i===0?'Now':t.toLocaleString('en-US',{hour:'numeric',hour12:true});
-    const pop=h.probabilityOfPrecipitation?.value||0;
-    const popCol=pop>=30?'color:var(--accent)':'color:var(--dim)';
-    return`<div class="hr${i===0?' now':''}"><div class="hr-time">${lbl}</div><div class="hr-ico">${forecastIcon(h.shortForecast)}</div><div class="hr-temp">${h.temperature}°</div><div class="hr-pct" style="${popCol}">${pop}%</div><div class="hr-bar"><div class="hr-fill" style="width:${pop}%"></div></div></div>`;
-  }).join('');
-  document.getElementById('now-hourly-wrap').innerHTML=`<div class="sec">HOURLY FORECAST</div><div class="hourly">${hrs}</div>`;
-
-  // Alert cards
-  if(wd.alerts.length){
-    const cards=wd.alerts.slice(0,3).map(al=>{
-      const a=al.properties;
-      const sev=a.severity;
-      const isWarn=sev==='Extreme'||sev==='Severe';
-      const badge=sev==='Extreme'?'EXTREME':sev==='Severe'?'WARNING':sev==='Moderate'?'WATCH':'ADVISORY';
-      const exp=a.expires?new Date(a.expires).toLocaleString('en-US',{hour:'numeric',minute:'2-digit',hour12:true,timeZoneName:'short'}):'';
-      return`<div class="alert-card${isWarn?' sev-warning':''}">
-        <div class="ac-head"><div class="a-dot" style="width:7px;height:7px${isWarn?';background:var(--danger)':''}"></div>
-        <div class="ac-lbl" ${isWarn?'style="color:var(--danger)"':''}>${a.event.toUpperCase()}</div>
-        <div class="ac-badge" ${isWarn?'style="background:rgba(239,68,68,0.14);color:var(--danger)"':''}>${badge}</div></div>
-        <div class="ac-text">${(a.description||a.headline||'').slice(0,200)}</div>
-        <div class="ac-exp">${exp?'EXPIRES '+exp.toUpperCase():''} · ${(a.areaDesc||'').slice(0,60).toUpperCase()}</div></div>`;
-    }).join('');
-    document.getElementById('now-alerts').innerHTML=`<div class="sec">ACTIVE ALERTS</div>${cards}`;
-  } else {
-    document.getElementById('now-alerts').innerHTML='';
-  }
-
-  // Sun card
-  const sun=sunTimes();
-  const cx=10+sun.progress*80;
-  const cy=40-Math.sin(sun.progress*Math.PI)*33;
-  document.getElementById('now-sun').innerHTML=`<div class="sec">SUN</div><div class="sun-card">
-    <div class="sun-info"><div class="sun-ico">🌅</div><div class="sun-t">${sun.rise}</div><div class="sun-lbl">SUNRISE</div></div>
-    <div class="sun-arc"><svg viewBox="0 0 100 46" style="width:100%;height:46px">
-      <path d="M5,40 Q50,7 95,40" fill="none" stroke="rgba(21,45,82,0.8)" stroke-width="1.5"/>
-      <path d="M5,40 Q50,7 95,40" fill="none" stroke="#22d3ee" stroke-width="1.5" stroke-dasharray="92" stroke-dashoffset="${92-92*sun.progress}" opacity="0.5"/>
-      <circle cx="${cx}" cy="${cy}" r="4.5" fill="#f59e0b"/>
-      <circle cx="${cx}" cy="${cy}" r="8" fill="none" stroke="#f59e0b" stroke-width="0.5" opacity="0.35"/>
-    </svg></div>
-    <div class="sun-info"><div class="sun-ico">🌇</div><div class="sun-t">${sun.set}</div><div class="sun-lbl">SUNSET</div></div></div>`;
-}
-// ── Render: Prepare Tab ──
-function renderPrepare(){
-  if(!wd.periods) return;
-
-  // 7-day forecast
-  const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  const dayPairs=[];
-  for(let i=0;i<wd.periods.length-1;i+=2){
-    dayPairs.push({day:wd.periods[i],night:wd.periods[i+1]});
-  }
-  const fcRows=dayPairs.slice(0,7).map((pair,i)=>{
-    const d=pair.day;const n=pair.night;
-    const dt=new Date(d.startTime);
-    const dayLbl=i===0?'Today':days[dt.getDay()];
-    const pop=d.probabilityOfPrecipitation?.value||0;
-    const popCol=pop>=30?'color:var(--accent)':'color:var(--dim)';
-    return`<div class="fc-row${i===0?' today':''}"><div class="fc-day">${dayLbl}</div><div class="fc-ico">${forecastIcon(d.shortForecast)}</div><div class="fc-cond">${d.shortForecast}</div><div class="fc-pct" style="${popCol}">${pop}%</div><div class="fc-temps"><span class="fc-hi">${d.temperature}°</span><span class="fc-lo">${n?n.temperature+'°':'—'}</span></div></div>`;
-  }).join('');
-  document.getElementById('prep-forecast').innerHTML=`<div class="sec" style="margin-left:0">7-DAY FORECAST</div><div class="fc-card">${fcRows}</div>`;
-
-  // Nearest shelter
-  const sorted=[...OAHU_SHELTERS].sort((a,b)=>dist(LAT,LON,a.lat,a.lon)-dist(LAT,LON,b.lat,b.lon));
-  const sh=sorted[0];
-  const d0=dist(LAT,LON,sh.lat,sh.lon).toFixed(1);
-  document.getElementById('prep-shelter').innerHTML=`<div class="sec" style="margin-left:0">NEAREST SHELTER</div>
-    <div class="shelter-card"><div class="sh-ico">🏠</div><div style="flex:1">
-      <div class="sh-name">${sh.name}</div><div class="sh-addr">${sh.addr}</div>
-      <div class="sh-meta"><span class="sh-dist">${d0} mi away</span><span class="sh-cap">Capacity: ${sh.cap.toLocaleString()}</span></div>
-    </div><div style="margin-left:auto;color:var(--muted);font-size:16px">›</div></div>`;
-
-  // NWS Discussion
-  const disc=hazards.forecasterDiscussion;
-  if(disc){
-    const issued=disc.issued?new Date(disc.issued):null;
-    const age=issued?Math.round((Date.now()-issued)/60000):null;
-    const ageTxt=age!=null?(age<60?`${age}min ago`:`${Math.round(age/60)}hr ago`):'';
-    document.getElementById('prep-discussion').innerHTML=`<div class="sec" style="margin-left:0">FORECAST DISCUSSION</div>
-      <div class="disc-card"><div class="disc-head"><div class="disc-badge">NWS HONOLULU HFO</div><div class="disc-iss">${ageTxt}</div></div>
-      <div class="disc-text">${(disc.text||'').replace(/\n/g,' ').slice(0,400)}${disc.text?.length>400?'…':''}</div></div>`;
-  } else {
-    document.getElementById('prep-discussion').innerHTML='';
-  }
-
-  // Stream gauges
-  if(gauges.length){
-    const rows=gauges.map(g=>{
-      if(g.level==null)return'';
-      const isFlood=g.level>=g.flood;const isAction=g.level>=g.action;
-      const col=isFlood?'var(--danger)':isAction?'var(--advisory)':'var(--safe)';
-      const st=isFlood?'FLOOD':isAction?'ELEVATED':'NORMAL';
-      return`<div class="gauge-row"><div class="gauge-dot" style="background:${col}${isAction?';animation:pulse 1.5s infinite':''}"></div>
-        <div><div class="gauge-name">${g.name}</div><div class="gauge-read">${g.level.toFixed(1)} ft · USGS ${g.id}</div></div>
-        <div class="gauge-st" style="color:${col}">${st}</div></div>`;
-    }).join('');
-    if(rows) document.getElementById('prep-gauges').innerHTML=`<div class="sec" style="margin-left:0">STREAM GAUGES</div><div class="gauges-card">${rows}</div>`;
-  }
-
-  // Hazard grid
-  const hzItems=[
-    {ico:'🌊',name:'Surf',s:hazards.surf?.status||'ok',d:hazards.surf?.detail||'—'},
-    {ico:'🌋',name:'Earthquake',s:hazards.earthquake?.status||'ok',d:hazards.earthquake?.detail||'—'},
-    {ico:'🌀',name:'Tropical',s:hazards.tropical?.status||'ok',d:hazards.tropical?.detail||'—'},
-    {ico:'🌊',name:'Tsunami',s:hazards.tsunami?.status||'ok',d:hazards.tsunami?.detail||'—'},
-    {ico:'🔥',name:'Fire Risk',s:hazards.fire?.status||'ok',d:hazards.fire?.detail||'—'},
-    {ico:'🌫️',name:'Vog / AQI',s:hazards.vog?.status||'ok',d:hazards.vog?.detail||'—'},
-  ];
-  const hzCards=hzItems.map(h=>{
-    const cls=h.s==='warning'?'hz-warn':h.s==='advisory'||h.s==='watch'?'hz-adv':'';
-    return`<div class="haz-card ${cls}"><div class="haz-ico">${h.ico}</div><div class="haz-name">${h.name}</div><div class="haz-status hz-${h.s}">${h.s.toUpperCase()}</div></div>`;
-  }).join('');
-  document.getElementById('prep-hazards').innerHTML=`<div class="sec" style="margin-left:0">HAZARD STATUS</div><div class="hazard-grid">${hzCards}</div>`;
-}
-// ── Map ──
-function initMap(){
-  map=L.map('map',{zoomControl:true,attributionControl:true}).setView([21.47,-157.97],10);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
-    attribution:'© CARTO © OpenStreetMap',maxZoom:19
-  }).addTo(map);
-}
-
-function drawMap(){
-  if(riskLyr)riskLyr.remove();
-  riskLyr=L.layerGroup();
-  Object.entries(ZONES).forEach(([id,z])=>{
-    L.polygon(z.c[0].map(c=>[c[1],c[0]]),{fillColor:z.fill,fillOpacity:z.op,color:z.fill,weight:1.5,opacity:.6})
-      .bindTooltip(`<b>${z.name}</b><br>PoP: ${z.pop||0}%`,{sticky:true}).addTo(riskLyr);
-  });
-  if(stationsLyr)stationsLyr.remove();
-  stationsLyr=L.layerGroup();
-  const base=wd.pop?.[0]?.value||0;
-  [{lat:21.3069,lon:-157.8583,name:'Honolulu Intl',pop:Math.max(0,base-8)},
-   {lat:21.448,lon:-158.045,name:'Wheeler AAF',pop:Math.max(0,base+3)},
-   {lat:21.534,lon:-157.992,name:'North Shore',pop:Math.max(0,base+10)},
-   {lat:21.393,lon:-157.739,name:'Kaneohe MCAS',pop:Math.max(0,base+13)}
-  ].forEach(s=>{
-    L.circleMarker([s.lat,s.lon],{radius:6,fillColor:barCol(s.pop),fillOpacity:.9,color:'#fff',weight:2,opacity:1})
-      .bindTooltip(`<b>${s.name}</b><br>PoP: ${s.pop}%`,{sticky:true}).addTo(stationsLyr);
-  });
-  riskLyr.addTo(map);
-  stationsLyr.addTo(map);
-}
-
-function drawGaugeMarkers(){
-  if(gaugeLyr)gaugeLyr.remove();
-  gaugeLyr=L.layerGroup();
-  GAUGE_SITES.forEach(g=>{
-    if(g.level==null)return;
-    const isFlood=g.level>=g.flood,isNear=g.level>=g.action;
-    const col=isFlood?'#e52207':isNear?'#f5a623':'#4fc3f7';
-    L.circleMarker([g.lat,g.lon],{radius:9,fillColor:col,fillOpacity:.95,color:'#fff',weight:2.5,opacity:1})
-      .bindTooltip(`<b>💧 ${g.short}</b><br>${g.level.toFixed(2)}ft · ${g.flow?.toFixed(0)||'—'} cfs<br>Flood stage: ${g.flood}ft`,{sticky:true})
-      .addTo(gaugeLyr);
-  });
-}
-
-function drawEQMarkers(){
-  if(eqLyr)eqLyr.remove();
-  if(!hazards.earthquake?.count)return;
-  eqLyr=L.layerGroup();
-  // Earthquake markers would go here if we had feature coords
-}
-
-function drawWarningPolygons(){
-  if(warningLyr)warningLyr.remove();
-  warningLyr=L.layerGroup();
-  const alerts=wd.alerts||[];
-  const sevColor={Extreme:'#ef5350',Severe:'#f5a623',Moderate:'#fbbf24',Minor:'#4fc3f7'};
-  alerts.forEach(a=>{
-    const geo=a.geometry;
-    if(!geo||geo.type!=='Polygon'&&geo.type!=='MultiPolygon')return;
-    const col=sevColor[a.properties.severity]||'#f5a623';
-    const coords=geo.type==='Polygon'?[geo.coordinates]:geo.coordinates;
-    coords.forEach(ring=>{
-      L.polygon(ring[0].map(c=>[c[1],c[0]]),{fillColor:col,fillOpacity:0.25,color:col,weight:2,opacity:0.8,dashArray:'6,3'})
-        .bindTooltip(`<b>⚠️ ${a.properties.event}</b><br>${(a.properties.headline||'').slice(0,60)}`,{sticky:true})
-        .addTo(warningLyr);
-    });
-  });
-  if(!alerts.some(a=>a.geometry)){
-    fetch('https://api.weather.gov/alerts/active?area=HI&status=actual&message_type=alert,update&limit=20')
-      .then(r=>r.json()).then(d=>{
-        (d.features||[]).forEach(a=>{
-          const geo=a.geometry;if(!geo)return;
-          const col=sevColor[a.properties.severity]||'#f5a623';
-          const coords=geo.type==='Polygon'?[geo.coordinates]:geo.coordinates;
-          coords.forEach(ring=>{
-            L.polygon(ring[0].map(c=>[c[1],c[0]]),{fillColor:col,fillOpacity:0.25,color:col,weight:2,opacity:0.8,dashArray:'6,3'})
-              .bindTooltip(`<b>⚠️ ${a.properties.event}</b>`,{sticky:true}).addTo(warningLyr);
-          });
-        });
-      }).catch(()=>{});
-  }
-  warningLyr.addTo(map);
-}
-
-// Animated NEXRAD radar
-function drawAnimatedRadar(){
-  stopAnimatedRadar();
-  const frames=['nexrad-n0q-m55m','nexrad-n0q-m50m','nexrad-n0q-m45m','nexrad-n0q-m40m','nexrad-n0q-m35m','nexrad-n0q-m30m','nexrad-n0q-m25m','nexrad-n0q-m20m','nexrad-n0q-m15m','nexrad-n0q-m10m','nexrad-n0q-m05m','nexrad-n0q'];
-  const opts={opacity:0.65,attribution:'NEXRAD via IEM',tileSize:256,maxNativeZoom:8,maxZoom:19,crossOrigin:true};
-  const layers=frames.map(f=>L.tileLayer(`https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/${f}/{z}/{x}/{y}.png`,opts));
-  let cur=0;layers[cur].addTo(map);radarLyr=layers[cur];
-  radarAnim=setInterval(()=>{const prev=cur;cur=(cur+1)%layers.length;map.removeLayer(layers[prev]);layers[cur].addTo(map);radarLyr=layers[cur];},600);
-}
-function stopAnimatedRadar(){if(radarAnim){clearInterval(radarAnim);radarAnim=null;}if(radarLyr){radarLyr.remove();radarLyr=null;}}
-
-function drawPrecipLayer(){
-  if(precipLyr)precipLyr.remove();
-  precipLyr=L.tileLayer('https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/q2-p24h/{z}/{x}/{y}.png',{opacity:0.55,attribution:'MRMS 24hr Precip via IEM',tileSize:256,maxNativeZoom:8,maxZoom:13});
-  precipLyr.addTo(map);
-}
-
-function drawSatelliteLayer(){
-  if(satelliteLyr)satelliteLyr.remove();
-  satelliteLyr=L.tileLayer('https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/goes_east_conus_ch13/{z}/{x}/{y}.png',{opacity:0.55,attribution:'GOES-East IR via IEM',tileSize:256,maxNativeZoom:8,maxZoom:13});
-  satelliteLyr.addTo(map);
-}
-
-function drawTsunamiZones(){
-  if(tsunamiLyr)tsunamiLyr.remove();
-  tsunamiLyr=L.layerGroup();
-  const zones=[
-    {zone:'A',color:'#ef5350',coords:[[[-158.10,21.28],[-158.12,21.30],[-158.16,21.35],[-158.20,21.43],[-158.22,21.45],[-158.20,21.45],[-158.16,21.37],[-158.12,21.30],[-158.10,21.28]],[[-157.62,21.26],[-157.65,21.28],[-157.73,21.39],[-157.76,21.44],[-157.74,21.45],[-157.71,21.40],[-157.64,21.29],[-157.62,21.26]],[[-157.90,21.25],[-157.97,21.25],[-157.97,21.27],[-157.90,21.27],[-157.90,21.25]]]},
-    {zone:'B',color:'#f5a623',coords:[[[-158.08,21.29],[-158.10,21.28],[-158.12,21.30],[-158.16,21.37],[-158.14,21.38],[-158.10,21.31],[-158.08,21.29]],[[-157.61,21.27],[-157.62,21.26],[-157.64,21.29],[-157.71,21.40],[-157.69,21.41],[-157.63,21.30],[-157.61,21.27]]]}
-  ];
-  zones.forEach(z=>{z.coords.forEach(ring=>{
-    L.polygon(ring.map(c=>[c[1],c[0]]),{fillColor:z.color,fillOpacity:0.3,color:z.color,weight:2,opacity:0.7,dashArray:z.zone==='B'?'5,4':null})
-      .bindTooltip(`<b>🌊 Tsunami Evac Zone ${z.zone}</b>`,{sticky:true}).addTo(tsunamiLyr);
-  });});
-  tsunamiLyr.addTo(map);
-}
-
-async function drawFirePerimeters(){
-  if(fireLyr)fireLyr.remove();fireLyr=L.layerGroup();
-  try{
-    const r=await fetch('https://services3.arcgis.com/T4QMspbfLg3qTGWY/arcgis/rest/services/WFIGS_Interagency_Perimeters_Current/FeatureServer/0/query?where=POOState%3D%27US-HI%27&outFields=IncidentName,GISAcres&f=geojson&outSR=4326',{signal:AbortSignal.timeout(8000)});
-    const d=await r.json();
-    if((d.features||[]).length){
-      L.geoJSON(d,{style:{fillColor:'#ef5350',fillOpacity:0.35,color:'#b71c1c',weight:2},
-        onEachFeature:(f,lyr)=>{lyr.bindTooltip(`<b>🔥 ${f.properties.IncidentName||'Active Fire'}</b><br>${f.properties.GISAcres?Math.round(f.properties.GISAcres)+' acres':''}`,{sticky:true});}
-      }).addTo(fireLyr);
-    }
-  }catch(e){console.warn('fire perimeters:',e);}
-  fireLyr.addTo(map);
-}
-
-async function drawOSMLayer(type){
-  const configs={
-    hospitals:{query:'[out:json][timeout:10];node[amenity=hospital](21.2,-158.3,21.7,-157.6);out body;',icon:'🏥',color:'#ec4899'},
-    firestations:{query:'[out:json][timeout:10];node[amenity=fire_station](21.2,-158.3,21.7,-157.6);out body;',icon:'🚒',color:'#f97316'},
-    dams:{query:'[out:json][timeout:10];(way[waterway=dam](21.2,-158.3,21.7,-157.6);way[man_made=dam](21.2,-158.3,21.7,-157.6););out center;',icon:'🏔',color:'#8b5cf6'}
-  };
-  const cfg=configs[type];if(!cfg)return;
-  const existing={hospitals:hospitalsLyr,firestations:fireStationsLyr,dams:damsLyr}[type];
-  if(existing)existing.remove();
-  const lyr=L.layerGroup();
-  try{
-    const r=await fetch('https://overpass-api.de/api/interpreter',{method:'POST',body:cfg.query,signal:AbortSignal.timeout(12000)});
-    const d=await r.json();
-    (d.elements||[]).forEach(e=>{
-      const lat=e.lat||e.center?.lat;const lon=e.lon||e.center?.lon;if(!lat||!lon)return;
-      const icon=L.divIcon({html:`<div style="background:${cfg.color};color:#fff;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:14px;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4);">${cfg.icon}</div>`,className:'',iconSize:[26,26],iconAnchor:[13,13]});
-      L.marker([lat,lon],{icon}).bindTooltip(`<b>${cfg.icon} ${e.tags?.name||type}</b>`,{sticky:true}).addTo(lyr);
-    });
-  }catch(e){console.warn(`OSM ${type}:`,e);}
-  lyr.addTo(map);
-  if(type==='hospitals')hospitalsLyr=lyr;else if(type==='firestations')fireStationsLyr=lyr;else if(type==='dams')damsLyr=lyr;
-}
-
-function drawShelterMarkers(){
-  if(!map)return;
-  const lyr=L.layerGroup();
-  OAHU_SHELTERS.forEach(s=>{
-    const icon=L.divIcon({html:'<div style="background:#22d3ee;color:#000;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:12px;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4);">⌂</div>',className:'',iconSize:[24,24],iconAnchor:[12,12]});
-    L.marker([s.lat,s.lon],{icon}).bindTooltip(`<b>⌂ ${s.name}</b><br>${s.addr}<br>Cap: ${s.cap}`,{sticky:true}).addTo(lyr);
-  });
-  return lyr;
-}
-// ── Layer switching ──
-function clearMapLayers(){
-  stopAnimatedRadar();
-  [riskLyr,stationsLyr,gaugeLyr,warningLyr,tsunamiLyr,fireLyr,precipLyr,satelliteLyr,hospitalsLyr,fireStationsLyr,damsLyr].forEach(l=>{if(l)try{l.remove();}catch(e){}});
-}
-
-function setLayer(layer){
-  document.querySelectorAll('.layer-btn').forEach(b=>b.classList.remove('on'));
-  document.getElementById('lbtn-'+layer).classList.add('on');
-  clearMapLayers();
-  activeLayer=layer;
-  if(layer==='weather'){
-    if(wd.pop)drawMap();
-    drawAnimatedRadar();
-    if(gaugeLyr)gaugeLyr.addTo(map);
-  } else if(layer==='hazards'){
-    drawWarningPolygons();
-    drawTsunamiZones();
-    drawFirePerimeters();
-    if(wd.pop)drawMap();
-  } else if(layer==='infra'){
-    if(gaugeLyr)gaugeLyr.addTo(map);
-    const sLyr=drawShelterMarkers();if(sLyr)sLyr.addTo(map);
-    drawOSMLayer('hospitals');
-    drawOSMLayer('firestations');
-    drawOSMLayer('dams');
-  }
-}
-
-// ── Tab navigation ──
-const TABS=['now','map','prepare'];
+const TABS=['now','radar','week'];
 function setTab(id){
-  TABS.forEach(t=>{
-    document.getElementById('tab-'+t).classList.remove('active');
-    document.getElementById('ni-'+t).classList.add('dim');
-    document.getElementById('nl-'+t).classList.remove('on');
-    document.getElementById('np-'+t).classList.add('hidden');
-  });
-  document.getElementById('tab-'+id).classList.add('active');
-  document.getElementById('ni-'+id).classList.remove('dim');
-  document.getElementById('nl-'+id).classList.add('on');
-  document.getElementById('np-'+id).classList.remove('hidden');
-  if(id==='map'&&map) setTimeout(()=>map.invalidateSize(),100);
+  TABS.forEach(t=>{document.getElementById('tab-'+t).classList.remove('active');document.getElementById('ni-'+t).classList.add('dim');document.getElementById('nl-'+t).classList.remove('on');document.getElementById('np-'+t).classList.add('h');});
+  document.getElementById('tab-'+id).classList.add('active');document.getElementById('ni-'+id).classList.remove('dim');document.getElementById('nl-'+id).classList.add('on');document.getElementById('np-'+id).classList.remove('h');
 }
 
-// ── Init ──
-window.addEventListener('DOMContentLoaded',()=>{
-  initMap();
-  loadWeather()
-    .then(()=>{
-      drawMap();
-      return Promise.all([loadEnv(),loadGauges(),loadHazards()]);
-    })
-    .then(()=>{
-      if(activeLayer==='weather')drawAnimatedRadar();
-    })
-    .catch(e=>{
-      document.getElementById('now-hero').innerHTML=`<div class="loading-wrap"><div style="font-size:24px">⚠️</div><div class="load-text">${e.message}</div></div>`;
-      console.error(e);
-    });
-
-  // Auto-refresh every 10 minutes
-  setInterval(()=>{
-    loadWeather().then(()=>Promise.all([loadEnv(),loadGauges(),loadHazards()])).catch(console.error);
-  },600000);
-
-  // Register service worker
-  if('serviceWorker' in navigator){
-    navigator.serviceWorker.register('/sw.js').catch(()=>{});
-  }
-});
+const RLABELS={precip:'NEXRAD PRECIP',wind:'WIND FLOW',temp:'TEMPERATURE',sat:'SATELLITE IR'};
+function setRLayer(layer,btn){
+  document.querySelectorAll('.ly-btn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');
+  ['precip','wind','temp','sat'].forEach(l=>{const el=document.getElementById('rl-'+l);if(el)el.setAttribute('display','none');const leg=document.getElementById('rl-'+l+'-legend');if(leg)leg.style.display='none';});
+  const el=document.getElementById('rl-'+layer);if(el)el.setAttribute('display','inline');
+  const leg=document.getElementById('rl-'+layer+'-legend');if(leg)leg.style.display='block';
+  document.getElementById('rm-val').textContent=RLABELS[layer]||layer.toUpperCase();
+}
 </script>
 </body>
 </html>
