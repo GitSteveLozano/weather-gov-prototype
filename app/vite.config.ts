@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
+  base: '/weather-gov-prototype/',
   plugins: [
     react(),
     VitePWA({
@@ -11,7 +12,7 @@ export default defineConfig({
         name: 'NWS Honolulu — Weather',
         short_name: 'NWS Honolulu',
         description: 'Live weather, alerts, and preparedness for Oahu — powered by NWS official data',
-        start_url: '/',
+        start_url: '/weather-gov-prototype/',
         display: 'standalone',
         orientation: 'portrait',
         background_color: '#03091a',
