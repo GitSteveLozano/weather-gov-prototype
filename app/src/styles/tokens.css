@@ -1,0 +1,23 @@
+:root {
+  --bg: #03091a;
+  --s1: #060e24;
+  --s2: #0a1530;
+  --card: rgba(255, 255, 255, 0.052);
+  --cb: rgba(255, 255, 255, 0.085);
+  --cb2: rgba(255, 255, 255, 0.13);
+  --text: #eef4ff;
+  --muted: #6a8ab2;
+  --dim: #253d62;
+  --dimmer: #162236;
+  --accent: #38bdf8;
+  --ad: rgba(56, 189, 248, 0.12);
+  --ad2: rgba(56, 189, 248, 0.06);
+  --warn: #f59e0b;
+  --wd: rgba(245, 158, 11, 0.1);
+  --ok: #34d399;
+  --danger: #f87171;
+  --purple: #a78bfa;
+  --serif: 'DM Serif Display', serif;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'Manrope', sans-serif;
+}

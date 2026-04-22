@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>NWS · Honolulu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=IBM+Plex+Mono:wght@300;400;500&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#03091a;--s1:#060e24;--s2:#0a1530;
+  --card:rgba(255,255,255,.052);--cb:rgba(255,255,255,.085);--cb2:rgba(255,255,255,.13);
+  --text:#eef4ff;--muted:#6a8ab2;--dim:#253d62;--dimmer:#162236;
+  --accent:#38bdf8;--ad:rgba(56,189,248,.12);--ad2:rgba(56,189,248,.06);
+  --warn:#f59e0b;--wd:rgba(245,158,11,.1);
+  --ok:#34d399;--danger:#f87171;--purple:#a78bfa;
+  --serif:'DM Serif Display',serif;--mono:'IBM Plex Mono',monospace;--sans:'Manrope',sans-serif;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(245,158,11,.3)}50%{box-shadow:0 0 0 7px rgba(245,158,11,0)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+html,body{min-height:100%;font-family:var(--sans);-webkit-font-smoothing:antialiased}
+body{background:radial-gradient(ellipse 85% 65% at 50% 28%,#071a3e 0%,#010710 70%);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:28px 16px 52px}
+.phone{width:390px;flex-shrink:0;background:var(--bg);border-radius:52px;border:8px solid #090d1f;position:relative;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 0 0 1.5px #040614,0 65px 130px rgba(0,0,0,.95),0 0 80px rgba(56,189,248,.04),inset 0 0 0 1px rgba(255,255,255,.035)}
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:118px;height:31px;background:#090d1f;border-radius:0 0 20px 20px;z-index:40}
+.vl{position:absolute;left:-15px;top:102px;width:3.5px;border-radius:3px 0 0 3px;background:#090d1f}
+.vl1{height:34px}.vl2{top:146px;height:34px}
+.vr{position:absolute;right:-15px;top:128px;width:3.5px;height:62px;border-radius:0 3px 3px 0;background:#090d1f}
+.status{padding:34px 22px 0;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;position:relative;z-index:10;background:transparent}
+.s-t{font-family:var(--mono);font-size:14px;font-weight:500;color:var(--text)}
+.s-r{display:flex;gap:5px;align-items:center}
+.scroll{flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0}
+.panel{display:none;height:100%;flex-direction:column;overflow:hidden}
+.panel.active{display:flex}
+.inner{flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:none}
+.inner::-webkit-scrollbar{display:none}
+.ab{background:rgba(245,158,11,.075);border-bottom:1px solid rgba(245,158,11,.18);padding:8px 15px;display:flex;align-items:center;gap:8px;animation:glow 3s infinite;flex-shrink:0;cursor:pointer}
+.ab-dot{width:5px;height:5px;border-radius:50%;background:var(--warn);animation:pulse 1.4s infinite;flex-shrink:0}
+.ab-type{font-family:var(--mono);font-size:9.5px;font-weight:500;color:var(--warn);letter-spacing:.07em}
+.ab-sub{font-size:9.5px;color:rgba(245,158,11,.45);margin-top:1px}
+.ab-arr{margin-left:auto;color:rgba(245,158,11,.35);font-size:14px}
+.hero{position:relative;overflow:hidden;flex-shrink:0;padding:12px 18px 18px}
+.sky{position:absolute;inset:0;background:linear-gradient(172deg,#103870 0%,#062a54 38%,#031c3a 68%,#03091a 100%)}
+.sun{position:absolute;top:14px;right:32px;width:52px;height:52px;border-radius:50%;background:radial-gradient(circle,rgba(251,191,36,.85) 18%,transparent 68%);filter:blur(1px);animation:float 7s ease-in-out infinite}
+.cl{position:absolute;background:rgba(255,255,255,.055);border-radius:28px;filter:blur(.8px)}
+.hc{position:relative;z-index:2}
+.loc-row{display:flex;align-items:center;gap:6px;margin-bottom:10px}
+.loc-dot{width:5px;height:5px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite}
+.loc-name{font-size:13px;font-weight:500;color:var(--text)}
+.nws-tag{background:var(--ad);border:1px solid rgba(56,189,248,.2);border-radius:4px;padding:2px 7px;margin-left:4px;font-family:var(--mono);font-size:7.5px;color:var(--accent);letter-spacing:.1em}
+.norm-chip{background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.22);border-radius:4px;padding:2px 7px;margin-left:4px;font-family:var(--mono);font-size:7.5px;color:var(--purple);letter-spacing:.08em}
+.summary{font-size:12.5px;color:rgba(238,244,255,.6);line-height:1.58;margin-bottom:14px}
+.summary strong{color:var(--text);font-weight:600}
+.temp-row{display:flex;align-items:flex-end;gap:12px}
+.temp-n{font-family:var(--serif);font-size:94px;line-height:1;color:var(--text);letter-spacing:-3px}
+.temp-deg{font-size:32px;color:var(--muted);vertical-align:super;margin-left:1px}
+.temp-meta{display:flex;flex-direction:column;gap:4px;padding-bottom:9px}
+.cond{font-size:15px;font-weight:500;color:var(--text)}
+.hl{display:flex;gap:6px}
+.hl-chip{font-family:var(--mono);font-size:10px;color:var(--muted);background:rgba(255,255,255,.05);border-radius:3px;padding:2px 6px}
+.feels{font-family:var(--mono);font-size:9.5px;color:var(--dim);margin-top:3px}
+.sec{font-family:var(--mono);font-size:8.5px;font-weight:500;color:var(--muted);letter-spacing:.13em;margin:0 14px 7px;flex-shrink:0;display:flex;align-items:center;gap:7px}
+.sec::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.055)}
+.rain-wrap{padding:0 14px 12px;flex-shrink:0;position:relative;z-index:2}
+.rain-lbl{font-family:var(--mono);font-size:8.5px;color:var(--accent);letter-spacing:.1em;margin-bottom:6px;display:flex;align-items:center;gap:7px}
+.rain-lbl span{font-size:9px;color:rgba(56,189,248,.45)}
+.rain-lbl::after{content:'';flex:1;height:1px;background:rgba(56,189,248,.14)}
+.rain-bars{display:flex;gap:1.5px;height:32px;align-items:flex-end}
+.rbar{flex:1;border-radius:1.5px 1.5px 0 0;min-height:2px;background:var(--accent);opacity:.14;transition:opacity .2s}
+.rbar.m{opacity:.42}.rbar.h{opacity:.72}.rbar.v{opacity:1}
+.rain-foot{display:flex;justify-content:space-between;margin-top:4px}
+.rf-t{font-family:var(--mono);font-size:7.5px;color:var(--dim)}
+.rain-note{font-family:var(--mono);font-size:8.5px;color:rgba(245,158,11,.75);margin-top:5px;display:flex;align-items:center;gap:5px}
+.wind-card{margin:0 14px 12px;background:var(--card);border:1px solid var(--cb);border-radius:14px;padding:13px 14px;display:flex;align-items:center;gap:14px;flex-shrink:0}
+.compass{flex-shrink:0}
+.wind-data{flex:1}
+.wd-main{font-family:var(--serif);font-size:28px;color:var(--text);line-height:1}
+.wd-unit{font-size:12px;color:var(--muted)}
+.wd-dir{font-family:var(--mono);font-size:10px;color:var(--accent);margin-top:3px}
+.wd-gust{font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:3px}
+.beaufort{display:inline-block;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.18);border-radius:4px;padding:1px 7px;font-family:var(--mono);font-size:8px;color:var(--accent)}
+.wind-right{text-align:right}
+.wr-v{font-family:var(--mono);font-size:11px;color:var(--text)}
+.wr-l{font-family:var(--mono);font-size:7.5px;color:var(--muted);letter-spacing:.08em;margin-top:2px}
+.stats-row{margin:0 14px 12px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;flex-shrink:0}
+.stat-mini{background:var(--card);border:1px solid var(--cb);border-radius:11px;padding:10px 9px;text-align:center}
+.sm-v{font-family:var(--serif);font-size:17px;color:var(--text);line-height:1}
+.sm-u{font-size:8.5px;color:var(--muted)}
+.sm-l{font-family:var(--mono);font-size:7px;color:var(--muted);letter-spacing:.07em;margin-top:3px}
+.sm-t{font-size:8.5px;margin-top:2px}
+.pres-spark{display:flex;align-items:flex-end;gap:1px;height:14px;margin-top:4px;justify-content:center}
+.ps-bar{width:3px;border-radius:1px 1px 0 0;background:var(--ok);opacity:.55}
+.hs{margin:0 14px 12px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;flex-shrink:0}
+.hc2{background:var(--card);border:1px solid var(--cb);border-radius:12px;padding:11px 11px}
+.hc2-l{font-family:var(--mono);font-size:7px;color:var(--muted);letter-spacing:.09em}
+.hc2-v{font-size:19px;font-weight:600;color:var(--text);line-height:1;margin-top:2px}
+.hc2-s{font-size:9.5px;margin-top:1px}
+.hc2-bar{height:2.5px;border-radius:2px;margin-top:7px;background:var(--dimmer);overflow:hidden}
+.hc2-fill{height:100%;border-radius:2px}
+.hc2-note{font-size:8.5px;color:var(--dim);margin-top:4px}
+.oc{margin:0 14px 12px;background:var(--card);border:1px solid var(--cb);border-radius:14px;overflow:hidden;flex-shrink:0}
+.oc-h{background:linear-gradient(130deg,rgba(6,24,60,.95),rgba(3,14,38,.95));padding:11px 14px;display:flex;align-items:center;gap:9px;border-bottom:1px solid var(--cb)}
+.oc-grid{display:grid;grid-template-columns:1fr 1fr 1fr}
+.oc-cell{padding:10px 12px;border-right:1px solid var(--cb);text-align:center}
+.oc-cell:last-child{border-right:none}
+.oc-v{font-family:var(--serif);font-size:18px;color:var(--text)}
+.oc-l{font-family:var(--mono);font-size:7px;color:var(--muted);letter-spacing:.08em;margin-top:2px}
+.tide-row{padding:9px 12px;border-top:1px solid var(--cb);display:flex;gap:8px;align-items:center;overflow-x:auto;scrollbar-width:none}
+.tide-row::-webkit-scrollbar{display:none}
+.tide-item{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:2px}
+.tide-t{font-family:var(--mono);font-size:8px;color:var(--muted)}
+.tide-bar-w{height:26px;display:flex;align-items:flex-end;width:20px}
+.tide-bar{width:100%;border-radius:2px 2px 0 0;background:var(--accent);opacity:.38}
+.tide-v{font-family:var(--serif);font-size:12px;color:var(--text)}
+.tide-hl{font-size:8.5px;font-weight:600;font-family:var(--mono)}
+.tide-div{width:1px;height:26px;background:var(--dim);flex-shrink:0;margin:0 2px}
+.rip-strip{background:rgba(245,158,11,.06);border-top:1px solid rgba(245,158,11,.15);padding:7px 12px;display:flex;align-items:center;gap:7px}
+.rip-dot{width:5px;height:5px;border-radius:50%;background:var(--warn);animation:pulse 2s infinite;flex-shrink:0}
+.rip-text{font-family:var(--mono);font-size:8.5px;color:rgba(245,158,11,.7)}
+.curve-wrap{margin:0 14px 12px;background:var(--card);border:1px solid var(--cb);border-radius:14px;overflow:hidden;flex-shrink:0}
+.curve-hours{display:flex;justify-content:space-between;padding:7px 13px 10px}
+.ch{text-align:center}.ch-t{font-family:var(--mono);font-size:8px;color:var(--muted)}
+.ch-v{font-family:var(--serif);font-size:12.5px;color:var(--text)}
+.ch.now .ch-t{color:var(--accent)}.ch.now .ch-v{color:var(--accent)}
+.conf-note{margin:0 14px 12px;background:var(--ad2);border:1px solid rgba(56,189,248,.11);border-radius:10px;padding:8px 11px;display:flex;align-items:flex-start;gap:8px;flex-shrink:0}
+.cn-text{font-size:10.5px;color:rgba(238,244,255,.52);line-height:1.55}
+.cn-text strong{color:var(--accent);font-weight:500}
+.hourly{margin:0 14px 12px;background:var(--card);border:1px solid var(--cb);border-radius:13px;display:flex;overflow-x:auto;scrollbar-width:none;flex-shrink:0}
+.hourly::-webkit-scrollbar{display:none}
+.hr{min-width:58px;padding:10px 4px;text-align:center;border-right:1px solid rgba(255,255,255,.045)}
+.hr:last-child{border-right:none}
+.hr.now{background:var(--ad2)}
+.hr-t{font-family:var(--mono);font-size:8px;color:var(--muted);margin-bottom:4px}
+.hr.now .hr-t{color:var(--accent)}
+.hr-i{font-size:17px;margin-bottom:4px}
+.hr-v{font-family:var(--serif);font-size:12.5px;color:var(--text)}
+.hr-p{font-family:var(--mono);font-size:7.5px;margin-top:3px;color:var(--dim)}
+.hr-bar{width:20px;height:2px;background:rgba(255,255,255,.07);border-radius:1px;margin:2px auto 0;overflow:hidden}
+.hr-fill{height:100%;background:var(--accent);border-radius:1px}
+.radar-wrap{height:100%;display:flex;flex-direction:column;overflow:hidden}
+.lstrip{padding:9px 12px;background:var(--s1);border-bottom:1px solid rgba(255,255,255,.055);display:flex;gap:7px;flex-shrink:0}
+.lb{flex:1;padding:6px 3px;border-radius:9px;border:1px solid var(--cb);background:transparent;color:var(--muted);font-size:10px;font-family:var(--sans);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;transition:all .18s}
+.lb.on{border-color:var(--accent);background:var(--ad);color:var(--accent)}
+.lb-i{font-size:13px}
+.radar-area{flex:1;position:relative;background:#020810;overflow:hidden}
+.rg{position:absolute;inset:0;background-image:linear-gradient(rgba(21,45,82,.1) 1px,transparent 1px),linear-gradient(90deg,rgba(21,45,82,.1) 1px,transparent 1px);background-size:38px 38px}
+.rsv{width:100%;height:100%;position:absolute;inset:0}
+.rhud{position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none}
+.rmode{background:rgba(2,8,18,.9);border:1px solid var(--cb);border-radius:9px;padding:6px 11px}
+.rm-l{font-family:var(--mono);font-size:7.5px;color:var(--muted);letter-spacing:.1em}
+.rm-v{font-family:var(--mono);font-size:10.5px;color:var(--accent);font-weight:500;margin-top:1px}
+.rtime{background:rgba(2,8,18,.9);border:1px solid var(--cb);border-radius:9px;padding:6px 11px;text-align:right}
+.rt-dot{display:inline-block;width:4px;height:4px;border-radius:50%;background:var(--ok);animation:pulse 1.5s infinite;margin-right:4px;vertical-align:middle}
+.rleg{position:absolute;bottom:10px;left:10px;background:rgba(2,8,18,.92);border:1px solid var(--cb);border-radius:9px;padding:9px 11px}
+.rl-t{font-family:var(--mono);font-size:7.5px;color:var(--muted);letter-spacing:.09em;margin-bottom:5px}
+.rl-ramp{display:flex;gap:2px;margin-bottom:2px}
+.rl-s{width:15px;height:11px;border-radius:2px}
+.rl-range{display:flex;justify-content:space-between}
+.rl-lab{font-family:var(--mono);font-size:7px;color:var(--dim)}
+.play-btn{position:absolute;bottom:12px;right:12px;width:42px;height:42px;border-radius:50%;background:var(--ad);border:1.5px solid rgba(56,189,248,.28);color:var(--accent);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.fc-card{background:var(--card);border:1px solid var(--cb);border-radius:13px;overflow:hidden;margin:0 14px 13px;flex-shrink:0}
+.fc-row{display:flex;align-items:center;padding:9px 13px;border-bottom:1px solid rgba(255,255,255,.045)}
+.fc-row:last-child{border-bottom:none}
+.fc-row.today{background:var(--ad2)}
+.fc-day{width:36px;font-size:12px;font-weight:500;color:var(--text)}
+.fc-row.today .fc-day{color:var(--accent)}
+.fc-i{font-size:16px;margin-right:9px}
+.fc-c{flex:1;font-size:11px;color:var(--muted)}
+.fc-norm{font-family:var(--mono);font-size:8px;border-radius:3px;padding:1px 5px;margin-right:6px}
+.above{background:rgba(245,158,11,.1);color:var(--warn)}
+.below{background:rgba(56,189,248,.1);color:var(--accent)}
+.fc-pct{font-family:var(--mono);font-size:9.5px;width:26px;text-align:right;margin-right:10px}
+.fc-bw{width:36px;height:3px;background:rgba(255,255,255,.06);border-radius:2px;margin-right:10px;overflow:hidden}
+.fc-bf{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--accent),rgba(56,189,248,.35))}
+.fc-temps{font-family:var(--mono);font-size:12px;display:flex;gap:8px}
+.fc-hi{color:var(--text)}.fc-lo{color:var(--dim)}
+.pollen-card{margin:0 14px 13px;background:var(--card);border:1px solid var(--cb);border-radius:13px;padding:13px 14px;flex-shrink:0}
+.poll-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.poll-row:last-child{margin-bottom:0}
+.poll-name{width:38px;font-size:11px;color:var(--muted)}
+.poll-bar-w{flex:1;height:5px;background:var(--dimmer);border-radius:3px;overflow:hidden}
+.poll-bar{height:100%;border-radius:3px}
+.poll-val{font-family:var(--mono);font-size:9px;width:38px;text-align:right}
+.poll-lbl{font-size:8.5px;font-weight:600;width:38px;text-align:right}
+.sun-moon{margin:0 14px 13px;display:grid;grid-template-columns:1fr 1fr;gap:8px;flex-shrink:0}
+.sm-card{background:var(--card);border:1px solid var(--cb);border-radius:12px;padding:11px;text-align:center}
+.sm-ico{font-size:18px;margin-bottom:4px}
+.sm-l{font-family:var(--mono);font-size:7px;color:var(--muted);letter-spacing:.08em;margin-top:2px}
+.sm-sub{font-size:8.5px;color:var(--dim);margin-top:5px}
+.afd-scroll{height:100%;overflow-y:auto;scrollbar-width:none;padding:13px 14px 16px}
+.afd-scroll::-webkit-scrollbar{display:none}
+.afd-card{background:var(--card);border:1px solid var(--cb);border-radius:16px;overflow:hidden;margin-bottom:14px}
+.afd-masthead{background:linear-gradient(135deg,rgba(6,18,42,.98) 0%,rgba(3,9,26,.98) 100%);border-bottom:1px solid var(--cb);padding:14px 16px;display:flex;align-items:center;gap:10px}
+.afd-office{font-family:var(--mono);font-size:8px;color:var(--accent);letter-spacing:.12em}
+.afd-iss{font-family:var(--mono);font-size:8px;color:var(--dim);margin-top:2px}
+.afd-badge{background:var(--ad);border:1px solid rgba(56,189,248,.2);border-radius:5px;padding:3px 9px;font-family:var(--mono);font-size:7.5px;color:var(--accent);letter-spacing:.1em;margin-left:auto}
+.afd-body{padding:15px 16px}
+.afd-headline{font-family:var(--serif);font-size:22px;color:var(--text);line-height:1.25;margin-bottom:10px;font-style:italic}
+.afd-lede{font-size:13px;color:rgba(238,244,255,.72);line-height:1.68;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,.06)}
+.afd-section{margin-bottom:13px}
+.afd-sec-l{font-family:var(--mono);font-size:8px;color:var(--accent);letter-spacing:.12em;margin-bottom:6px;display:flex;align-items:center;gap:7px}
+.afd-sec-l::after{content:'';flex:1;height:1px;background:rgba(56,189,248,.12)}
+.afd-bullets{list-style:none}
+.afd-bullets li{font-size:11.5px;color:rgba(238,244,255,.65);line-height:1.65;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);display:flex;align-items:flex-start;gap:7px}
+.afd-bullets li:last-child{border-bottom:none}
+.afd-bullets li::before{content:'—';color:var(--accent);font-family:var(--mono);font-size:10px;flex-shrink:0;margin-top:2px}
+.afd-watch{background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.16);border-radius:10px;padding:10px 12px;margin-top:12px}
+.afd-watch-l{font-family:var(--mono);font-size:8px;color:var(--warn);letter-spacing:.1em;margin-bottom:5px}
+.afd-watch-text{font-size:11px;color:rgba(238,244,255,.6);line-height:1.65}
+.afd-footer{background:rgba(56,189,248,.03);border-top:1px solid var(--cb);padding:9px 16px;display:flex;align-items:center;justify-content:space-between}
+.afd-fc-name{font-size:10.5px;color:var(--muted)}
+.afd-fc-name strong{color:var(--text);font-weight:500}
+.afd-full-link{font-family:var(--mono);font-size:8px;color:var(--accent);letter-spacing:.06em}
+.model-card{background:var(--card);border:1px solid var(--cb);border-radius:13px;padding:13px 14px;margin-bottom:14px}
+.model-row{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+.model-row:last-child{margin-bottom:0}
+.model-name{font-family:var(--mono);font-size:9px;color:var(--muted);width:44px;letter-spacing:.04em}
+.model-bar-w{flex:1;height:4px;background:var(--dimmer);border-radius:2px;overflow:hidden}
+.model-bar{height:100%;border-radius:2px}
+.model-agree{font-family:var(--mono);font-size:8.5px;width:50px;text-align:right}
+.model-legend{display:flex;justify-content:space-between;margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,.05)}
+.ml-item{display:flex;align-items:center;gap:5px;font-size:9.5px;color:var(--muted)}
+.ml-dot{width:7px;height:7px;border-radius:50%}
+.marine-card{background:var(--card);border:1px solid var(--cb);border-radius:13px;overflow:hidden;margin-bottom:14px}
+.marine-h{background:linear-gradient(130deg,rgba(5,20,55,.97),rgba(3,12,34,.97));padding:11px 14px;border-bottom:1px solid var(--cb);display:flex;align-items:center;justify-content:space-between}
+.marine-zone{font-size:12px;font-weight:600;color:var(--text)}
+.marine-iss{font-family:var(--mono);font-size:7.5px;color:var(--dim);margin-top:2px}
+.marine-body{padding:12px 14px}
+.marine-text{font-size:11.5px;color:rgba(238,244,255,.65);line-height:1.68;margin-bottom:10px}
+.marine-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.mg-cell{background:var(--dimmer);border-radius:8px;padding:9px 8px;text-align:center}
+.mg-v{font-family:var(--serif);font-size:16px;color:var(--text)}
+.mg-l{font-family:var(--mono);font-size:7px;color:var(--muted);letter-spacing:.07em;margin-top:2px}
+.trop-card{background:var(--card);border:1px solid var(--cb);border-radius:13px;overflow:hidden;margin-bottom:14px}
+.trop-h{padding:11px 14px;border-bottom:1px solid var(--cb);display:flex;align-items:center;gap:9px}
+.trop-ok-dot{width:8px;height:8px;border-radius:50%;background:var(--ok)}
+.trop-title{font-size:12px;font-weight:600;color:var(--text)}
+.trop-body{padding:12px 14px}
+.trop-text{font-size:11.5px;color:rgba(238,244,255,.6);line-height:1.68;margin-bottom:10px}
+.trop-5day{background:var(--dimmer);border-radius:9px;padding:10px 12px}
+.trop-5d-l{font-family:var(--mono);font-size:7.5px;color:var(--muted);letter-spacing:.1em;margin-bottom:7px}
+.trop-pct-row{display:flex;gap:6px}
+.tpc{flex:1;text-align:center}
+.tpc-v{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--ok)}
+.tpc-l{font-family:var(--mono);font-size:7px;color:var(--dim);margin-top:2px}
+.avn-card{background:var(--card);border:1px solid var(--cb);border-radius:13px;padding:13px 14px;margin-bottom:14px}
+.avn-h{display:flex;align-items:center;gap:9px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.055)}
+.avn-lbl{font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:.1em}
+.avn-ap{font-size:11px;color:var(--text);font-weight:500;margin-left:auto}
+.avn-row{display:flex;align-items:center;gap:9px;margin-bottom:6px}
+.avn-row:last-child{margin-bottom:0}
+.avn-time{font-family:var(--mono);font-size:9px;color:var(--muted);width:36px}
+.avn-cond{flex:1;font-size:10.5px;color:rgba(238,244,255,.62)}
+.avn-vis{font-family:var(--mono);font-size:9px;color:var(--dim);width:28px;text-align:right}
+.bnav{background:rgba(5,11,28,.96);border-top:1px solid rgba(255,255,255,.055);display:flex;padding:9px 0 24px;flex-shrink:0;backdrop-filter:blur(20px)}
+.nb{flex:1;background:transparent;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0}
+.ni{font-size:17px;transition:filter .2s}.ni.dim{filter:grayscale(1) opacity(.28)}
+.nl{font-size:9.5px;font-family:var(--sans);color:var(--muted);transition:color .2s;font-weight:500;letter-spacing:.01em}
+.nl.on{color:var(--accent)}
+.npip{width:13px;height:2px;border-radius:1px;background:var(--accent);margin-top:2px}
+.npip.h{visibility:hidden}
+.wm{margin-top:18px;font-family:var(--mono);font-size:9px;color:rgba(56,189,248,.18);letter-spacing:.14em;text-align:center}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch"></div>
+  <div class="vl vl1"></div><div class="vl vl2"></div><div class="vr"></div>
+  <div class="status">
+    <span class="s-t">12:42</span>
+    <div class="s-r">
+      <svg width="15" height="11" viewBox="0 0 15 11"><rect x="0" y="4" width="3" height="7" rx="1" fill="rgba(238,244,255,.55)"/><rect x="4" y="2.5" width="3" height="8.5" rx="1" fill="rgba(238,244,255,.55)"/><rect x="8" y="0" width="3" height="11" rx="1" fill="rgba(238,244,255,.55)"/><rect x="12" y="0" width="3" height="11" rx="1" fill="rgba(238,244,255,.22)"/></svg>
+      <svg width="15" height="11" viewBox="0 0 15 11"><path d="M7.5 2.2C5 2.2 2.8 3.3 1.2 5.1l1.1 1.1C3.5 4.8 5.4 3.9 7.5 3.9c2.1 0 4 .9 5.2 2.3l1.1-1.1C12.2 3.3 10 2.2 7.5 2.2z" fill="rgba(238,244,255,.55)"/><path d="M7.5 5.2c-1.4 0-2.6.6-3.5 1.5l1.1 1.1c.6-.7 1.4-1.1 2.4-1.1s1.8.4 2.4 1.1l1.1-1.1c-.9-.9-2.1-1.5-3.5-1.5z" fill="rgba(238,244,255,.55)"/><circle cx="7.5" cy="9.5" r="1.1" fill="rgba(238,244,255,.85)"/></svg>
+      <svg width="24" height="11" viewBox="0 0 24 11"><rect x="0" y=".8" width="20" height="9.4" rx="2.3" stroke="rgba(238,244,255,.5)" stroke-width="1.2" fill="none"/><rect x="1.4" y="2.2" width="13" height="6.6" rx="1.4" fill="#34d399"/><line x1="21.5" y1="4" x2="21.5" y2="7" stroke="rgba(238,244,255,.38)" stroke-width="1.5" stroke-linecap="round"/><line x1="23" y1="4" x2="23" y2="7" stroke="rgba(238,244,255,.38)" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </div>
+  </div>
+  <div class="scroll">
+    <div id="tab-now" class="panel active">
+      <div class="ab"><div class="ab-dot"></div><div><div class="ab-type">TRADE WIND ADVISORY</div><div class="ab-sub">Until 6:00 PM HST · Oahu Windward</div></div><div class="ab-arr">›</div></div>
+      <div class="inner">
+        <div class="hero">
+          <div class="sky"></div><div class="sun"></div>
+          <div class="cl" style="width:82px;height:19px;top:34px;left:24px;opacity:.45"></div>
+          <div class="cl" style="width:52px;height:14px;top:46px;left:44px;opacity:.28"></div>
+          <div class="hc">
+            <div class="loc-row"><div class="loc-dot"></div><span class="loc-name">Honolulu, Oahu</span><div class="nws-tag">NWS</div><div class="norm-chip">+4° avg</div></div>
+            <div class="summary"><strong>Warm trade wind afternoon.</strong> Best outdoor window is now through 3 PM — afternoon showers build after 4 PM along windward slopes. UV is extreme; reapply sunscreen after noon.</div>
+            <div class="temp-row">
+              <div class="temp-n">82<span class="temp-deg">°</span></div>
+              <div class="temp-meta"><div class="cond">Partly Cloudy</div><div class="hl"><div class="hl-chip">H 86°</div><div class="hl-chip">L 74°</div></div><div class="feels">Feels 88° · Dew pt 68°</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="rain-wrap">
+          <div class="rain-lbl">NEXT 60 MINUTES <span>— Light showers building after 45 min</span></div>
+          <div class="rain-bars" id="rb"></div>
+          <div class="rain-foot"><span class="rf-t">Now</span><span class="rf-t">+15</span><span class="rf-t">+30</span><span class="rf-t">+45</span><span class="rf-t">+60</span></div>
+          <div class="rain-note">⚡ Lightning possible after 5 PM · Stay alert</div>
+        </div>
+        <div class="sec">WIND</div>
+        <div class="wind-card">
+          <div class="compass"><svg width="64" height="64" viewBox="0 0 64 64"><circle cx="32" cy="32" r="30" fill="rgba(10,22,50,.6)" stroke="rgba(56,189,248,.15)" stroke-width="1"/><circle cx="32" cy="32" r="22" fill="none" stroke="rgba(56,189,248,.08)" stroke-width="1"/><text x="32" y="8" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="7" fill="rgba(56,189,248,.6)">N</text><text x="56" y="35" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="7" fill="rgba(91,132,172,.4)">E</text><text x="32" y="60" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="7" fill="rgba(91,132,172,.4)">S</text><text x="8" y="35" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="7" fill="rgba(91,132,172,.4)">W</text><g transform="translate(32,32) rotate(45)"><polygon points="0,-18 4,-6 0,-10 -4,-6" fill="#38bdf8" opacity=".9"/><polygon points="0,18 4,6 0,10 -4,6" fill="rgba(91,132,172,.3)"/></g><circle cx="32" cy="32" r="3" fill="#38bdf8"/></svg></div>
+          <div class="wind-data"><div class="wd-main">14 <span class="wd-unit">mph</span></div><div class="wd-dir">Northeast (NE)</div><div class="wd-gust">Gusts to 22 mph</div><div style="margin-top:5px"><div class="beaufort">Beaufort 4 · Moderate Breeze</div></div></div>
+          <div class="wind-right"><div style="margin-bottom:9px"><div class="wr-v">ENE</div><div class="wr-l">DIRECTION</div></div><div><div class="wr-v">22°</div><div class="wr-l">HEADING</div></div></div>
+        </div>
+        <div class="sec">CONDITIONS</div>
+        <div class="stats-row">
+          <div class="stat-mini"><div class="sm-v">71<span class="sm-u">%</span></div><div class="sm-l">HUMIDITY</div><div class="sm-t" style="color:#f59e0b;font-size:8.5px">Muggy</div></div>
+          <div class="stat-mini"><div class="sm-v">68<span class="sm-u">°</span></div><div class="sm-l">DEW POINT</div><div class="sm-t" style="color:#f59e0b;font-size:8.5px">Uncomfortable</div></div>
+          <div class="stat-mini"><div class="sm-v">8<span class="sm-u">mi</span></div><div class="sm-l">VISIBILITY</div><div class="sm-t" style="color:#34d399;font-size:8.5px">Excellent</div></div>
+          <div class="stat-mini"><div class="sm-v">1015<span class="sm-u" style="font-size:7px">mb</span></div><div class="sm-l">PRESSURE</div><div class="pres-spark" id="prSpark"></div></div>
+        </div>
+        <div class="sec">FOR YOU</div>
+        <div class="hs">
+          <div class="hc2"><div class="hc2-l">UV INDEX</div><div class="hc2-v" style="color:#f59e0b">9</div><div class="hc2-s" style="color:#f59e0b">Very High</div><div class="hc2-bar"><div class="hc2-fill" style="width:78%;background:linear-gradient(90deg,#fcd34d,#f59e0b)"></div></div><div class="hc2-note">Burns ~15 min</div></div>
+          <div class="hc2"><div class="hc2-l">AIR QUALITY</div><div class="hc2-v" style="color:#34d399">42</div><div class="hc2-s" style="color:#34d399">Good AQI</div><div class="hc2-bar"><div class="hc2-fill" style="width:28%;background:#34d399"></div></div><div class="hc2-note">Ideal outdoors</div></div>
+          <div class="hc2"><div class="hc2-l">POLLEN</div><div class="hc2-v" style="color:#a78bfa">Med</div><div class="hc2-s" style="color:#a78bfa">Moderate</div><div class="hc2-bar"><div class="hc2-fill" style="width:52%;background:#a78bfa"></div></div><div class="hc2-note">Grass · Tree mix</div></div>
+        </div>
+        <div class="sec">OCEAN & SURF · NWS MARINE</div>
+        <div class="oc">
+          <div class="oc-h"><span style="font-size:18px">🌊</span><div><div style="font-size:12px;font-weight:600;color:var(--text)">South Shore · HFO Marine</div><div style="font-size:9.5px;color:var(--muted);margin-top:1px">Updated 11:48 AM HST</div></div></div>
+          <div class="oc-grid"><div class="oc-cell"><div class="oc-v">3–4<span style="font-size:11px;color:var(--muted)"> ft</span></div><div class="oc-l">SWELL HT</div></div><div class="oc-cell"><div class="oc-v">14<span style="font-size:11px;color:var(--muted)"> s</span></div><div class="oc-l">PERIOD</div></div><div class="oc-cell"><div class="oc-v">80<span style="font-size:11px;color:var(--muted)">°</span></div><div class="oc-l">WATER TEMP</div></div></div>
+          <div class="tide-row">
+            <div class="tide-item"><div class="tide-t">6:14 AM</div><div class="tide-bar-w"><div class="tide-bar" style="height:100%"></div></div><div class="tide-v">1.8<span style="font-size:8px;color:var(--muted)"> ft</span></div><div class="tide-hl" style="color:var(--ok)">HIGH</div></div><div class="tide-div"></div>
+            <div class="tide-item"><div class="tide-t">12:41 PM</div><div class="tide-bar-w"><div class="tide-bar" style="height:22%"></div></div><div class="tide-v">0.3<span style="font-size:8px;color:var(--muted)"> ft</span></div><div class="tide-hl" style="color:var(--muted)">LOW</div></div><div class="tide-div"></div>
+            <div class="tide-item"><div class="tide-t">6:58 PM</div><div class="tide-bar-w"><div class="tide-bar" style="height:88%"></div></div><div class="tide-v">2.0<span style="font-size:8px;color:var(--muted)"> ft</span></div><div class="tide-hl" style="color:var(--ok)">HIGH</div></div><div class="tide-div"></div>
+            <div class="tide-item"><div class="tide-t">1:02 AM</div><div class="tide-bar-w"><div class="tide-bar" style="height:14%"></div></div><div class="tide-v">0.1<span style="font-size:8px;color:var(--muted)"> ft</span></div><div class="tide-hl" style="color:var(--muted)">LOW</div></div>
+          </div>
+          <div class="rip-strip"><div class="rip-dot"></div><span class="rip-text">RIP CURRENT RISK: Low · Favorable beach conditions today</span></div>
+        </div>
+        <div class="sec">TODAY'S TEMPERATURE</div>
+        <div class="curve-wrap">
+          <div style="padding:11px 13px 0"><svg width="100%" viewBox="0 0 340 76" preserveAspectRatio="none" style="display:block"><defs><linearGradient id="cg1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#38bdf8" stop-opacity=".22"/><stop offset="100%" stop-color="#38bdf8" stop-opacity="0"/></linearGradient><linearGradient id="bg1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#38bdf8" stop-opacity=".07"/><stop offset="100%" stop-color="#38bdf8" stop-opacity=".02"/></linearGradient></defs><path d="M0,52 C40,46 80,40 120,34 C160,28 200,20 240,17 C280,14 320,20 340,26 L340,44 C320,37 280,31 240,32 C200,33 160,40 120,46 C80,52 40,56 0,60 Z" fill="url(#bg1)"/><path d="M0,56 C40,50 80,44 120,38 C160,32 200,24 240,20 C280,16 320,22 340,28" fill="none" stroke="#38bdf8" stroke-width="1.7" stroke-linecap="round"/><path d="M0,56 C40,50 80,44 120,38 C160,32 200,24 240,20 C280,16 320,22 340,28 L340,76 L0,76 Z" fill="url(#cg1)"/><circle cx="150" cy="37" r="3.5" fill="#38bdf8"/><circle cx="150" cy="37" r="7" fill="none" stroke="#38bdf8" stroke-width=".8" opacity=".3"/><line x1="150" y1="0" x2="150" y2="76" stroke="rgba(56,189,248,.12)" stroke-width=".8" stroke-dasharray="3 3"/></svg></div>
+          <div class="curve-hours"><div class="ch"><div class="ch-t">6 AM</div><div class="ch-v">76°</div></div><div class="ch"><div class="ch-t">9 AM</div><div class="ch-v">79°</div></div><div class="ch now"><div class="ch-t">Now</div><div class="ch-v">82°</div></div><div class="ch"><div class="ch-t">3 PM</div><div class="ch-v">86°</div></div><div class="ch"><div class="ch-t">6 PM</div><div class="ch-v">82°</div></div><div class="ch"><div class="ch-t">9 PM</div><div class="ch-v">77°</div></div></div>
+        </div>
+        <div class="conf-note"><div style="font-size:12px;flex-shrink:0;margin-top:1px">〰</div><div class="cn-text"><strong>Confidence: High</strong> for next 6 hrs. Shaded band = alternate model outcomes. Narrows today, widens Thu as a disturbance approaches.</div></div>
+        <div class="sec">HOURLY</div>
+        <div class="hourly">
+          <div class="hr now"><div class="hr-t">Now</div><div class="hr-i">⛅</div><div class="hr-v">82°</div><div class="hr-p" style="color:var(--dim)">10%</div><div class="hr-bar"><div class="hr-fill" style="width:10%"></div></div></div>
+          <div class="hr"><div class="hr-t">1 PM</div><div class="hr-i">🌤️</div><div class="hr-v">84°</div><div class="hr-p" style="color:var(--dim)">5%</div><div class="hr-bar"><div class="hr-fill" style="width:5%"></div></div></div>
+          <div class="hr"><div class="hr-t">2 PM</div><div class="hr-i">☀️</div><div class="hr-v">86°</div><div class="hr-p" style="color:var(--dim)">0%</div><div class="hr-bar"><div class="hr-fill" style="width:0%"></div></div></div>
+          <div class="hr"><div class="hr-t">3 PM</div><div class="hr-i">⛅</div><div class="hr-v">85°</div><div class="hr-p" style="color:var(--dim)">15%</div><div class="hr-bar"><div class="hr-fill" style="width:15%"></div></div></div>
+          <div class="hr"><div class="hr-t">4 PM</div><div class="hr-i">🌦️</div><div class="hr-v">82°</div><div class="hr-p" style="color:var(--accent)">40%</div><div class="hr-bar"><div class="hr-fill" style="width:40%"></div></div></div>
+          <div class="hr"><div class="hr-t">5 PM</div><div class="hr-i">🌧️</div><div class="hr-v">79°</div><div class="hr-p" style="color:var(--accent)">68%</div><div class="hr-bar"><div class="hr-fill" style="width:68%"></div></div></div>
+          <div class="hr"><div class="hr-t">6 PM</div><div class="hr-i">⛅</div><div class="hr-v">78°</div><div class="hr-p" style="color:var(--dim)">28%</div><div class="hr-bar"><div class="hr-fill" style="width:28%"></div></div></div>
+          <div class="hr"><div class="hr-t">7 PM</div><div class="hr-i">🌙</div><div class="hr-v">77°</div><div class="hr-p" style="color:var(--dim)">10%</div><div class="hr-bar"><div class="hr-fill" style="width:10%"></div></div></div>
+        </div>
+        <div style="height:14px"></div>
+      </div>
+    </div>
+    <div id="tab-radar" class="panel">
+      <div class="radar-wrap">
+        <div class="lstrip">
+          <button class="lb on" onclick="setRL('precip',this)"><span class="lb-i">🌧️</span>Precip</button>
+          <button class="lb" onclick="setRL('wind',this)"><span class="lb-i">💨</span>Wind</button>
+          <button class="lb" onclick="setRL('lightning',this)"><span class="lb-i">⚡</span>Lightning</button>
+          <button class="lb" onclick="setRL('sat',this)"><span class="lb-i">🛰️</span>Satellite</button>
+        </div>
+        <div class="radar-area">
+          <div class="rg"></div>
+          <svg class="rsv" viewBox="0 0 374 420" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="rbg" cx="50%" cy="55%" r="60%"><stop offset="0%" stop-color="#061020"/><stop offset="100%" stop-color="#020810"/></radialGradient>
+              <radialGradient id="pr1" cx="66%" cy="34%" r="22%"><stop offset="0%" stop-color="rgba(56,189,248,.52)"/><stop offset="100%" stop-color="rgba(56,189,248,0)"/></radialGradient>
+              <radialGradient id="pr2" cx="72%" cy="26%" r="13%"><stop offset="0%" stop-color="rgba(99,102,241,.68)"/><stop offset="100%" stop-color="rgba(99,102,241,0)"/></radialGradient>
+              <radialGradient id="pr3" cx="60%" cy="42%" r="9%"><stop offset="0%" stop-color="rgba(52,211,153,.48)"/><stop offset="100%" stop-color="rgba(52,211,153,0)"/></radialGradient>
+              <filter id="rf"><feGaussianBlur stdDeviation="5"/></filter>
+              <filter id="rf2"><feGaussianBlur stdDeviation="2.5"/></filter>
+            </defs>
+            <rect width="374" height="420" fill="url(#rbg)"/>
+            <circle cx="187" cy="230" r="60" stroke="rgba(56,189,248,.04)" stroke-width="1" fill="none"/>
+            <circle cx="187" cy="230" r="120" stroke="rgba(56,189,248,.04)" stroke-width="1" fill="none"/>
+            <circle cx="187" cy="230" r="180" stroke="rgba(56,189,248,.03)" stroke-width="1" fill="none"/>
+            <line x1="187" y1="0" x2="187" y2="420" stroke="rgba(56,189,248,.035)" stroke-width="1"/>
+            <line x1="0" y1="230" x2="374" y2="230" stroke="rgba(56,189,248,.035)" stroke-width="1"/>
+            <path d="M62,208 C46,176 54,138 74,112 C94,86 122,66 156,56 C184,48 216,46 246,52 C274,58 300,70 318,90 C336,110 342,136 337,160 C332,182 318,200 300,215 C282,230 260,240 238,248 C216,256 192,259 170,256 C160,254 152,250 147,246 C138,250 128,255 115,258 C98,262 82,258 72,246 C62,234 60,220 62,208 Z" fill="#0c1e0a" stroke="rgba(24,50,22,.65)" stroke-width="1.2" filter="url(#rf2)"/>
+            <g id="rl-precip"><ellipse cx="268" cy="118" rx="72" ry="58" fill="url(#pr1)" filter="url(#rf)"/><ellipse cx="290" cy="98" rx="43" ry="32" fill="url(#pr2)" filter="url(#rf)"/><ellipse cx="255" cy="138" rx="30" ry="26" fill="url(#pr3)" filter="url(#rf)"/><g opacity=".48"><line x1="295" y1="102" x2="224" y2="168" stroke="rgba(245,158,11,.55)" stroke-width="1.2" stroke-dasharray="4 3"/><polygon points="224,168 219,158 232,163" fill="rgba(245,158,11,.55)"/></g><text x="240" y="150" font-family="IBM Plex Mono,monospace" font-size="7" fill="rgba(245,158,11,.68)" letter-spacing=".04em">APPROACHING NE</text></g>
+            <g id="rl-wind" display="none" opacity=".48"><g transform="translate(96,95) rotate(225)"><line x1="0" y1="0" x2="22" y2="0" stroke="#38bdf8" stroke-width="1.5"/><polygon points="22,0 16,-4 16,4" fill="#38bdf8"/></g><g transform="translate(165,76) rotate(225)"><line x1="0" y1="0" x2="22" y2="0" stroke="#38bdf8" stroke-width="1.5"/><polygon points="22,0 16,-4 16,4" fill="#38bdf8"/></g><g transform="translate(238,106) rotate(225)"><line x1="0" y1="0" x2="22" y2="0" stroke="#38bdf8" stroke-width="1.5"/><polygon points="22,0 16,-4 16,4" fill="#38bdf8"/></g><g transform="translate(126,168) rotate(225)"><line x1="0" y1="0" x2="20" y2="0" stroke="#38bdf8" stroke-width="1.5"/><polygon points="20,0 15,-3 15,3" fill="#38bdf8"/></g><g transform="translate(196,196) rotate(225)"><line x1="0" y1="0" x2="18" y2="0" stroke="#38bdf8" stroke-width="1.5"/><polygon points="18,0 13,-3 13,3" fill="#38bdf8"/></g><g transform="translate(78,158) rotate(220)"><line x1="0" y1="0" x2="24" y2="0" stroke="#38bdf8" stroke-width="1.5"/><polygon points="24,0 18,-4 18,4" fill="#38bdf8"/></g><g transform="translate(288,156) rotate(230)"><line x1="0" y1="0" x2="20" y2="0" stroke="#38bdf8" stroke-width="1.5"/><polygon points="20,0 15,-3 15,3" fill="#38bdf8"/></g><text x="14" y="390" font-family="IBM Plex Mono,monospace" font-size="7.5" fill="rgba(91,132,172,.45)">NE TRADES · 14–22 MPH</text></g>
+            <g id="rl-lightning" display="none"><text x="272" y="80" font-size="18" fill="rgba(250,204,21,.8)">⚡</text><text x="300" y="110" font-size="14" fill="rgba(250,204,21,.6)">⚡</text><text x="252" y="120" font-size="12" fill="rgba(250,204,21,.5)">⚡</text><circle cx="282" cy="76" r="16" fill="none" stroke="rgba(250,204,21,.2)" stroke-width="1"/><circle cx="282" cy="76" r="28" fill="none" stroke="rgba(250,204,21,.08)" stroke-width="1"/><text x="14" y="390" font-family="IBM Plex Mono,monospace" font-size="7.5" fill="rgba(91,132,172,.45)">CLOUD-TO-GROUND · LAST 30 MIN</text></g>
+            <g id="rl-sat" display="none"><ellipse cx="258" cy="108" rx="78" ry="63" fill="rgba(220,220,240,.055)" filter="url(#rf)"/><ellipse cx="288" cy="86" rx="48" ry="38" fill="rgba(240,240,255,.09)" filter="url(#rf)"/><text x="14" y="390" font-family="IBM Plex Mono,monospace" font-size="7.5" fill="rgba(91,132,172,.45)">GOES-18 IR · 11:30Z</text></g>
+            <text x="24" y="26" font-family="IBM Plex Mono,monospace" font-size="7.5" fill="rgba(91,132,172,.32)">21.31°N  157.86°W</text>
+            <text x="338" y="26" font-family="IBM Plex Mono,monospace" font-size="7.5" fill="rgba(91,132,172,.32)">N</text>
+            <line x1="342" y1="30" x2="342" y2="40" stroke="rgba(91,132,172,.25)" stroke-width="1"/>
+            <circle cx="172" cy="242" r="5.5" fill="#38bdf8" filter="url(#rf2)" opacity=".45"/><circle cx="172" cy="242" r="4.5" fill="#38bdf8"/><circle cx="172" cy="242" r="9" fill="none" stroke="#38bdf8" stroke-width="1" opacity=".35"/><circle cx="172" cy="242" r="15" fill="none" stroke="#38bdf8" stroke-width=".5" opacity=".18"/>
+            <line x1="16" y1="406" x2="62" y2="406" stroke="rgba(91,132,172,.28)" stroke-width="1"/><line x1="16" y1="402" x2="16" y2="410" stroke="rgba(91,132,172,.28)" stroke-width="1"/><line x1="62" y1="402" x2="62" y2="410" stroke="rgba(91,132,172,.28)" stroke-width="1"/><text x="22" y="416" font-family="IBM Plex Mono,monospace" font-size="7" fill="rgba(91,132,172,.32)">10 mi</text>
+          </svg>
+          <div class="rhud"><div class="rmode"><div class="rm-l">LAYER</div><div class="rm-v" id="rl-val">NEXRAD PRECIP</div></div><div class="rtime"><span class="rt-dot"></span><span style="font-family:var(--mono);font-size:9px;color:var(--ok)">LIVE</span><div style="font-family:var(--mono);font-size:8.5px;color:var(--muted);margin-top:2px">12:42 PM HST</div></div></div>
+          <div class="rleg" id="rleg-precip"><div class="rl-t">PRECIP INTENSITY</div><div class="rl-ramp"><div class="rl-s" style="background:rgba(52,211,153,.28)"></div><div class="rl-s" style="background:rgba(56,189,248,.38)"></div><div class="rl-s" style="background:rgba(56,189,248,.62)"></div><div class="rl-s" style="background:rgba(99,102,241,.68)"></div><div class="rl-s" style="background:rgba(239,68,68,.72)"></div></div><div class="rl-range"><span class="rl-lab">Light</span><span class="rl-lab">Heavy</span></div></div>
+          <div class="rleg" id="rleg-lightning" style="display:none"><div class="rl-t">LIGHTNING STRIKES</div><div style="font-family:var(--mono);font-size:8px;color:rgba(250,204,21,.7);margin-top:3px">⚡ 3 strikes · 8 mi NE</div><div style="font-family:var(--mono);font-size:7.5px;color:var(--dim);margin-top:2px">Most recent: 12:38 PM</div></div>
+          <button class="play-btn" title="Animate">▶</button>
+        </div>
+      </div>
+    </div>
+    <div id="tab-week" class="panel">
+      <div class="inner" style="padding:13px 0">
+        <div class="sec">7-DAY FORECAST · CLIMATE CONTEXT</div>
+        <div class="fc-card">
+          <div class="fc-row today"><div class="fc-day">Today</div><div class="fc-i">⛅</div><div class="fc-c">Partly Cloudy</div><div class="fc-norm above">+4°</div><div class="fc-pct" style="color:var(--dim)">20%</div><div class="fc-bw"><div class="fc-bf" style="width:20%"></div></div><div class="fc-temps"><span class="fc-hi">86°</span><span class="fc-lo">74°</span></div></div>
+          <div class="fc-row"><div class="fc-day">Wed</div><div class="fc-i">🌤️</div><div class="fc-c">Mostly Sunny</div><div class="fc-norm above">+2°</div><div class="fc-pct" style="color:var(--dim)">10%</div><div class="fc-bw"><div class="fc-bf" style="width:10%"></div></div><div class="fc-temps"><span class="fc-hi">84°</span><span class="fc-lo">73°</span></div></div>
+          <div class="fc-row"><div class="fc-day">Thu</div><div class="fc-i">🌦️</div><div class="fc-c">Showers Likely</div><div class="fc-norm" style="background:rgba(255,255,255,.06);color:var(--muted)">avg</div><div class="fc-pct" style="color:var(--accent)">48%</div><div class="fc-bw"><div class="fc-bf" style="width:48%"></div></div><div class="fc-temps"><span class="fc-hi">82°</span><span class="fc-lo">72°</span></div></div>
+          <div class="fc-row"><div class="fc-day">Fri</div><div class="fc-i">🌧️</div><div class="fc-c">Rainy</div><div class="fc-norm below">-1°</div><div class="fc-pct" style="color:var(--accent)">72%</div><div class="fc-bw"><div class="fc-bf" style="width:72%"></div></div><div class="fc-temps"><span class="fc-hi">80°</span><span class="fc-lo">71°</span></div></div>
+          <div class="fc-row"><div class="fc-day">Sat</div><div class="fc-i">⛅</div><div class="fc-c">Partly Cloudy</div><div class="fc-norm" style="background:rgba(255,255,255,.06);color:var(--muted)">avg</div><div class="fc-pct" style="color:var(--dim)">22%</div><div class="fc-bw"><div class="fc-bf" style="width:22%"></div></div><div class="fc-temps"><span class="fc-hi">82°</span><span class="fc-lo">72°</span></div></div>
+          <div class="fc-row"><div class="fc-day">Sun</div><div class="fc-i">☀️</div><div class="fc-c">Sunny</div><div class="fc-norm above">+1°</div><div class="fc-pct" style="color:var(--dim)">5%</div><div class="fc-bw"><div class="fc-bf" style="width:5%"></div></div><div class="fc-temps"><span class="fc-hi">83°</span><span class="fc-lo">73°</span></div></div>
+          <div class="fc-row"><div class="fc-day">Mon</div><div class="fc-i">🌤️</div><div class="fc-c">Mostly Sunny</div><div class="fc-norm above">+2°</div><div class="fc-pct" style="color:var(--dim)">10%</div><div class="fc-bw"><div class="fc-bf" style="width:10%"></div></div><div class="fc-temps"><span class="fc-hi">84°</span><span class="fc-lo">73°</span></div></div>
+        </div>
+        <div class="sec">POLLEN & ALLERGENS</div>
+        <div class="pollen-card">
+          <div class="poll-row"><span class="poll-name">Grass</span><div class="poll-bar-w"><div class="poll-bar" style="width:72%;background:#a78bfa"></div></div><span class="poll-val" style="color:#a78bfa">72</span><span class="poll-lbl" style="color:#a78bfa">High</span></div>
+          <div class="poll-row"><span class="poll-name">Tree</span><div class="poll-bar-w"><div class="poll-bar" style="width:38%;background:#a78bfa;opacity:.7"></div></div><span class="poll-val" style="color:rgba(167,139,250,.7)">38</span><span class="poll-lbl" style="color:rgba(167,139,250,.7)">Mod</span></div>
+          <div class="poll-row"><span class="poll-name">Weed</span><div class="poll-bar-w"><div class="poll-bar" style="width:18%;background:#34d399"></div></div><span class="poll-val" style="color:#34d399">18</span><span class="poll-lbl" style="color:#34d399">Low</span></div>
+          <div class="poll-row"><span class="poll-name">Mold</span><div class="poll-bar-w"><div class="poll-bar" style="width:28%;background:#34d399;opacity:.8"></div></div><span class="poll-val" style="color:rgba(52,211,153,.8)">28</span><span class="poll-lbl" style="color:rgba(52,211,153,.8)">Low</span></div>
+        </div>
+        <div class="sec">SUN & MOON</div>
+        <div class="sun-moon">
+          <div class="sm-card"><div class="sm-ico">🌅</div><div class="sm-v">6:12 AM</div><div class="sm-l">SUNRISE</div><div class="sm-sub">Golden 5:44–6:12</div></div>
+          <div class="sm-card"><div class="sm-ico">🌇</div><div class="sm-v">7:08 PM</div><div class="sm-l">SUNSET</div><div class="sm-sub">Golden 7:08–7:36</div></div>
+          <div class="sm-card"><div class="sm-ico">🌔</div><div class="sm-v">Waxing</div><div class="sm-l">MOON PHASE</div><div class="sm-sub">67% illuminated</div></div>
+          <div class="sm-card"><div class="sm-ico">☀️</div><div class="sm-v">13h 26m</div><div class="sm-l">DAYLIGHT</div><div class="sm-sub">+2 min yesterday</div></div>
+        </div>
+        <div style="height:12px"></div>
+      </div>
+    </div>
+    <div id="tab-afd" class="panel">
+      <div class="afd-scroll">
+        <div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:.12em;margin-bottom:8px;display:flex;align-items:center;gap:7px">FORECASTER DISCUSSION <span style="flex:1;height:1px;background:rgba(255,255,255,.055);display:block"></span></div>
+        <div class="afd-card">
+          <div class="afd-masthead"><div><div class="afd-office">NWS HONOLULU · HFO</div><div class="afd-iss">Issued 12:00 PM HST Tue Apr 21 2026</div></div><div class="afd-badge">OFFICIAL</div></div>
+          <div class="afd-body">
+            <div class="afd-headline">Trade winds hold, but a disturbance is watching from the northeast.</div>
+            <div class="afd-lede">A persistent upper-level ridge is keeping the islands in warm, classic trade wind weather today and Wednesday. The atmosphere is textbook — models agree, confidence is high, and the main story is the expected shower enhancement on windward slopes each afternoon. That changes Thursday, when a mid-level disturbance arrives to complicate things.</div>
+            <div class="afd-section"><div class="afd-sec-l">KEY POINTS</div>
+              <ul class="afd-bullets">
+                <li>Trade winds 15–25 mph sustained, with gusts to 35 mph through the Ko'olau passes. The Wind Advisory for Oahu Windward remains in effect until 6 PM.</li>
+                <li>Afternoon shower activity will focus along windward slopes and the Ko'olau Range from 3–8 PM. Brief, locally heavy bursts possible — not all-day rain.</li>
+                <li>Today's high of 86°F is 4° above the April normal of 82°F. A warm, above-average air mass is in place.</li>
+                <li>Thursday's disturbance is the wildcard. GFS keeps it weak and fast-moving; ECMWF deepens it slightly. The spread in model solutions means Friday could be significantly wetter than advertised — or not.</li>
+              </ul>
+            </div>
+            <div class="afd-section"><div class="afd-sec-l">MODEL DISCUSSION</div>
+              <ul class="afd-bullets">
+                <li>GFS and NAM are in close agreement through Wednesday evening — the ridge is strong, trade flow is locked in.</li>
+                <li>GFS has the Thursday disturbance tracking northwest of Oahu, limiting impact. ECMWF takes a slightly more southern track that would enhance showers significantly. The NBM is threading the needle between the two.</li>
+                <li>Confidence drops significantly beyond Thursday. The 72-hour forecast should be treated as higher uncertainty than typical.</li>
+              </ul>
+            </div>
+            <div class="afd-watch"><div class="afd-watch-l">⚡ WHAT TO WATCH</div><div class="afd-watch-text">Monitor Thursday's 5 AM discussion for updated track and confidence on the disturbance. If ECMWF's solution verifies, expect a Flash Flood Watch to be considered for windward Oahu Friday. Lightning is possible with any heavier showers after 4 PM today.</div></div>
+          </div>
+          <div class="afd-footer"><div class="afd-fc-name">Forecaster: <strong>J. Reyes · NWS Honolulu</strong></div><div class="afd-full-link">FULL TEXT ›</div></div>
+        </div>
+        <div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:.12em;margin-bottom:8px;display:flex;align-items:center;gap:7px">MODEL AGREEMENT — 72 HRS <span style="flex:1;height:1px;background:rgba(255,255,255,.055);display:block"></span></div>
+        <div class="model-card">
+          <div style="font-size:11px;color:rgba(238,244,255,.5);margin-bottom:11px;line-height:1.55">How closely major models agree on the Thursday–Friday forecast. Wider spread = more uncertainty.</div>
+          <div class="model-row"><span class="model-name">GFS</span><div class="model-bar-w"><div class="model-bar" style="width:88%;background:#38bdf8"></div></div><span class="model-agree" style="color:#34d399">Strong</span></div>
+          <div class="model-row"><span class="model-name">NAM</span><div class="model-bar-w"><div class="model-bar" style="width:82%;background:#38bdf8;opacity:.85"></div></div><span class="model-agree" style="color:#34d399">Strong</span></div>
+          <div class="model-row"><span class="model-name">ECMWF</span><div class="model-bar-w"><div class="model-bar" style="width:56%;background:#f59e0b"></div></div><span class="model-agree" style="color:#f59e0b">Diverging</span></div>
+          <div class="model-row"><span class="model-name">NBM</span><div class="model-bar-w"><div class="model-bar" style="width:70%;background:#38bdf8;opacity:.7"></div></div><span class="model-agree" style="color:rgba(56,189,248,.75)">Moderate</span></div>
+          <div class="model-row"><span class="model-name">HRRR</span><div class="model-bar-w"><div class="model-bar" style="width:91%;background:#38bdf8"></div></div><span class="model-agree" style="color:#34d399">Strong</span></div>
+          <div class="model-legend"><div class="ml-item"><div class="ml-dot" style="background:#34d399"></div>Strong agreement</div><div class="ml-item"><div class="ml-dot" style="background:#f59e0b"></div>Diverging</div><div class="ml-item"><div class="ml-dot" style="background:#f87171"></div>Low confidence</div></div>
+        </div>
+        <div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:.12em;margin-bottom:8px;display:flex;align-items:center;gap:7px">MARINE ZONE FORECAST <span style="flex:1;height:1px;background:rgba(255,255,255,.055);display:block"></span></div>
+        <div class="marine-card">
+          <div class="marine-h"><div><div class="marine-zone">Oahu Coastal Waters</div><div class="marine-iss">NWS HFO · Valid through Wed 6 AM HST</div></div><div style="font-size:18px">🚢</div></div>
+          <div class="marine-body"><div class="marine-text">Northeast winds 15 to 20 knots with occasional gusts to 25 knots. Seas 4 to 6 feet. Isolated showers. Small craft should exercise caution. Trades ease slightly overnight.</div><div class="marine-grid"><div class="mg-cell"><div class="mg-v">15–20<span style="font-size:10px;color:var(--muted)"> kt</span></div><div class="mg-l">WIND</div></div><div class="mg-cell"><div class="mg-v">4–6<span style="font-size:10px;color:var(--muted)"> ft</span></div><div class="mg-l">SEAS</div></div><div class="mg-cell"><div class="mg-v">🟡<span style="font-size:10px;color:var(--warn)"> Caution</span></div><div class="mg-l">ADVISORY</div></div></div></div>
+        </div>
+        <div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:.12em;margin-bottom:8px;display:flex;align-items:center;gap:7px">TROPICAL OUTLOOK · CPHC <span style="flex:1;height:1px;background:rgba(255,255,255,.055);display:block"></span></div>
+        <div class="trop-card">
+          <div class="trop-h"><div class="trop-ok-dot"></div><div class="trop-title">No Active Tropical Cyclones</div><div style="margin-left:auto;font-family:var(--mono);font-size:8px;color:var(--dim)">CPHC · UPDATED 8 AM</div></div>
+          <div class="trop-body"><div class="trop-text">The Central Pacific Hurricane Center is monitoring one area of disturbed weather northeast of the Hawaiian Islands. No development is expected over the next 5 days. Season outlook remains near-normal for the Central Pacific basin.</div><div class="trop-5day"><div class="trop-5d-l">5-DAY FORMATION PROBABILITY</div><div class="trop-pct-row"><div class="tpc"><div class="tpc-v">2%</div><div class="tpc-l">2-day</div></div><div class="tpc"><div class="tpc-v" style="color:rgba(52,211,153,.65)">8%</div><div class="tpc-l">5-day</div></div><div class="tpc"><div class="tpc-v" style="color:var(--muted)">Near-</div><div class="tpc-l">Season</div></div></div></div></div>
+        </div>
+        <div style="font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:.12em;margin-bottom:8px;display:flex;align-items:center;gap:7px">AVIATION · TAF <span style="flex:1;height:1px;background:rgba(255,255,255,.055);display:block"></span></div>
+        <div class="avn-card">
+          <div class="avn-h"><div class="avn-lbl">TERMINAL AERODROME FORECAST</div><div class="avn-ap">PHNL · HNL</div></div>
+          <div class="avn-row"><span class="avn-time">12–18Z</span><span class="avn-cond">VFR · FEW030 SCT060 · NE @ 15kt</span><span class="avn-vis" style="color:var(--ok)">P6SM</span></div>
+          <div class="avn-row"><span class="avn-time">18–21Z</span><span class="avn-cond">MVFR possible · Sct showers near Ko'olau</span><span class="avn-vis" style="color:var(--warn)">3SM</span></div>
+          <div class="avn-row"><span class="avn-time">21–06Z</span><span class="avn-cond">VFR return · BKN070 · Winds backing E</span><span class="avn-vis" style="color:var(--ok)">P6SM</span></div>
+          <div style="margin-top:9px;padding-top:9px;border-top:1px solid rgba(255,255,255,.055);font-size:10px;color:rgba(238,244,255,.38);font-family:var(--mono)">VFR = Visual Flight Rules &nbsp;·&nbsp; MVFR = Marginal VFR</div>
+        </div>
+        <div style="height:10px"></div>
+      </div>
+    </div>
+  </div>
+  <div class="bnav">
+    <button class="nb" onclick="setTab('now')"><div class="ni" id="ni-now">🌤️</div><div class="nl on" id="nl-now">Now</div><div class="npip" id="np-now"></div></button>
+    <button class="nb" onclick="setTab('radar')"><div class="ni dim" id="ni-radar">📡</div><div class="nl" id="nl-radar">Radar</div><div class="npip h" id="np-radar"></div></button>
+    <button class="nb" onclick="setTab('week')"><div class="ni dim" id="ni-week">📅</div><div class="nl" id="nl-week">Week</div><div class="npip h" id="np-week"></div></button>
+    <button class="nb" onclick="setTab('afd')"><div class="ni dim" id="ni-afd">🔬</div><div class="nl" id="nl-afd">Forecast</div><div class="npip h" id="np-afd"></div></button>
+  </div>
+</div>
+<div class="wm">weather.gov · NWS HONOLULU HFO · v3 PROTOTYPE</div>
+<script>
+(function(){const d=[0,0,0,0,0,.02,.04,.06,.08,.1,.12,.15,.18,.2,.22,.24,.26,.28,.3,.32,.35,.38,.42,.46,.5,.55,.6,.63,.67,.72,.75,.78,.8,.82,.85,.87,.9,.87,.84,.8,.75,.68,.62,.55,.48,.4,.32,.25,.18,.12,.08,.05,.03,.02,.01,0,0,0,0,0];const c=document.getElementById('rb');d.forEach(v=>{const b=document.createElement('div');b.className='rbar'+(v>.6?' v':v>.4?' h':v>.18?' m':'');b.style.height=Math.max(2,Math.round(v*100))+'%';c.appendChild(b)})})();
+(function(){const pts=[72,70,68,66,65,66,68,70,71,72,72,71,70];const c=document.getElementById('prSpark');const mn=Math.min(...pts),mx=Math.max(...pts),range=mx-mn||1;pts.forEach(v=>{const b=document.createElement('div');b.className='ps-bar';b.style.height=Math.round(((v-mn)/range)*12+3)+'px';c.appendChild(b)})})();
+const TABS=['now','radar','week','afd'];
+function setTab(id){TABS.forEach(t=>{document.getElementById('tab-'+t).classList.remove('active');document.getElementById('ni-'+t).classList.add('dim');document.getElementById('nl-'+t).classList.remove('on');document.getElementById('np-'+t).classList.add('h')});document.getElementById('tab-'+id).classList.add('active');document.getElementById('ni-'+id).classList.remove('dim');document.getElementById('nl-'+id).classList.add('on');document.getElementById('np-'+id).classList.remove('h')}
+const RL={precip:'NEXRAD PRECIP',wind:'WIND FLOW',lightning:'LIGHTNING STRIKES',sat:'SATELLITE IR'};
+function setRL(layer,btn){document.querySelectorAll('.lb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');['precip','wind','lightning','sat'].forEach(l=>{const el=document.getElementById('rl-'+l);if(el)el.setAttribute('display','none');const leg=document.getElementById('rleg-'+l);if(leg)leg.style.display='none'});const el=document.getElementById('rl-'+layer);if(el)el.setAttribute('display','inline');const leg=document.getElementById('rleg-'+layer);if(leg)leg.style.display='block';document.getElementById('rl-val').textContent=RL[layer]||layer.toUpperCase()}
+</script>
+</body>
+</html>

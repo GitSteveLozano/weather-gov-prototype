@@ -1,0 +1,44 @@
+.tab-bar {
+  background: rgba(5, 11, 28, 0.96);
+  border-top: 1px solid rgba(255, 255, 255, 0.055);
+  display: flex;
+  padding: 9px 0 max(24px, env(safe-area-inset-bottom));
+  flex-shrink: 0;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.tab-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tab-ico { font-size: 17px; transition: filter 0.2s; }
+.tab-ico.dim { filter: grayscale(1) opacity(0.28); }
+
+.tab-lbl {
+  font-size: 9.5px;
+  font-family: var(--sans);
+  color: var(--muted);
+  transition: color 0.2s;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+.tab-lbl.on { color: var(--accent); }
+
+.tab-pip {
+  width: 13px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--accent);
+  margin-top: 2px;
+}
+.tab-pip.hidden { visibility: hidden; }
