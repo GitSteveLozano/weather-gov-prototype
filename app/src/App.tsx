@@ -3,6 +3,7 @@ import { useWeather } from './hooks/useWeather';
 import { usePreferences } from './hooks/usePreferences';
 import { Onboarding } from './components/onboarding/Onboarding';
 import { NowTab } from './components/now/NowTab';
+import { RadarTab } from './components/radar/RadarTab';
 import { TabBar } from './components/common/TabBar';
 import './index.css';
 
@@ -29,11 +30,7 @@ export default function App() {
     <div className="app-shell">
       <div className="app-content">
         {activeTab === 'now' && <NowTab data={data} prefs={prefs} />}
-        {activeTab === 'radar' && (
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)' }}>
-            Radar tab — coming next
-          </div>
-        )}
+        {activeTab === 'radar' && <RadarTab data={data} />}
         {activeTab === 'week' && (
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)' }}>
             Week tab — coming next
