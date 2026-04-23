@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Skybureau — Weather, redesigned</title>
+<style>
+  html, body { margin: 0; padding: 0; background: #f0eee9; overflow: hidden; }
+  body { font-family: 'Inter Tight', -apple-system, system-ui, sans-serif; }
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" src="shared.jsx"></script>
+<script type="text/babel" src="ios-frame.jsx"></script>
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="homes.jsx"></script>
+<script type="text/babel" src="alerts.jsx"></script>
+<script type="text/babel" src="extras.jsx"></script>
+<script type="text/babel" src="agentic.jsx"></script>
+
+<script type="text/babel">
+/* global DesignCanvas, DCSection, DCArtboard, IOSDevice, HomeCivic, HomeAtmos, HomeCarto, HomeData,
+   SBAlertBanner, SBEmergencyTakeover, SBAlertsScreen, DepthGlance, DepthScan, DepthDive,
+   OnboardingWelcome, OnboardingPermission, OnboardingDepth, LocationSearch, SettingsScreen,
+   MarineScreen, AviationScreen, FireScreen, SB_TOKENS,
+   BriefHome, AskScreen, MinuteCast, LockScreen, WidgetsScreen, SavedLocations, WatchFace,
+   ConfidenceForecast, HealthScreen, HurricaneScreen, LightningScreen, SnowScreen, MoonTideScreen */
+
+// iPhone-like device mini-frame (402x874 scaled via the artboard wrapper)
+function Phone({ children, dark = false }) {
+  return <IOSDevice width={402} height={874} dark={dark}>{children}</IOSDevice>;
+}
+
+function App() {
+  const AB_W = 402, AB_H = 874;
+  const banner = <SBAlertBanner level="advisory" title="Dense Fog Advisory" until="until 9 AM" />;
+
+  return (
+    <DesignCanvas>
+
+      <DCSection id="intro" title="Skybureau · weather, redesigned"
+        subtitle="A modern public-service forecast. One app, three depths — Glance, Scan, Dive. Original brand; not affiliated with NOAA/NWS.">
+      </DCSection>
+
+      <DCSection id="homes" title="Home screen · four directions"
+        subtitle="Same data, same IA — four visual languages. All share type (Inter Tight + JetBrains Mono), severity scale, and information hierarchy.">
+        <DCArtboard id="civic" label="A · Civic Modern" width={AB_W} height={AB_H}>
+          <Phone><HomeCivic banner={banner} /></Phone>
+        </DCArtboard>
+        <DCArtboard id="atmos" label="B · Atmospheric · clear day" width={AB_W} height={AB_H}>
+          <Phone><HomeAtmos condition="clear-day" /></Phone>
+        </DCArtboard>
+        <DCArtboard id="atmos-night" label="B · Atmospheric · night" width={AB_W} height={AB_H}>
+          <Phone dark><HomeAtmos condition="clear-night" /></Phone>
+        </DCArtboard>
+        <DCArtboard id="atmos-rain" label="B · Atmospheric · rain" width={AB_W} height={AB_H}>
+          <Phone dark><HomeAtmos condition="rain" /></Phone>
+        </DCArtboard>
+        <DCArtboard id="carto" label="C · Cartographic" width={AB_W} height={AB_H}>
+          <Phone><HomeCarto banner={banner} /></Phone>
+        </DCArtboard>
+        <DCArtboard id="data" label="D · Data-forward" width={AB_W} height={AB_H}>
+          <Phone><HomeData /></Phone>
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="depth" title="Depth system · Glance → Scan → Dive"
+        subtitle="One tap reveals more. The same forecast, three densities — a UX bargain for casual users and weather nerds alike.">
+        <DCArtboard id="glance" label="1 · Glance" width={AB_W} height={AB_H}>
+          <Phone><DepthGlance /></Phone>
+        </DCArtboard>
+        <DCArtboard id="scan" label="2 · Scan" width={AB_W} height={AB_H}>
+          <Phone><DepthScan /></Phone>
+        </DCArtboard>
+        <DCArtboard id="dive" label="3 · Dive · Wind detail" width={AB_W} height={AB_H}>
+          <Phone><DepthDive /></Phone>
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="alerts" title="Alert system · severity throughout"
+        subtitle="Color-coded scale: Statement → Advisory → Watch → Warning → Emergency. Subtle banners for lower severity; full-screen takeover for life-safety.">
+        <DCArtboard id="banner-stmt" label="Statement · banner" width={AB_W} height={AB_H}>
+          <Phone><HomeCivic banner={<SBAlertBanner level="statement" title="Special Weather Statement" until="strong winds along ridgetops" />} /></Phone>
+        </DCArtboard>
+        <DCArtboard id="banner-adv" label="Advisory · banner" width={AB_W} height={AB_H}>
+          <Phone><HomeCivic banner={<SBAlertBanner level="advisory" title="Dense Fog Advisory" until="until 9 AM" />} /></Phone>
+        </DCArtboard>
+        <DCArtboard id="banner-watch" label="Watch · banner" width={AB_W} height={AB_H}>
+          <Phone><HomeCivic banner={<SBAlertBanner level="watch" title="Flash Flood Watch" until="until 8 PM tonight" />} /></Phone>
+        </DCArtboard>
+        <DCArtboard id="banner-warn" label="Warning · banner" width={AB_W} height={AB_H}>
+          <Phone><HomeCivic banner={<SBAlertBanner level="warning" title="Severe Thunderstorm Warning" until="until 2:30 PM" />} /></Phone>
+        </DCArtboard>
+        <DCArtboard id="emergency" label="Emergency · full-screen takeover" width={AB_W} height={AB_H}>
+          <Phone dark><SBEmergencyTakeover /></Phone>
+        </DCArtboard>
+        <DCArtboard id="alerts-list" label="All active alerts" width={AB_W} height={AB_H}>
+          <Phone><SBAlertsScreen /></Phone>
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="onboarding" title="Onboarding · trust first"
+        subtitle="Three steps. Set expectations about privacy, ask for just location, then let the user pick their default depth.">
+        <DCArtboard id="ob-1" label="1 · Welcome" width={AB_W} height={AB_H}>
+          <Phone><OnboardingWelcome /></Phone>
+        </DCArtboard>
+        <DCArtboard id="ob-2" label="2 · Location permission" width={AB_W} height={AB_H}>
+          <Phone><OnboardingPermission /></Phone>
+        </DCArtboard>
+        <DCArtboard id="ob-3" label="3 · Pick your depth" width={AB_W} height={AB_H}>
+          <Phone><OnboardingDepth /></Phone>
+        </DCArtboard>
+        <DCArtboard id="search" label="Location search" width={AB_W} height={AB_H}>
+          <Phone><LocationSearch /></Phone>
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="settings" title="Personalization · every aspect"
+        subtitle="Deep controls. Depth, units, alert categories, accessibility, specialty products. Nothing forced — everything tunable.">
+        <DCArtboard id="settings-main" label="Settings" width={AB_W} height={AB_H}>
+          <Phone><SettingsScreen /></Phone>
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="ai" title="Agentic · AI that earns its keep"
+        subtitle="Three careful moves: a personalized morning brief, conversational Ask, and minute-cast with confidence bands. Shown sources, no slop.">
+        <DCArtboard id="brief" label="Skybureau Brief · morning digest" width={AB_W} height={AB_H}>
+          <Phone><BriefHome /></Phone>
+        </DCArtboard>
+        <DCArtboard id="ask" label="Ask Skybureau · conversational" width={AB_W} height={AB_H}>
+          <Phone><AskScreen /></Phone>
+        </DCArtboard>
+        <DCArtboard id="minute" label="Minute-cast · confidence bands" width={AB_W} height={AB_H}>
+          <Phone><MinuteCast /></Phone>
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="tier-gaps" title="Tier gap-fill · notifications, widgets, places & more"
+        subtitle="Push notifications (incl. life-safety takeover on lock screen), iOS widgets, saved locations, watch face, confidence-band hourly.">
+        <DCArtboard id="lock" label="Lock screen · notifications" width={AB_W} height={AB_H}>
+          <Phone dark><LockScreen /></Phone>
+        </DCArtboard>
+        <DCArtboard id="widgets" label="Home-screen widgets" width={AB_W} height={AB_H}>
+          <Phone><WidgetsScreen /></Phone>
+        </DCArtboard>
+        <DCArtboard id="places" label="Saved places" width={AB_W} height={AB_H}>
+          <Phone><SavedLocations /></Phone>
+        </DCArtboard>
+        <DCArtboard id="watch" label="Watch face · complications" width={AB_W} height={AB_H}>
+          <WatchFace />
+        </DCArtboard>
+        <DCArtboard id="confidence" label="Hourly · confidence bands" width={AB_W} height={AB_H}>
+          <Phone><ConfidenceForecast /></Phone>
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="health-events" title="Health & big-event weather"
+        subtitle="Pollen/AQI/UV as a unified health card. Hurricane cone-of-uncertainty. Lightning strike map. Snow probabilities. Moon phase & tides.">
+        <DCArtboard id="health" label="Health · pollen, AQI, UV" width={AB_W} height={AB_H}>
+          <Phone><HealthScreen /></Phone>
+        </DCArtboard>
+        <DCArtboard id="hurricane" label="Hurricane · cone of uncertainty" width={AB_W} height={AB_H}>
+          <Phone><HurricaneScreen /></Phone>
+        </DCArtboard>
+        <DCArtboard id="lightning" label="Lightning · live strikes" width={AB_W} height={AB_H}>
+          <Phone dark><LightningScreen /></Phone>
+        </DCArtboard>
+        <DCArtboard id="snow" label="Snow accumulation probabilities" width={AB_W} height={AB_H}>
+          <Phone><SnowScreen /></Phone>
+        </DCArtboard>
+        <DCArtboard id="moon" label="Moon, sun & tides" width={AB_W} height={AB_H}>
+          <Phone><MoonTideScreen /></Phone>
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="specialty" title="Specialty products · for the pros"
+        subtitle="Marine, aviation, fire weather — same design language, discipline-specific readouts. Opt-in per user from settings.">
+        <DCArtboard id="marine" label="Marine · Chesapeake" width={AB_W} height={AB_H}>
+          <Phone><MarineScreen /></Phone>
+        </DCArtboard>
+        <DCArtboard id="aviation" label="Aviation · KDCA" width={AB_W} height={AB_H}>
+          <Phone><AviationScreen /></Phone>
+        </DCArtboard>
+        <DCArtboard id="fire" label="Fire weather" width={AB_W} height={AB_H}>
+          <Phone><FireScreen /></Phone>
+        </DCArtboard>
+      </DCSection>
+
+    </DesignCanvas>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

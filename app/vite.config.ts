@@ -9,14 +9,14 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       manifest: {
-        name: 'NWS Honolulu — Weather',
-        short_name: 'NWS Honolulu',
-        description: 'Live weather, alerts, and preparedness for Oahu — powered by NWS official data',
+        name: 'Skybureau — Weather, redesigned',
+        short_name: 'Skybureau',
+        description: 'A modern public-service forecast. Official NWS data, designed for how you live.',
         start_url: '/weather-gov-prototype/',
         display: 'standalone',
         orientation: 'portrait',
-        background_color: '#03091a',
-        theme_color: '#060e24',
+        background_color: '#f6f2ea',
+        theme_color: '#f6f2ea',
         icons: [
           { src: '/icon-192.svg', sizes: '192x192', type: 'image/svg+xml' },
           { src: '/icon-512.svg', sizes: '512x512', type: 'image/svg+xml' },
