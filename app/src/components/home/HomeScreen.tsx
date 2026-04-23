@@ -78,6 +78,9 @@ export function HomeScreen({ data }: Props) {
         );
       })}
 
+      {/* ── Safety Tips (contextual, when alert active) ── */}
+      <SafetyTips alerts={alerts} />
+
       {/* ── GLANCE ── */}
       <div className="home-glance">
         <div className="home-loc-masthead">
@@ -162,6 +165,9 @@ export function HomeScreen({ data }: Props) {
         <MiniCard title="VISIBILITY" value={env.visibMi ?? '—'} unit="mi" note={(env.visibMi ?? 0) >= 6 ? 'Clear' : 'Reduced'} />
       </div>
 
+      {/* ── DIVE: Today in Context ── */}
+      <TodayInContext temp={typeof temp === 'number' ? temp : null} />
+
       {/* ── DIVE: Forecast Discussion ── */}
       {data.hazards.forecasterDiscussion && (
         <>
@@ -214,10 +220,26 @@ export function HomeScreen({ data }: Props) {
         </>
       )}
 
-      {/* Footer */}
-      <div className="home-footer sb-mono">
-        <span>Issued {timeStr}</span>
-        <span>{point?.office || 'HFO'}</span>
+      {/* ── DIVE: Hazard Status Grid ── */}
+      <div className="home-section-label sb-mono">
+        <span>Hazard status</span>
+        <div className="home-section-rule" />
+      </div>
+      <div className="home-hazard-grid">
+        <HazardCard label="EARTHQUAKE" hazard={data.hazards.earthquake} />
+        <HazardCard label="SURF" hazard={data.hazards.surf} />
+        <HazardCard label="TROPICAL" hazard={data.hazards.tropical} />
+        <HazardCard label="TSUNAMI" hazard={data.hazards.tsunami} />
+        <HazardCard label="FIRE" hazard={data.hazards.fire} />
+        <HazardCard label="VOG" hazard={data.hazards.vog} />
+      </div>
+
+      {/* Data Provenance Footer */}
+      <div className="home-footer-provenance">
+        <div className="home-footer-provenance-line">
+          ◇ NWS {point?.office || 'HFO'} · {point?.city || 'Honolulu'} station<br />
+          Issued {timeStr}
+        </div>
       </div>
     </div>
   );
@@ -232,6 +254,155 @@ function MiniCard({ title, value, unit, note }: { title: string; value: string |
         {unit && <span className="home-mini-unit sb-mono">{unit}</span>}
       </div>
       <div className="home-mini-note">{note}</div>
+    </div>
+  );
+}
+
+function TodayInContext({ temp }: { temp: number | null }) {
+  const APRIL_NORMAL = 82;
+  if (temp == null) return null;
+  const diff = temp - APRIL_NORMAL;
+  const diffLabel = diff > 0 ? `+${diff}° above normal` : diff < 0 ? `${diff}° below normal` : 'At normal';
+  const diffClass = diff > 0 ? 'home-context-diff--above' : diff < 0 ? 'home-context-diff--below' : 'home-context-diff--normal';
+
+  return (
+    <>
+      <div className="home-section-label sb-mono">
+        <span>Today in context</span>
+        <div className="home-section-rule" />
+      </div>
+      <div className="home-context-card">
+        <div className="home-context-label">Today&apos;s forecast vs. normal</div>
+        <div className="home-context-row">
+          <div className="home-context-temp">{temp}°</div>
+          <div className={`home-context-diff ${diffClass}`}>{diffLabel}</div>
+        </div>
+        <div className="home-context-normal">30-year April normal: {APRIL_NORMAL}° · Honolulu</div>
+      </div>
+    </>
+  );
+}
+
+const SAFETY_TIPS: Record<string, { title: string; tips: string[] }> = {
+  'Wind Advisory': {
+    title: 'Wind safety',
+    tips: [
+      'Secure loose outdoor objects — patio furniture, trash bins, signs',
+      'Stay away from trees and power lines; falling branches are a top injury risk',
+      'Use caution driving high-profile vehicles and on bridges',
+    ],
+  },
+  'High Wind Warning': {
+    title: 'High wind safety',
+    tips: [
+      'Avoid being outdoors — seek shelter in a sturdy building',
+      'Stay away from windows; flying debris can shatter glass',
+      'If driving, pull over and wait for gusts to pass; do not park under trees',
+    ],
+  },
+  'Flood Watch': {
+    title: 'Flood preparedness',
+    tips: [
+      'Move valuables and important documents to higher ground',
+      'Avoid walking or driving through flood waters — 6 inches can knock you down',
+      'Identify your evacuation route before conditions worsen',
+    ],
+  },
+  'Flash Flood Warning': {
+    title: 'Flash flood safety',
+    tips: [
+      'Move to higher ground immediately — do not wait for instructions',
+      'Never drive through flooded roadways — turn around, don\'t drown',
+      'Stay off bridges over fast-moving water',
+    ],
+  },
+  'High Surf Advisory': {
+    title: 'Surf safety',
+    tips: [
+      'Stay off rocks, jetties, and seawalls — waves can sweep you in without warning',
+      'Swim only at lifeguarded beaches; obey all posted signs',
+      'Keep a safe distance from the shoreline; rip currents are likely',
+    ],
+  },
+  'Heat Advisory': {
+    title: 'Heat safety',
+    tips: [
+      'Stay hydrated — drink water before you feel thirsty',
+      'Limit outdoor activity to early morning or evening hours',
+      'Never leave children or pets in a parked vehicle',
+    ],
+  },
+  'Thunderstorm': {
+    title: 'Thunderstorm safety',
+    tips: [
+      'Move indoors when you hear thunder — if you can hear it, you can be struck',
+      'Avoid open fields, hilltops, and isolated trees',
+      'Wait 30 minutes after the last thunder before going back outside',
+    ],
+  },
+};
+
+function matchSafetyTips(eventName: string): { title: string; tips: string[] } | null {
+  if (SAFETY_TIPS[eventName]) return SAFETY_TIPS[eventName];
+  const lower = eventName.toLowerCase();
+  if (lower.includes('wind')) return SAFETY_TIPS['Wind Advisory'];
+  if (lower.includes('flood')) return SAFETY_TIPS['Flood Watch'];
+  if (lower.includes('surf') || lower.includes('rip current')) return SAFETY_TIPS['High Surf Advisory'];
+  if (lower.includes('heat') || lower.includes('excessive')) return SAFETY_TIPS['Heat Advisory'];
+  if (lower.includes('thunderstorm') || lower.includes('severe')) return SAFETY_TIPS['Thunderstorm'];
+  return null;
+}
+
+function SafetyTips({ alerts }: { alerts: import('../../types/weather').Alert[] }) {
+  if (alerts.length === 0) return null;
+  const firstEvent = alerts[0].properties.event;
+  const tips = matchSafetyTips(firstEvent);
+  if (!tips) return null;
+
+  return (
+    <div className="home-safety-card">
+      <div className="home-safety-label">{tips.title}</div>
+      <div className="home-safety-title">{firstEvent} — what to do</div>
+      <div className="home-safety-list">
+        {tips.tips.map((tip, i) => (
+          <div key={i} className="home-safety-item">
+            <div className="home-safety-num">{i + 1}</div>
+            <div className="home-safety-text">{tip}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function hazardStatusColor(status: string): string {
+  switch (status) {
+    case 'warning': return 'var(--sev-warning)';
+    case 'watch': return 'var(--sev-watch)';
+    case 'advisory': return 'var(--sev-advisory)';
+    default: return 'var(--blue)';
+  }
+}
+
+function hazardStatusLabel(status: string): string {
+  switch (status) {
+    case 'warning': return 'WARNING';
+    case 'watch': return 'WATCH';
+    case 'advisory': return 'ADVISORY';
+    default: return 'OK';
+  }
+}
+
+function HazardCard({ label, hazard }: { label: string; hazard: import('../../types/weather').HazardStatus | null }) {
+  const status = hazard?.status ?? 'ok';
+  const detail = hazard?.detail ?? '—';
+  const color = hazardStatusColor(status);
+
+  return (
+    <div className="home-hazard-card">
+      <div className="home-hazard-label">{label}</div>
+      <div className="home-hazard-status" style={{ color }}>{hazardStatusLabel(status)}</div>
+      <div className="home-hazard-detail">{detail}</div>
     </div>
   );
 }
