@@ -1,23 +1,68 @@
+/* Skybureau Design Tokens — light default, dark mode support */
+
 :root {
-  --bg: #03091a;
-  --s1: #060e24;
-  --s2: #0a1530;
-  --card: rgba(255, 255, 255, 0.052);
-  --cb: rgba(255, 255, 255, 0.085);
-  --cb2: rgba(255, 255, 255, 0.13);
-  --text: #eef4ff;
-  --muted: #6a8ab2;
-  --dim: #253d62;
-  --dimmer: #162236;
-  --accent: #38bdf8;
-  --ad: rgba(56, 189, 248, 0.12);
-  --ad2: rgba(56, 189, 248, 0.06);
-  --warn: #f59e0b;
-  --wd: rgba(245, 158, 11, 0.1);
-  --ok: #34d399;
-  --danger: #f87171;
-  --purple: #a78bfa;
-  --serif: 'DM Serif Display', serif;
-  --mono: 'IBM Plex Mono', monospace;
-  --sans: 'Manrope', sans-serif;
+  /* warm paper neutrals */
+  --bg: #f6f2ea;
+  --bg-soft: #efe9dd;
+  --ink: #1a1613;
+  --ink-soft: #4a4239;
+  --ink-mute: #807567;
+  --line: rgba(26, 22, 19, 0.08);
+  --line-strong: rgba(26, 22, 19, 0.16);
+
+  /* civic blue accent */
+  --blue: #1d4ed8;
+  --blue-soft: #e6ecf8;
+
+  /* severity scale */
+  --sev-statement: #9a9388;
+  --sev-advisory: #d4a017;
+  --sev-watch: #e8701e;
+  --sev-warning: #d63a2f;
+  --sev-emergency: #a81e5b;
+
+  /* severity backgrounds */
+  --sev-statement-bg: #e8e5de;
+  --sev-advisory-bg: #fbf0cc;
+  --sev-watch-bg: #fdd9b8;
+  --sev-warning-bg: #f7c4bf;
+  --sev-emergency-bg: #efc1d4;
+
+  /* sky condition accents */
+  --sky-sunny: #e8bb3f;
+  --sky-clear: #4a7eb3;
+  --sky-cloudy: #8a99a8;
+  --sky-rain: #4a6b8a;
+  --sky-storm: #5a4e7a;
+  --sky-snow: #c8d4e0;
+  --sky-fog: #a8a89f;
+
+  /* typography */
+  --font: 'Inter Tight', -apple-system, system-ui, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d0f14;
+    --bg-soft: #141820;
+    --ink: #f2ede3;
+    --ink-soft: #c8c0b5;
+    --ink-mute: #8a8275;
+    --line: rgba(242, 237, 227, 0.08);
+    --line-strong: rgba(242, 237, 227, 0.16);
+    --blue-soft: rgba(29, 78, 216, 0.2);
+  }
+}
+
+[data-theme="dark"] {
+  --bg: #0d0f14;
+  --bg-soft: #141820;
+  --ink: #f2ede3;
+  --ink-soft: #c8c0b5;
+  --ink-mute: #8a8275;
+  --line: rgba(242, 237, 227, 0.08);
+  --line-strong: rgba(242, 237, 227, 0.16);
+  --blue-soft: rgba(29, 78, 216, 0.2);
 }

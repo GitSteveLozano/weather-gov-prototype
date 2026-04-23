@@ -1,0 +1,184 @@
+.home {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--bg);
+  padding-bottom: 40px;
+  font-family: var(--font);
+  color: var(--ink);
+}
+
+.home-loading {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 12px; color: var(--ink-mute);
+  font-family: var(--mono); font-size: 12px;
+}
+.home-spinner {
+  width: 20px; height: 20px; border: 2px solid var(--line-strong);
+  border-top-color: var(--blue); border-radius: 50%;
+  animation: sb-spin 0.8s linear infinite;
+}
+
+/* Header */
+.home-header {
+  padding: 16px 22px 12px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.home-header-time {
+  font-size: 11px; color: var(--ink-mute);
+  font-family: var(--mono); letter-spacing: 0.4px;
+}
+
+/* Alert banner */
+.home-alert-banner {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 22px; border-bottom: 1px solid var(--line);
+  cursor: pointer; transition: background 0.15s;
+}
+.home-alert-banner:hover { filter: brightness(0.97); }
+.home-alert-bar-left {
+  width: 3px; height: 28px; border-radius: 2px; flex-shrink: 0;
+}
+.home-alert-statement .home-alert-bar-left { background: var(--sev-statement); }
+.home-alert-advisory .home-alert-bar-left { background: var(--sev-advisory); }
+.home-alert-watch .home-alert-bar-left { background: var(--sev-watch); }
+.home-alert-warning .home-alert-bar-left { background: var(--sev-warning); }
+.home-alert-emergency .home-alert-bar-left { background: var(--sev-emergency); }
+.home-alert-content { flex: 1; }
+.home-alert-title { font-size: 13px; font-weight: 600; }
+.home-alert-sub { font-size: 11px; color: var(--ink-mute); margin-top: 1px; }
+.home-alert-chevron { color: var(--ink-mute); font-size: 18px; }
+
+/* Glance */
+.home-glance { padding: 0 22px; }
+.home-loc-masthead {
+  padding: 18px 0 6px;
+  border-bottom: 1px solid var(--line);
+}
+.home-loc-label {
+  font-size: 11px; letter-spacing: 1.8px; text-transform: uppercase;
+  color: var(--ink-mute); font-weight: 600;
+}
+.home-loc-name {
+  font-size: 26px; font-weight: 700; letter-spacing: -0.8px;
+  margin-top: 4px; line-height: 1.05;
+}
+.home-loc-state { color: var(--ink-mute); font-weight: 400; }
+
+.home-hero {
+  padding: 24px 0 18px;
+  display: flex; align-items: flex-start; gap: 14px;
+}
+.home-hero-left { flex: 1; }
+.home-temp {
+  font-size: 132px; font-weight: 300; letter-spacing: -6px;
+  line-height: 0.85; font-family: var(--font);
+}
+.home-temp-deg {
+  font-size: 48px; font-weight: 300; letter-spacing: -2px;
+  vertical-align: top; margin-top: 10px; display: inline-block;
+}
+.home-condition { font-size: 18px; margin-top: 8px; font-weight: 500; }
+.home-meta { font-size: 13px; color: var(--ink-mute); margin-top: 2px; }
+
+.home-summary {
+  font-size: 15.5px; line-height: 1.45; color: var(--ink-soft);
+  font-weight: 400; padding-top: 18px; border-top: 1px solid var(--line);
+  padding-bottom: 22px;
+}
+
+/* Section labels */
+.home-section-label {
+  padding: 0 22px 10px;
+  display: flex; gap: 6px; align-items: center;
+  font-size: 11px; letter-spacing: 1px; text-transform: uppercase;
+  color: var(--ink-mute); font-weight: 600;
+}
+.home-section-rule { flex: 1; height: 1px; background: var(--line); }
+
+/* Hourly strip */
+.home-hourly-scroll { padding: 0 22px 24px; overflow-x: auto; }
+.home-hourly-inner { display: flex; gap: 18px; min-width: max-content; }
+.home-hourly-cell { text-align: center; min-width: 36px; }
+.home-hourly-time { font-size: 11px; color: var(--ink-mute); margin-bottom: 10px; }
+.home-hourly-temp { font-size: 15px; font-weight: 500; margin-top: 10px; }
+.home-hourly-pop { font-size: 10px; color: var(--sky-rain); margin-top: 2px; }
+
+/* 7-day */
+.home-daily { padding: 0 22px; }
+.home-daily-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 0; border-bottom: 1px solid var(--line);
+}
+.home-daily-row:last-child { border-bottom: none; }
+.home-daily-day { width: 44px; font-size: 14px; font-weight: 500; }
+.home-daily-pop { width: 26px; font-size: 11px; }
+.home-daily-lo { width: 22px; font-size: 12px; color: var(--ink-mute); text-align: right; }
+.home-daily-bar {
+  flex: 1; height: 4px; background: var(--line); border-radius: 2px;
+  position: relative;
+}
+.home-daily-bar-fill {
+  position: absolute; top: 0; bottom: 0; border-radius: 2px;
+  background: linear-gradient(90deg, var(--sky-clear), var(--sky-sunny));
+}
+.home-daily-hi { width: 22px; font-size: 12px; font-weight: 600; }
+
+/* Condition cards */
+.home-cards-grid {
+  padding: 24px 22px 0;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+}
+.home-mini-card {
+  background: var(--bg-soft); border-radius: 8px; padding: 10px 12px;
+  border: 1px solid var(--line);
+}
+.home-mini-label {
+  font-size: 9.5px; color: var(--ink-mute); letter-spacing: 1px;
+  text-transform: uppercase; font-weight: 600;
+}
+.home-mini-value {
+  font-size: 22px; font-weight: 500; margin-top: 2px;
+  font-family: var(--font); letter-spacing: -0.5px;
+}
+.home-mini-unit { font-size: 12px; color: var(--ink-mute); margin-left: 3px; }
+.home-mini-note { font-size: 11px; color: var(--ink-soft); margin-top: 2px; }
+
+/* Dive cards */
+.home-dive-card {
+  margin: 0 22px 16px; background: var(--bg-soft);
+  border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px;
+}
+.home-dive-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--line);
+}
+.home-dive-office { font-size: 10px; color: var(--blue); letter-spacing: 1px; text-transform: uppercase; font-weight: 600; }
+.home-dive-issued { font-size: 10px; color: var(--ink-mute); }
+.home-dive-text { font-size: 12.5px; color: var(--ink-soft); line-height: 1.65; }
+
+/* Gauge rows */
+.home-gauge-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 0; border-bottom: 1px solid var(--line);
+}
+.home-gauge-row:last-child { border-bottom: none; }
+.home-gauge-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.home-gauge-info { flex: 1; }
+.home-gauge-name { font-size: 13px; font-weight: 500; }
+.home-gauge-read { font-size: 10px; color: var(--ink-mute); margin-top: 1px; }
+.home-gauge-status { font-size: 10px; font-weight: 600; letter-spacing: 0.5px; }
+
+/* Footer */
+.home-footer {
+  padding: 22px 22px 8px;
+  font-size: 10px; color: var(--ink-mute); letter-spacing: 1px;
+  text-transform: uppercase; border-top: 1px solid var(--line);
+  margin-top: 22px; display: flex; justify-content: space-between;
+}
+
+/* App shell */
+.app-shell {
+  display: flex; flex-direction: column; min-height: 100dvh;
+  max-width: 430px; margin: 0 auto; background: var(--bg);
+}
+.app-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
