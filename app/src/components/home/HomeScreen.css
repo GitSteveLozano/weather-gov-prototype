@@ -168,12 +168,88 @@
 .home-gauge-read { font-size: 10px; color: var(--ink-mute); margin-top: 1px; }
 .home-gauge-status { font-size: 10px; font-weight: 600; letter-spacing: 0.5px; }
 
-/* Footer */
-.home-footer {
-  padding: 22px 22px 8px;
-  font-size: 10px; color: var(--ink-mute); letter-spacing: 1px;
-  text-transform: uppercase; border-top: 1px solid var(--line);
-  margin-top: 22px; display: flex; justify-content: space-between;
+/* Today in context card */
+.home-context-card {
+  margin: 0 22px 16px; background: var(--bg-soft);
+  border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px;
+}
+.home-context-label {
+  font-size: 10.5px; color: var(--ink-mute); font-family: var(--mono);
+  letter-spacing: 1px; text-transform: uppercase; font-weight: 600;
+}
+.home-context-row {
+  display: flex; align-items: center; gap: 8; margin-top: 10px;
+}
+.home-context-temp {
+  font-size: 40px; font-weight: 400; letter-spacing: -1.5px;
+  line-height: 1; font-family: var(--font);
+}
+.home-context-diff { font-size: 13px; font-weight: 600; }
+.home-context-diff--above { color: #c44b3e; }
+.home-context-diff--below { color: #3a6b9e; }
+.home-context-diff--normal { color: var(--ink-mute); }
+.home-context-normal {
+  font-size: 12px; color: var(--ink-mute); margin-top: 6px;
+  font-family: var(--mono);
+}
+
+/* Safety tips card */
+.home-safety-card {
+  margin: 0 22px 16px; background: var(--blue-soft);
+  border: 1px solid rgba(29, 78, 216, 0.13); border-radius: 10px;
+  padding: 14px 16px;
+}
+.home-safety-label {
+  font-size: 10.5px; color: var(--blue); font-family: var(--mono);
+  letter-spacing: 1px; text-transform: uppercase; font-weight: 700;
+}
+.home-safety-title {
+  font-size: 15px; font-weight: 700; margin-top: 6px;
+}
+.home-safety-list {
+  margin-top: 10px; display: flex; flex-direction: column; gap: 8px;
+}
+.home-safety-item {
+  display: flex; gap: 10px; font-size: 13px; line-height: 1.4;
+}
+.home-safety-num {
+  flex-shrink: 0; width: 18px; height: 18px; border-radius: 9px;
+  background: var(--bg-soft); border: 1px solid var(--line);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700; color: var(--ink); margin-top: 1px;
+}
+.home-safety-text { flex: 1; color: var(--ink-soft); }
+
+/* Hazard status grid */
+.home-hazard-grid {
+  padding: 0 22px 0;
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;
+}
+.home-hazard-card {
+  background: var(--bg-soft); border-radius: 8px; padding: 10px 12px;
+  border: 1px solid var(--line);
+}
+.home-hazard-label {
+  font-size: 9.5px; color: var(--ink-mute); letter-spacing: 1px;
+  text-transform: uppercase; font-weight: 600; font-family: var(--mono);
+}
+.home-hazard-status {
+  font-size: 12px; font-weight: 600; margin-top: 4px;
+  font-family: var(--mono); letter-spacing: 0.3px;
+}
+.home-hazard-detail {
+  font-size: 10px; color: var(--ink-mute); margin-top: 2px;
+  line-height: 1.3;
+}
+
+/* Data provenance footer */
+.home-footer-provenance {
+  padding: 14px 22px 24px; border-top: 1px solid var(--line);
+  margin-top: 22px;
+}
+.home-footer-provenance-line {
+  font-size: 10px; color: var(--ink-mute); font-family: var(--mono);
+  letter-spacing: 0.8px; line-height: 1.5;
 }
 
 /* App shell */
