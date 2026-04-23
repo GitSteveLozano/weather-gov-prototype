@@ -22,14 +22,18 @@
 <script type="text/babel" src="alerts.jsx"></script>
 <script type="text/babel" src="extras.jsx"></script>
 <script type="text/babel" src="agentic.jsx"></script>
+<script type="text/babel" src="civic.jsx"></script>
+<script type="text/babel" src="spc.jsx"></script>
 
 <script type="text/babel">
 /* global DesignCanvas, DCSection, DCArtboard, IOSDevice, HomeCivic, HomeAtmos, HomeCarto, HomeData,
    SBAlertBanner, SBEmergencyTakeover, SBAlertsScreen, DepthGlance, DepthScan, DepthDive,
    OnboardingWelcome, OnboardingPermission, OnboardingDepth, LocationSearch, SettingsScreen,
-   MarineScreen, AviationScreen, FireScreen, SB_TOKENS,
+   MarineScreen, MarineCoastal, MarineOffshore, MarineHighSeas, AviationScreen, FireScreen, SB_TOKENS,
    BriefHome, AskScreen, MinuteCast, LockScreen, WidgetsScreen, SavedLocations, WatchFace,
-   ConfidenceForecast, HealthScreen, HurricaneScreen, LightningScreen, SnowScreen, MoonTideScreen */
+   ConfidenceForecast, HealthScreen, HurricaneScreen, LightningScreen, SnowScreen, MoonTideScreen,
+   SeasonalOutlook, HeatRiskScreen, AuroraScreen, FloodScreen, SkywarnScreen,
+   SafetyDrawer, HistoricalScreen, ProvenanceScreen, SPCOutlook */
 
 // iPhone-like device mini-frame (402x874 scaled via the artboard wrapper)
 function Phone({ children, dark = false }) {
@@ -178,10 +182,55 @@ function App() {
         </DCArtboard>
       </DCSection>
 
+      <DCSection id="civic" title="Civic data · beyond the forecast"
+        subtitle="Skybureau surfaces the 90% of NWS data that nobody else packages: seasonal outlooks, HeatRisk, aurora, flood inundation, and SKYWARN spotter reports.">
+        <DCArtboard id="seasonal" label="CPC · Seasonal outlook" width={AB_W} height={AB_H}>
+          <Phone><SeasonalOutlook /></Phone>
+        </DCArtboard>
+        <DCArtboard id="heatrisk" label="WPC · HeatRisk" width={AB_W} height={AB_H}>
+          <Phone><HeatRiskScreen /></Phone>
+        </DCArtboard>
+        <DCArtboard id="aurora" label="SWPC · Aurora forecast" width={AB_W} height={AB_H}>
+          <Phone dark><AuroraScreen /></Phone>
+        </DCArtboard>
+        <DCArtboard id="flood" label="NWPS · Flood inundation" width={AB_W} height={AB_H}>
+          <Phone><FloodScreen /></Phone>
+        </DCArtboard>
+        <DCArtboard id="skywarn" label="SKYWARN · Community reports" width={AB_W} height={AB_H}>
+          <Phone><SkywarnScreen /></Phone>
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="context" title="Context & trust · the secondary moves"
+        subtitle="Safety drawer linked from warnings. Today-vs-normal historical context. Data provenance — who forecast this, using what, and when.">
+        <DCArtboard id="safety" label="Safety drawer · from warning" width={AB_W} height={AB_H}>
+          <Phone><SafetyDrawer /></Phone>
+        </DCArtboard>
+        <DCArtboard id="history" label="Today in context · historical" width={AB_W} height={AB_H}>
+          <Phone><HistoricalScreen /></Phone>
+        </DCArtboard>
+        <DCArtboard id="provenance" label="How this forecast was made" width={AB_W} height={AB_H}>
+          <Phone><ProvenanceScreen /></Phone>
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="severe" title="Severe weather · SPC outlook"
+        subtitle="Storm Prediction Center categorical outlooks and hazard probabilities. Appears at Dive depth when a Thunderstorm Watch is active.">
+        <DCArtboard id="spc" label="SPC · Convective outlook (Dive)" width={AB_W} height={AB_H}>
+          <Phone><SPCOutlook /></Phone>
+        </DCArtboard>
+      </DCSection>
+
       <DCSection id="specialty" title="Specialty products · for the pros"
         subtitle="Marine, aviation, fire weather — same design language, discipline-specific readouts. Opt-in per user from settings.">
-        <DCArtboard id="marine" label="Marine · Chesapeake" width={AB_W} height={AB_H}>
-          <Phone><MarineScreen /></Phone>
+        <DCArtboard id="marine" label="Marine · Coastal" width={AB_W} height={AB_H}>
+          <Phone><MarineCoastal /></Phone>
+        </DCArtboard>
+        <DCArtboard id="marine-offshore" label="Marine · Offshore (OPC)" width={AB_W} height={AB_H}>
+          <Phone><MarineOffshore /></Phone>
+        </DCArtboard>
+        <DCArtboard id="marine-hs" label="Marine · High seas (OPC)" width={AB_W} height={AB_H}>
+          <Phone><MarineHighSeas /></Phone>
         </DCArtboard>
         <DCArtboard id="aviation" label="Aviation · KDCA" width={AB_W} height={AB_H}>
           <Phone><AviationScreen /></Phone>
