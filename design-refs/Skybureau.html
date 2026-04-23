@@ -29,6 +29,7 @@
 /* global DesignCanvas, DCSection, DCArtboard, IOSDevice, HomeCivic, HomeAtmos, HomeCarto, HomeData,
    SBAlertBanner, SBEmergencyTakeover, SBAlertsScreen, DepthGlance, DepthScan, DepthDive,
    OnboardingWelcome, OnboardingPermission, OnboardingDepth, LocationSearch, SettingsScreen,
+   SettingsAlerts, SettingsNotifications, SettingsBrief, SettingsAccessibility,
    MarineScreen, MarineCoastal, MarineOffshore, MarineHighSeas, AviationScreen, FireScreen, SB_TOKENS,
    BriefHome, AskScreen, MinuteCast, LockScreen, WidgetsScreen, SavedLocations, WatchFace,
    ConfidenceForecast, HealthScreen, HurricaneScreen, LightningScreen, SnowScreen, MoonTideScreen,
@@ -125,9 +126,21 @@ function App() {
       </DCSection>
 
       <DCSection id="settings" title="Personalization · every aspect"
-        subtitle="Deep controls. Depth, units, alert categories, accessibility, specialty products. Nothing forced — everything tunable.">
-        <DCArtboard id="settings-main" label="Settings" width={AB_W} height={AB_H}>
+        subtitle="Deep controls with a clear index. Each row opens a focused detail screen — alerts, notifications, brief tuning, accessibility.">
+        <DCArtboard id="settings-main" label="Settings · index" width={AB_W} height={AB_H}>
           <Phone><SettingsScreen /></Phone>
+        </DCArtboard>
+        <DCArtboard id="settings-alerts" label="Alert categories" width={AB_W} height={AB_H}>
+          <Phone><SettingsAlerts /></Phone>
+        </DCArtboard>
+        <DCArtboard id="settings-notifications" label="Notification timing" width={AB_W} height={AB_H}>
+          <Phone><SettingsNotifications /></Phone>
+        </DCArtboard>
+        <DCArtboard id="settings-brief" label="Brief personalization" width={AB_W} height={AB_H}>
+          <Phone><SettingsBrief /></Phone>
+        </DCArtboard>
+        <DCArtboard id="settings-a11y" label="Accessibility" width={AB_W} height={AB_H}>
+          <Phone><SettingsAccessibility /></Phone>
         </DCArtboard>
       </DCSection>
 

@@ -1,0 +1,59 @@
+.set-shell {
+  position: fixed; inset: 0; z-index: 100;
+  background: var(--bg); display: flex; flex-direction: column;
+  font-family: var(--font); color: var(--ink);
+  animation: fadeUp 0.25s ease both;
+}
+
+.set-nav {
+  padding: 14px 22px; border-bottom: 1px solid var(--line);
+  display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+}
+.set-back {
+  background: none; border: none; font-size: 22px; color: var(--ink-soft);
+  cursor: pointer; padding: 0; width: 24px; -webkit-tap-highlight-color: transparent;
+}
+.set-nav-title { flex: 1; font-size: 17px; font-weight: 600; letter-spacing: -0.2px; }
+.set-nav-right { font-size: 11px; color: var(--ink-mute); letter-spacing: 0.8px; text-transform: uppercase; }
+
+.set-scroll { flex: 1; overflow-y: auto; }
+
+.set-intro { padding: 18px 22px 14px; border-bottom: 1px solid var(--line); }
+.set-intro-text { font-size: 13px; color: var(--ink-soft); line-height: 1.5; margin-top: 10px; }
+
+.set-section { border-bottom: 1px solid var(--line); }
+.set-section-title {
+  font-size: 10.5px; color: var(--ink-mute); letter-spacing: 1.2px;
+  text-transform: uppercase; font-weight: 600; padding: 16px 22px 6px;
+}
+
+.set-row {
+  padding: 12px 22px; display: flex; align-items: center; gap: 12px;
+  border-top: 1px solid var(--line);
+}
+.set-row-content { flex: 1; }
+.set-row-label { font-size: 14px; }
+.set-row-sub { font-size: 11.5px; color: var(--ink-mute); margin-top: 2px; line-height: 1.35; }
+.set-row-value { font-size: 13px; color: var(--ink-soft); }
+.set-row-caret { font-size: 16px; color: var(--ink-mute); margin-left: 4px; }
+
+/* Theme segmented control */
+.set-segment {
+  display: flex; gap: 0; background: var(--bg-soft);
+  border: 1px solid var(--line); border-radius: 8px; overflow: hidden; padding: 2px;
+}
+.set-seg-opt {
+  flex: 1; padding: 6px 10px; border-radius: 6px; text-align: center;
+  cursor: pointer; font-size: 12px; font-weight: 500; font-family: var(--font);
+  border: 1.5px solid transparent; background: transparent; color: var(--ink-mute);
+  transition: all 0.2s; -webkit-tap-highlight-color: transparent;
+}
+.set-seg-opt.on {
+  background: #fff; border-color: var(--line-strong); color: var(--ink);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.set-footer {
+  padding: 24px 22px 40px; font-size: 11px; color: var(--ink-mute);
+  letter-spacing: 0.3px; text-align: center; line-height: 1.6;
+}

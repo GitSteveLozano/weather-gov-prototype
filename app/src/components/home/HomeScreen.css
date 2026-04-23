@@ -23,10 +23,17 @@
   padding: 16px 22px 12px;
   display: flex; align-items: center; justify-content: space-between;
 }
+.home-header-right { display: flex; align-items: center; gap: 10px; }
 .home-header-time {
   font-size: 11px; color: var(--ink-mute);
   font-family: var(--mono); letter-spacing: 0.4px;
 }
+.home-settings-btn {
+  background: none; border: none; cursor: pointer; padding: 4px;
+  display: flex; align-items: center; justify-content: center;
+  -webkit-tap-highlight-color: transparent; border-radius: 6px;
+}
+.home-settings-btn:active { background: var(--line); }
 
 /* Alert banner */
 .home-alert-banner {
