@@ -42,6 +42,8 @@ export function Settings({ onClose, theme, onThemeChange, skin, onSkinChange, de
           <RadioGroup value={skin} onChange={(v) => onSkinChange(v as HomeSkin)} options={[
             { id: 'civic', name: 'Civic Modern', desc: 'Typographic, editorial, big numbers. Newspaper clarity.' },
             { id: 'atmospheric', name: 'Atmospheric', desc: 'Sky gradients behind data. Emotive, beautiful.' },
+            { id: 'cartographic', name: 'Cartographic', desc: 'Map is the hero. Radar-first for storm chasers.' },
+            { id: 'data', name: 'Data-forward', desc: 'Dense dashboard. Bloomberg for weather.' },
           ]} />
         </div>
       </div>
@@ -104,7 +106,7 @@ export function Settings({ onClose, theme, onThemeChange, skin, onSkinChange, de
         </div>
 
         <Section title="Home screen">
-          <TapRow label="Style" value={skin === 'civic' ? 'Civic Modern' : 'Atmospheric'} onClick={() => setSub('skin')} />
+          <TapRow label="Style" value={{ civic: 'Civic Modern', atmospheric: 'Atmospheric', cartographic: 'Cartographic', data: 'Data-forward' }[skin]} onClick={() => setSub('skin')} />
           <TapRow label="Default depth" value={depth.charAt(0).toUpperCase() + depth.slice(1)} onClick={() => setSub('depth')} />
           <TapRow label="Radar style" value={radarStyle.charAt(0).toUpperCase() + radarStyle.slice(1)} onClick={() => setSub('radar')} />
         </Section>

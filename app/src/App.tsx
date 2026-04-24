@@ -3,17 +3,22 @@ import { useWeather } from './hooks/useWeather';
 import { Onboarding } from './components/onboarding/Onboarding';
 import { HomeScreen } from './components/home/HomeScreen';
 import { HomeAtmos } from './components/home/HomeAtmos';
+import { HomeCarto } from './components/home/HomeCarto';
+import { HomeData } from './components/home/HomeData';
 import { RadarTab } from './components/radar/RadarTab';
 import type { RadarStyle } from './components/radar/RadarTab';
 import { Settings } from './components/settings/Settings';
+import { BriefScreen } from './components/agentic/BriefScreen';
+import { AskScreen } from './components/agentic/AskScreen';
 import { ModeBar } from './components/common/ModeBar';
 import type { ModeId } from './components/common/ModeBar';
 import type { DataDensity } from './types/weather';
 import './index.css';
 
 export type ThemeMode = 'light' | 'system' | 'dark';
-export type HomeSkin = 'civic' | 'atmospheric';
+export type HomeSkin = 'civic' | 'atmospheric' | 'cartographic' | 'data';
 export type DepthLevel = 'glance' | 'scan' | 'dive';
+export type SubScreen = null | 'settings' | 'brief' | 'ask' | 'marine' | 'aviation' | 'fire' | 'alert-detail';
 
 function load<T>(key: string, fallback: T): T {
   try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch { return fallback; }
@@ -33,7 +38,7 @@ export default function App() {
   const { data } = useWeather();
   const [onboarded, setOnboarded] = useState(() => load('sb-onboarded', false));
   const [mode, setMode] = useState<ModeId>('home');
-  const [showSettings, setShowSettings] = useState(false);
+  const [sub, setSub] = useState<SubScreen>(null);
   const [theme, setTheme] = useState<ThemeMode>(() => load('sb-theme', 'system'));
   const [skin, setSkin] = useState<HomeSkin>(() => load('sb-skin', 'civic'));
   const [depth, setDepth] = useState<DepthLevel>(() => load('sb-depth-level', 'scan'));
@@ -41,49 +46,52 @@ export default function App() {
 
   const handleOnboardingComplete = useCallback((d: DataDensity) => {
     save('sb-onboarded', true);
-    const dl = densityToDepth(d);
-    save('sb-depth-level', dl);
-    setDepth(dl);
+    setDepth(densityToDepth(d)); save('sb-depth-level', densityToDepth(d));
     setOnboarded(true);
   }, []);
 
-  const handleTheme = useCallback((t: ThemeMode) => {
-    setTheme(t); save('sb-theme', t); applyTheme(t);
-  }, []);
+  const handleTheme = useCallback((t: ThemeMode) => { setTheme(t); save('sb-theme', t); applyTheme(t); }, []);
+  const handleSkin = useCallback((s: HomeSkin) => { setSkin(s); save('sb-skin', s); }, []);
+  const handleDepth = useCallback((d: DepthLevel) => { setDepth(d); save('sb-depth-level', d); }, []);
+  const handleRadarStyle = useCallback((s: RadarStyle) => { setRadarStyle(s); save('sb-radar-style', s); }, []);
 
-  const handleSkin = useCallback((s: HomeSkin) => {
-    setSkin(s); save('sb-skin', s);
-  }, []);
+  if (!onboarded) return <Onboarding onComplete={handleOnboardingComplete} />;
 
-  const handleDepth = useCallback((d: DepthLevel) => {
-    setDepth(d); save('sb-depth-level', d);
-  }, []);
+  // Sub-screens (full-screen overlays)
+  if (sub === 'settings') return (
+    <Settings onClose={() => setSub(null)} theme={theme} onThemeChange={handleTheme}
+      skin={skin} onSkinChange={handleSkin} depth={depth} onDepthChange={handleDepth}
+      radarStyle={radarStyle} onRadarStyleChange={handleRadarStyle} />
+  );
+  if (sub === 'brief') return <BriefScreen data={data} onBack={() => setSub(null)} />;
+  if (sub === 'ask') return <AskScreen data={data} onBack={() => setSub(null)} />;
 
-  const handleRadarStyle = useCallback((s: RadarStyle) => {
-    setRadarStyle(s); save('sb-radar-style', s);
-  }, []);
-
-  if (!onboarded) {
-    return <Onboarding onComplete={handleOnboardingComplete} />;
+  // Try to dynamically load specialty screens if they exist
+  // These will be added by the background agent — for now show a placeholder
+  if (sub === 'marine' || sub === 'aviation' || sub === 'fire') {
+    return (
+      <div style={{ minHeight: '100dvh', maxWidth: 430, margin: '0 auto', background: 'var(--paper)', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ padding: 14, borderBottom: '1px solid var(--line)', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <button onClick={() => setSub(null)} style={{ background: 'none', border: 'none', fontSize: 24, color: 'var(--ink-soft)', cursor: 'pointer' }}>‹</button>
+          <span style={{ fontSize: 17, fontWeight: 600 }}>{sub === 'marine' ? 'Marine' : sub === 'aviation' ? 'Aviation' : 'Fire Weather'}</span>
+        </div>
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ink-mute)', fontSize: 14 }}>Coming soon</div>
+      </div>
+    );
   }
+
+  const homeProps = { data, depth, onOpenSettings: () => setSub('settings'), onOpenBrief: () => setSub('brief'), onOpenAsk: () => setSub('ask') };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh', maxWidth: 430, margin: '0 auto', background: 'var(--paper)' }}>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        {mode === 'home' && skin === 'civic' && <HomeScreen data={data} depth={depth} onOpenSettings={() => setShowSettings(true)} />}
-        {mode === 'home' && skin === 'atmospheric' && <HomeAtmos data={data} depth={depth} onOpenSettings={() => setShowSettings(true)} />}
+        {mode === 'home' && skin === 'civic' && <HomeScreen {...homeProps} />}
+        {mode === 'home' && skin === 'atmospheric' && <HomeAtmos {...homeProps} />}
+        {mode === 'home' && skin === 'cartographic' && <HomeCarto {...homeProps} />}
+        {mode === 'home' && skin === 'data' && <HomeData {...homeProps} />}
         {mode === 'radar' && <RadarTab radarStyle={radarStyle} />}
       </div>
       <ModeBar active={mode} onChange={setMode} />
-      {showSettings && (
-        <Settings
-          onClose={() => setShowSettings(false)}
-          theme={theme} onThemeChange={handleTheme}
-          skin={skin} onSkinChange={handleSkin}
-          depth={depth} onDepthChange={handleDepth}
-          radarStyle={radarStyle} onRadarStyleChange={handleRadarStyle}
-        />
-      )}
     </div>
   );
 }

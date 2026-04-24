@@ -1,0 +1,274 @@
+/* FireScreen — prefix: fire- */
+
+.fire {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--paper);
+  font-family: var(--font);
+  color: var(--ink);
+  padding-bottom: 40px;
+}
+
+/* Sub-navigation header */
+.fire-nav {
+  padding: 10px var(--gutter) 14px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.fire-back {
+  font-size: 18px;
+  color: var(--ink-soft);
+  width: 20px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--font);
+  -webkit-tap-highlight-color: transparent;
+}
+.fire-nav-title {
+  flex: 1;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+.fire-nav-crumb {
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--ink-mute);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+/* Masthead */
+.fire-masthead {
+  padding: 14px var(--gutter) 16px;
+  border-bottom: 1px solid var(--line);
+}
+.fire-label {
+  font-size: 11px;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  font-weight: 600;
+}
+.fire-title {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin-top: 4px;
+}
+
+/* Risk gauge */
+.fire-gauge {
+  padding: 16px var(--gutter);
+}
+.fire-gauge-bar {
+  position: relative;
+  height: 44px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #2b8a3e, #d4a017, #e8701e, #d63a2f, #a81e5b);
+}
+.fire-gauge-needle {
+  position: absolute;
+  top: -6px;
+  bottom: -6px;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--ink);
+}
+.fire-gauge-label {
+  position: absolute;
+  top: -24px;
+  transform: translateX(-50%);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 700;
+}
+.fire-gauge-scale {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9.5px;
+  color: var(--ink-mute);
+  font-family: var(--mono);
+  margin-top: 6px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* Stats grid */
+.fire-grid {
+  padding: 0 var(--gutter) 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.fire-stat {
+  background: var(--paper-soft);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.fire-stat-label {
+  font-size: 10px;
+  color: var(--ink-mute);
+  font-family: var(--mono);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.fire-stat-val {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+  margin-top: 4px;
+  font-family: var(--mono);
+}
+.fire-stat-sub {
+  font-size: 11px;
+  color: var(--ink-mute);
+  margin-top: 2px;
+}
+
+/* Section label */
+.fire-sec {
+  padding: 0 var(--gutter) 8px;
+  font-size: 10.5px;
+  color: var(--ink-mute);
+  font-family: var(--mono);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+/* Red flag criteria */
+.fire-criteria-wrap {
+  padding: 0 var(--gutter) 12px;
+}
+.fire-criteria {
+  background: var(--paper-soft);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.fire-criteria-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+}
+.fire-criteria-row:last-child {
+  border-bottom: none;
+}
+.fire-criteria-icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.fire-criteria-icon--met {
+  background: var(--sev-watch);
+  border: 1.5px solid var(--sev-watch);
+  color: #fff;
+}
+.fire-criteria-icon--unmet {
+  background: transparent;
+  border: 1.5px solid var(--line-strong);
+  color: transparent;
+}
+.fire-criteria-text {
+  flex: 1;
+  font-size: 13.5px;
+}
+.fire-criteria-detail {
+  font-size: 11.5px;
+  color: var(--ink-mute);
+  font-family: var(--mono);
+}
+
+/* Spot forecast link */
+.fire-spot {
+  margin: 4px var(--gutter) 0;
+  background: var(--blue-soft);
+  border: 1px solid rgba(29, 78, 216, 0.13);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+.fire-spot-label {
+  font-size: 10.5px;
+  color: var(--blue);
+  font-family: var(--mono);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.fire-spot-text {
+  font-size: 13px;
+  line-height: 1.45;
+  margin-top: 6px;
+  color: var(--ink-soft);
+}
+
+/* Advisory banner */
+.fire-advisory {
+  margin: 14px 14px 10px;
+  border-radius: 8px;
+  display: flex;
+  align-items: stretch;
+  overflow: hidden;
+  cursor: pointer;
+}
+.fire-advisory-bar {
+  width: 4px;
+  flex-shrink: 0;
+}
+.fire-advisory-body {
+  padding: 9px 12px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.fire-advisory-level {
+  font-size: 10px;
+  font-family: var(--mono);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-weight: 700;
+  opacity: 0.7;
+}
+.fire-advisory-title {
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.fire-advisory-until {
+  font-size: 11.5px;
+  font-family: var(--mono);
+  opacity: 0.7;
+}
+.fire-advisory-caret {
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  font-size: 18px;
+  opacity: 0.5;
+}
+
+/* Footer */
+.fire-footer {
+  padding: 14px var(--gutter) 8px;
+  font-size: 10px;
+  color: var(--ink-mute);
+  font-family: var(--mono);
+  letter-spacing: 0.8px;
+  border-top: 1px solid var(--line);
+  margin-top: 8px;
+  line-height: 1.5;
+}

@@ -1,0 +1,192 @@
+/* AlertDetail — prefix: ad- */
+
+.ad {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--paper);
+  font-family: var(--font);
+  color: var(--ink);
+  padding-bottom: 40px;
+}
+
+/* Sub-navigation header */
+.ad-nav {
+  padding: 10px var(--gutter) 14px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ad-back {
+  font-size: 18px;
+  color: var(--ink-soft);
+  width: 20px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--font);
+  -webkit-tap-highlight-color: transparent;
+}
+.ad-nav-title {
+  flex: 1;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+.ad-nav-crumb {
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--ink-mute);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+/* Colored header */
+.ad-header {
+  padding: 16px var(--gutter);
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.ad-header-bar {
+  width: 4px;
+  align-self: stretch;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.ad-header-content {
+  flex: 1;
+}
+.ad-event {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+  margin-top: 8px;
+  line-height: 1.15;
+}
+.ad-area {
+  font-size: 12px;
+  color: var(--ink-mute);
+  font-family: var(--mono);
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+/* Expiration countdown */
+.ad-expiry {
+  margin: 0 var(--gutter) 16px;
+  padding: 10px 14px;
+  background: var(--paper-soft);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ad-expiry-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.ad-expiry-text {
+  flex: 1;
+  font-size: 13px;
+  font-family: var(--mono);
+  color: var(--ink-soft);
+}
+.ad-expiry-time {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* Section label */
+.ad-sec {
+  padding: 18px var(--gutter) 8px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  font-family: var(--mono);
+  font-weight: 600;
+}
+.ad-sec-rule {
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+/* Alert body text */
+.ad-body {
+  padding: 0 var(--gutter) 16px;
+}
+.ad-headline {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.3px;
+}
+.ad-description {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+  margin-top: 12px;
+  white-space: pre-line;
+}
+.ad-instruction {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+  margin-top: 12px;
+  white-space: pre-line;
+}
+
+/* Action buttons */
+.ad-actions {
+  padding: 8px var(--gutter) 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ad-btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 10px;
+  font-family: var(--font);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  text-align: center;
+  border: none;
+}
+.ad-btn--primary {
+  background: var(--ink);
+  color: var(--paper);
+}
+.ad-btn--secondary {
+  background: transparent;
+  color: var(--ink-soft);
+  border: 1.5px solid var(--line-strong);
+}
+.ad-btn-row {
+  display: flex;
+  gap: 10px;
+}
+.ad-btn-row .ad-btn {
+  flex: 1;
+}
+
+/* Footer */
+.ad-footer {
+  padding: 14px var(--gutter) 8px;
+  font-size: 10px;
+  color: var(--ink-mute);
+  font-family: var(--mono);
+  letter-spacing: 0.8px;
+  border-top: 1px solid var(--line);
+  margin-top: 8px;
+  line-height: 1.5;
+}

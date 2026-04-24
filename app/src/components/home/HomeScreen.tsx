@@ -9,13 +9,15 @@ interface Props {
   data: WeatherData;
   depth: DepthLevel;
   onOpenSettings: () => void;
+  onOpenBrief?: () => void;
+  onOpenAsk?: () => void;
 }
 
 function formatHour(iso: string) {
   return new Date(iso).toLocaleString('en-US', { hour: 'numeric', hour12: true });
 }
 
-export function HomeScreen({ data, depth, onOpenSettings }: Props) {
+export function HomeScreen({ data, depth, onOpenSettings, onOpenBrief, onOpenAsk }: Props) {
   const { periods, hourly, alerts, env, point } = data;
   const p0 = periods[0];
 
@@ -161,6 +163,21 @@ export function HomeScreen({ data, depth, onOpenSettings }: Props) {
             <div className="hm-dive-text">{data.hazards.forecasterDiscussion.text.slice(0, 400)}{data.hazards.forecasterDiscussion.text.length > 400 ? '…' : ''}</div>
           </div>
         </>
+      )}
+
+      {/* ── AI entry points ── */}
+      {onOpenBrief && (
+        <div className="hm-brief-entry" onClick={onOpenBrief}>
+          <div className="hm-brief-badge sb-mono"><span className="hm-brief-dot" />Morning brief</div>
+          <div className="hm-brief-preview">Personalized weather digest for your day →</div>
+        </div>
+      )}
+      {onOpenAsk && (
+        <div className="hm-ask-entry" onClick={onOpenAsk}>
+          <svg width="14" height="14" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5" fill="none" stroke="var(--paper)" strokeWidth="1.3"/></svg>
+          <span className="hm-ask-text">Ask about today's weather…</span>
+          <span className="hm-ask-ai sb-mono">AI</span>
+        </div>
       )}
 
       {/* ── Footer ── */}

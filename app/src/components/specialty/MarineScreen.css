@@ -1,0 +1,233 @@
+/* MarineScreen — prefix: mar- */
+
+.mar {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--paper);
+  font-family: var(--font);
+  color: var(--ink);
+  padding-bottom: 40px;
+}
+
+/* Sub-navigation header */
+.mar-nav {
+  padding: 10px var(--gutter) 14px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.mar-back {
+  font-size: 18px;
+  color: var(--ink-soft);
+  width: 20px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--font);
+  -webkit-tap-highlight-color: transparent;
+}
+.mar-nav-title {
+  flex: 1;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+.mar-nav-crumb {
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--ink-mute);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+/* Masthead */
+.mar-masthead {
+  padding: 14px var(--gutter) 10px;
+  border-bottom: 1px solid var(--line);
+}
+.mar-label {
+  font-size: 11px;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  font-weight: 600;
+}
+.mar-title {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin-top: 4px;
+}
+
+/* Tabs */
+.mar-tabs {
+  display: flex;
+  gap: 22px;
+  padding: 4px var(--gutter) 0;
+  border-bottom: 1px solid var(--line);
+}
+.mar-tab {
+  padding: 10px 0 12px;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--ink-mute);
+  border-bottom: none;
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-family: var(--font);
+  -webkit-tap-highlight-color: transparent;
+}
+.mar-tab--active {
+  font-weight: 600;
+  color: var(--ink);
+  border-bottom: 2px solid var(--ink);
+}
+
+/* Stats grid */
+.mar-grid {
+  padding: var(--gutter);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.mar-stat {
+  background: var(--paper-soft);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.mar-stat-label {
+  font-size: 10px;
+  color: var(--ink-mute);
+  font-family: var(--mono);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.mar-stat-val {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+  margin-top: 4px;
+  font-family: var(--mono);
+}
+.mar-stat-sub {
+  font-size: 11px;
+  color: var(--ink-mute);
+  margin-top: 2px;
+}
+
+/* Section label */
+.mar-sec {
+  padding: 0 var(--gutter) 8px;
+  font-size: 10.5px;
+  color: var(--ink-mute);
+  font-family: var(--mono);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+/* Tide chart */
+.mar-tide-wrap {
+  padding: 4px var(--gutter) 14px;
+}
+.mar-tide {
+  background: var(--paper-soft);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 14px;
+}
+.mar-tide-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 60px;
+}
+.mar-tide-bar {
+  flex: 1;
+  background: var(--blue);
+  border-radius: 2px 2px 0 0;
+  min-height: 4px;
+}
+.mar-tide-bar--low {
+  background: var(--blue-soft);
+}
+.mar-tide-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10.5px;
+  font-family: var(--mono);
+  color: var(--ink-mute);
+  margin-top: 6px;
+}
+
+/* Forecast text */
+.mar-forecast-wrap {
+  padding: 0 var(--gutter) 16px;
+}
+.mar-forecast {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+/* Advisory banner */
+.mar-advisory {
+  margin: 10px 14px;
+  border-radius: 8px;
+  display: flex;
+  align-items: stretch;
+  overflow: hidden;
+  cursor: pointer;
+}
+.mar-advisory-bar {
+  width: 4px;
+  flex-shrink: 0;
+}
+.mar-advisory-body {
+  padding: 9px 12px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.mar-advisory-level {
+  font-size: 10px;
+  font-family: var(--mono);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-weight: 700;
+  opacity: 0.7;
+}
+.mar-advisory-title {
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.mar-advisory-until {
+  font-size: 11.5px;
+  font-family: var(--mono);
+  opacity: 0.7;
+}
+.mar-advisory-caret {
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  font-size: 18px;
+  opacity: 0.5;
+}
+
+/* Footer */
+.mar-footer {
+  padding: 14px var(--gutter) 8px;
+  font-size: 10px;
+  color: var(--ink-mute);
+  font-family: var(--mono);
+  letter-spacing: 0.8px;
+  border-top: 1px solid var(--line);
+  margin-top: 8px;
+  line-height: 1.5;
+}
