@@ -137,7 +137,7 @@ export default function App() {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', maxWidth: 430, margin: '0 auto', background: 'var(--paper)' }}>
+    <div className="app-root" data-mode={mode}>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minHeight: 0 }}>
         {mode === 'home' && skin === 'civic' && <HomeScreen {...homeProps} />}
         {mode === 'home' && skin === 'atmospheric' && <HomeAtmos {...homeProps} />}
