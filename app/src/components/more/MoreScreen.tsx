@@ -146,6 +146,15 @@ export function MoreScreen({ onNavigate }: Props) {
         <Row icon={<AuroraIcon />} title="Moon & tides" sub="Phase, rise/set, tide chart" onClick={() => onNavigate('moon')} />
         <Row icon={<FlameIcon />} title="Lightning" sub="Live strike map, nearest strike" onClick={() => onNavigate('lightning')} />
         <Row icon={<WaveIcon />} title="Snow forecast" sub="Accumulation probabilities" onClick={() => onNavigate('snow')} />
+        <Row icon={<PollenIcon />} title="Minute-cast" sub="60-min precipitation nowcast" onClick={() => onNavigate('minutecast')} />
+      </div>
+
+      {/* Civic data — extended */}
+      <GroupLabel>Beyond the forecast</GroupLabel>
+      <div>
+        <Row icon={<AuroraIcon />} title="Aurora forecast" sub="Kp index, viewing probability" onClick={() => onNavigate('aurora')} />
+        <Row icon={<RiverIcon />} title="Flood inundation" sub="Street-level flood risk map" onClick={() => onNavigate('flood')} />
+        <Row icon={<QuakeIcon />} title="SKYWARN reports" sub="Community spotter ground truth" onClick={() => onNavigate('skywarn')} />
       </div>
 
       {/* Civic data */}

@@ -1,0 +1,187 @@
+/* AuroraScreen — prefix: aur- */
+
+.aur {
+  flex: 1;
+  overflow: hidden;
+  background: #050814;
+  color: #fff;
+  font-family: var(--font);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Sub-nav */
+.aur-nav {
+  padding: 10px var(--gutter) 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.aur-back {
+  font-size: 18px;
+  color: #8aa3c7;
+  width: 20px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--font);
+  -webkit-tap-highlight-color: transparent;
+}
+.aur-nav-title {
+  flex: 1;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+.aur-nav-crumb {
+  font-size: 11px;
+  color: #8aa3c7;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+/* Aurora sky visualization */
+.aur-sky {
+  position: relative;
+  height: 240px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.aur-sky-green {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 120%, rgba(80, 220, 140, 0.5) 0%, rgba(40, 180, 220, 0.2) 30%, transparent 60%);
+}
+.aur-sky-purple {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 30% 110%, rgba(180, 100, 220, 0.25) 0%, transparent 50%);
+}
+.aur-sky-teal {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 80% 130%, rgba(100, 200, 180, 0.25) 0%, transparent 40%);
+}
+.aur-star {
+  position: absolute;
+  width: 1.5px;
+  height: 1.5px;
+  border-radius: 2px;
+  background: #fff;
+}
+.aur-horizon {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+}
+
+/* Info */
+.aur-info {
+  padding: 16px var(--gutter) 8px;
+  flex-shrink: 0;
+}
+.aur-kicker {
+  font-size: 11px;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: #8aa3c7;
+  font-weight: 600;
+}
+.aur-title {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.6px;
+  margin-top: 4px;
+  text-wrap: balance;
+}
+.aur-subtitle {
+  font-size: 13px;
+  color: #b8c6dc;
+  margin-top: 6px;
+}
+
+/* Stats */
+.aur-stats {
+  padding: 10px var(--gutter);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.aur-stat {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.aur-stat-label {
+  font-size: 9.5px;
+  color: #8aa3c7;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.aur-stat-val {
+  font-size: 16px;
+  font-weight: 600;
+  margin-top: 3px;
+}
+.aur-stat-sub {
+  font-size: 10.5px;
+  color: #8aa3c7;
+  margin-top: 2px;
+}
+
+/* Kp chart */
+.aur-chart-section {
+  padding: 10px var(--gutter);
+  flex-shrink: 0;
+}
+.aur-chart-label {
+  font-size: 10.5px;
+  color: #8aa3c7;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.aur-chart-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 10px 10px 8px;
+}
+.aur-kp-bars {
+  display: flex;
+  gap: 3px;
+  align-items: flex-end;
+  height: 60px;
+}
+.aur-kp-bar {
+  flex: 1;
+  border-radius: 1px;
+}
+.aur-chart-times {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9.5px;
+  color: #8aa3c7;
+  margin-top: 4px;
+}
+
+/* Alert notice */
+.aur-notice {
+  padding: 12px var(--gutter) 14px;
+  flex-shrink: 0;
+}
+.aur-notice-card {
+  background: rgba(107, 216, 144, 0.12);
+  border: 1px solid rgba(107, 216, 144, 0.3);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 12.5px;
+  line-height: 1.4;
+}

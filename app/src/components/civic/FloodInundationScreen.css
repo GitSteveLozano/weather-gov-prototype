@@ -1,0 +1,174 @@
+/* FloodInundationScreen — prefix: fld- */
+
+.fld {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--paper);
+  font-family: var(--font);
+  color: var(--ink);
+  padding-bottom: 60px;
+}
+
+/* Sub-nav */
+.fld-nav {
+  padding: 10px var(--gutter) 14px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.fld-back {
+  font-size: 18px;
+  color: var(--ink-soft);
+  width: 20px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--font);
+  -webkit-tap-highlight-color: transparent;
+}
+.fld-nav-title {
+  flex: 1;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+.fld-nav-crumb {
+  font-size: 11px;
+  color: var(--ink-mute);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+/* Header */
+.fld-header {
+  padding: 14px var(--gutter);
+  border-bottom: 1px solid var(--line);
+}
+.fld-kicker {
+  font-size: 11px;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  font-weight: 600;
+}
+.fld-title {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin-top: 4px;
+  text-wrap: balance;
+}
+.fld-at-risk {
+  color: var(--sev-watch);
+}
+.fld-byline {
+  font-size: 13px;
+  color: var(--ink-mute);
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+/* Map */
+.fld-map {
+  position: relative;
+  height: 240px;
+  background: #e8e4dc;
+}
+
+/* Scenario slider */
+.fld-scenario {
+  padding: 16px var(--gutter) 10px;
+}
+.fld-scenario-label {
+  font-size: 10.5px;
+  color: var(--ink-mute);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.fld-scenario-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+.fld-scale {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--ink-mute);
+  margin-bottom: 10px;
+}
+.fld-scale-active {
+  color: var(--sev-watch);
+  font-weight: 700;
+}
+.fld-slider-track {
+  height: 6px;
+  background: var(--paper-soft);
+  border-radius: 3px;
+  position: relative;
+}
+.fld-slider-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 60%;
+  background: linear-gradient(90deg, #2b8a3e 0%, var(--sev-advisory) 50%, var(--sev-watch) 100%);
+  border-radius: 3px;
+}
+.fld-slider-thumb {
+  position: absolute;
+  left: 60%;
+  top: -5px;
+  width: 16px;
+  height: 16px;
+  border-radius: 16px;
+  background: var(--ink);
+  border: 3px solid #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+.fld-scenario-desc {
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin-top: 10px;
+  line-height: 1.45;
+}
+
+/* Forecast */
+.fld-forecast {
+  padding: 4px var(--gutter) 14px;
+}
+.fld-forecast-card {
+  background: var(--blue-soft);
+  border: 1px solid rgba(29, 78, 216, 0.13);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+.fld-forecast-label {
+  font-size: 10.5px;
+  color: var(--blue);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.fld-forecast-text {
+  font-size: 14px;
+  line-height: 1.45;
+  margin-top: 6px;
+}
+
+/* Provenance */
+.fld-prov {
+  padding: 14px var(--gutter) 24px;
+  border-top: 1px solid var(--line);
+  margin-top: 8px;
+  font-size: 10px;
+  color: var(--ink-mute);
+  letter-spacing: 0.8px;
+  line-height: 1.5;
+}

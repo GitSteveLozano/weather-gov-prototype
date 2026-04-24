@@ -47,3 +47,39 @@
 .ag-input-bar { padding: 8px 14px 16px; display: flex; gap: 8px; align-items: center; border-top: 1px solid var(--line); background: #fff; flex-shrink: 0; }
 .ag-input-field { flex: 1; background: var(--paper-soft); border: 1px solid var(--line); border-radius: 22px; padding: 10px 14px; font-size: 14px; color: var(--ink-mute); }
 .ag-send-btn { width: 40px; height: 40px; border-radius: 20px; background: var(--ink); border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+
+/* ─── MinuteCast — prefix: mc- ─── */
+.mc { flex: 1; overflow-y: auto; background: var(--paper); font-family: var(--font); color: var(--ink); padding-bottom: 60px; }
+.mc-nav { padding: 10px var(--gutter) 14px; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 10px; }
+.mc-back { font-size: 18px; color: var(--ink-soft); width: 20px; cursor: pointer; background: none; border: none; padding: 0; font-family: var(--font); -webkit-tap-highlight-color: transparent; }
+.mc-nav-title { flex: 1; font-size: 17px; font-weight: 600; letter-spacing: -0.2px; }
+
+.mc-hero { padding: 22px var(--gutter) 8px; }
+.mc-label { font-size: 13px; color: var(--ink-mute); letter-spacing: 0.8px; text-transform: uppercase; font-weight: 600; }
+.mc-headline { font-size: 30px; font-weight: 600; letter-spacing: -0.6px; line-height: 1.15; margin-top: 6px; text-wrap: balance; }
+.mc-rain-accent { color: var(--sky-rain); }
+
+.mc-chart-wrap { padding: 14px 14px 10px; }
+.mc-chart-card { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 14px 12px 10px; }
+.mc-chart-times { display: flex; justify-content: space-between; font-size: 10px; color: var(--ink-mute); margin-top: 6px; padding: 0 4px; letter-spacing: 0.3px; }
+.mc-chart-legend { display: flex; gap: 14px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); font-size: 11px; color: var(--ink-soft); }
+.mc-legend-item { display: flex; align-items: center; gap: 5px; }
+.mc-legend-line { display: inline-block; width: 16px; height: 2px; background: var(--sky-rain); }
+.mc-legend-band { display: inline-block; width: 16px; height: 8px; background: var(--sky-rain); opacity: 0.2; border-radius: 1px; }
+
+.mc-confidence { padding: 6px 14px 16px; }
+.mc-conf-card { background: var(--blue-soft); border: 1px solid rgba(29, 78, 216, 0.13); border-radius: 10px; padding: 12px 14px; display: flex; gap: 10px; }
+.mc-conf-icon { font-size: 16px; color: var(--blue); }
+.mc-conf-body { flex: 1; }
+.mc-conf-label { font-size: 10.5px; color: var(--blue); letter-spacing: 1px; text-transform: uppercase; font-weight: 700; margin-bottom: 3px; }
+.mc-conf-text { font-size: 13px; line-height: 1.4; color: var(--ink-soft); }
+
+.mc-timeline { padding: 0 var(--gutter) 20px; }
+.mc-tl-label { font-size: 10.5px; color: var(--ink-mute); letter-spacing: 1px; text-transform: uppercase; font-weight: 600; margin-bottom: 8px; }
+.mc-tl-events { display: flex; flex-direction: column; gap: 6px; }
+.mc-tl-event { display: flex; align-items: center; gap: 12px; }
+.mc-tl-time { width: 58px; font-size: 11px; color: var(--ink-mute); }
+.mc-tl-dot { width: 6px; height: 6px; border-radius: 6px; background: var(--ink-mute); flex-shrink: 0; }
+.mc-tl-dot--emph { background: var(--sky-rain); }
+.mc-tl-desc { font-size: 13px; color: var(--ink-soft); }
+.mc-tl-desc--emph { font-weight: 600; color: var(--ink); }

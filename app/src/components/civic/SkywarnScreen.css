@@ -1,0 +1,137 @@
+/* SkywarnScreen — prefix: skw- */
+
+.skw {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--paper);
+  font-family: var(--font);
+  color: var(--ink);
+  padding-bottom: 60px;
+}
+
+/* Sub-nav */
+.skw-nav {
+  padding: 10px var(--gutter) 14px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.skw-back {
+  font-size: 18px;
+  color: var(--ink-soft);
+  width: 20px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--font);
+  -webkit-tap-highlight-color: transparent;
+}
+.skw-nav-title {
+  flex: 1;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+.skw-nav-crumb {
+  font-size: 11px;
+  color: var(--ink-mute);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+/* Header */
+.skw-header {
+  padding: 14px var(--gutter);
+  border-bottom: 1px solid var(--line);
+}
+.skw-kicker {
+  font-size: 11px;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  font-weight: 600;
+}
+.skw-title {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin-top: 4px;
+}
+.skw-byline {
+  font-size: 13px;
+  color: var(--ink-mute);
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+/* Map */
+.skw-map {
+  position: relative;
+  height: 200px;
+  background: #e8e4dc;
+}
+
+/* Reports */
+.skw-reports {
+  padding: 14px 0 0;
+}
+.skw-report {
+  padding: 12px var(--gutter);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  gap: 12px;
+}
+.skw-report-time {
+  width: 56px;
+  font-size: 11px;
+  color: var(--ink-mute);
+  flex-shrink: 0;
+}
+.skw-report-body {
+  flex: 1;
+}
+.skw-report-desc {
+  font-size: 14px;
+  font-weight: 600;
+}
+.skw-report-meta {
+  font-size: 11.5px;
+  color: var(--ink-mute);
+  margin-top: 2px;
+}
+
+/* Submit CTA */
+.skw-cta-wrap {
+  padding: 16px var(--gutter) 20px;
+}
+.skw-cta {
+  background: var(--ink);
+  color: var(--paper);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+}
+.skw-cta-text {
+  flex: 1;
+}
+.skw-cta-title {
+  font-size: 14px;
+  font-weight: 600;
+}
+.skw-cta-sub {
+  font-size: 12px;
+  opacity: 0.7;
+  margin-top: 1px;
+}
+.skw-spotter-count {
+  font-size: 11px;
+  color: var(--ink-mute);
+  margin-top: 10px;
+  text-align: center;
+  line-height: 1.4;
+}

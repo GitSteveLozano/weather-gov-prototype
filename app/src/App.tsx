@@ -28,6 +28,13 @@ import { LightningScreen } from './components/events/LightningScreen';
 import { SnowScreen } from './components/events/SnowScreen';
 import { MoonTideScreen } from './components/events/MoonTideScreen';
 import { WindScreen } from './components/specialty/WindScreen';
+import { HourlyDetail } from './components/forecast/HourlyDetail';
+import { DailyDetail } from './components/forecast/DailyDetail';
+import { MinuteCast } from './components/agentic/MinuteCast';
+import { AuroraScreen } from './components/civic/AuroraScreen';
+import { FloodInundationScreen } from './components/civic/FloodInundationScreen';
+import { SkywarnScreen } from './components/civic/SkywarnScreen';
+import { SafetyDrawer } from './components/alerts/SafetyDrawer';
 import { ModeBar } from './components/common/ModeBar';
 import type { ModeId } from './components/common/ModeBar';
 import type { DataDensity, Alert } from './types/weather';
@@ -103,6 +110,13 @@ export default function App() {
   if (sub === 'snow') return <SnowScreen onBack={() => setSub(null)} />;
   if (sub === 'moon') return <MoonTideScreen onBack={() => setSub(null)} />;
   if (sub === 'wind') return <WindScreen data={data} onBack={() => setSub(null)} />;
+  if (sub === 'hourly') return <HourlyDetail data={data} onBack={() => setSub(null)} />;
+  if (sub === 'daily') return <DailyDetail data={data} onBack={() => setSub(null)} />;
+  if (sub === 'minutecast') return <MinuteCast onBack={() => setSub(null)} />;
+  if (sub === 'aurora') return <AuroraScreen onBack={() => setSub(null)} />;
+  if (sub === 'flood') return <FloodInundationScreen onBack={() => setSub(null)} />;
+  if (sub === 'skywarn') return <SkywarnScreen onBack={() => setSub(null)} />;
+  if (sub === 'safety') return <SafetyDrawer alertEvent="Wind Advisory" onBack={() => setSub(null)} />;
 
   const handleNavigate = useCallback((screen: string) => {
     setSub(screen as any);
