@@ -28,12 +28,10 @@ function GroupLabel({ children }: { children: React.ReactNode }) {
 /* ── Inline SVG icons (18x18, stroke 1.6) ── */
 const ICO = { w: 18, h: 18, sw: 1.6 };
 
-const StarIcon = () => (
   <svg width={ICO.w} height={ICO.h} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={ICO.sw} strokeLinejoin="round">
     <path d="M12 3l2.6 6 6.4.6-4.8 4.4 1.4 6.3L12 17l-5.6 3.3L7.8 14 3 9.6 9.4 9 12 3z" />
   </svg>
 );
-const SparkIcon = () => (
   <svg width={ICO.w} height={ICO.h} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={ICO.sw} strokeLinecap="round">
     <path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.5 5.5l2.8 2.8M15.7 15.7l2.8 2.8M18.5 5.5l-2.8 2.8M8.3 15.7l-2.8 2.8" />
   </svg>

@@ -97,6 +97,7 @@ export default function App() {
         {mode === 'home' && skin === 'cartographic' && <HomeCarto {...homeProps} />}
         {mode === 'home' && skin === 'data' && <HomeData {...homeProps} />}
         {mode === 'radar' && <RadarTab radarStyle={radarStyle} />}
+        {mode === 'more' && <MoreScreen onNavigate={(screen) => setSub(screen as SubScreen)} />}
       </div>
       <ModeBar active={mode} onChange={setMode} />
     </div>
