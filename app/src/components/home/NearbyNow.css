@@ -1,0 +1,15 @@
+.nn-strip { padding: 0 22px 16px; overflow-x: auto; }
+.nn-inner { display: flex; gap: 8px; min-width: max-content; }
+.nn-chip {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--paper-soft); border: 1px solid var(--line);
+  border-radius: 20px; padding: 6px 12px 6px 8px;
+  cursor: pointer; white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s;
+}
+.nn-chip:active { background: var(--line); }
+.nn-icon { font-size: 14px; flex-shrink: 0; }
+.nn-chip-body { display: flex; flex-direction: column; gap: 0; }
+.nn-chip-label { font-size: 9px; color: var(--ink-mute); letter-spacing: 0.6px; text-transform: uppercase; font-weight: 600; }
+.nn-chip-value { font-size: 11.5px; color: var(--ink-soft); font-weight: 500; }

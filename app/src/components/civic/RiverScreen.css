@@ -1,0 +1,206 @@
+/* RiverScreen — prefix: civ-rv- */
+
+.civ-rv {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--paper);
+  font-family: var(--font);
+  color: var(--ink);
+  padding-bottom: 60px;
+}
+
+/* Sub-navigation header */
+.civ-rv-nav {
+  padding: 10px var(--gutter) 14px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.civ-rv-back {
+  font-size: 18px;
+  color: var(--ink-soft);
+  width: 20px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--font);
+  -webkit-tap-highlight-color: transparent;
+}
+.civ-rv-nav-title {
+  flex: 1;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+.civ-rv-nav-crumb {
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--ink-mute);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+/* Header */
+.civ-rv-header {
+  padding: 14px var(--gutter);
+  border-bottom: 1px solid var(--line);
+}
+.civ-rv-kicker {
+  font-size: 11px;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  font-weight: 600;
+}
+.civ-rv-title {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin-top: 4px;
+  text-wrap: balance;
+  line-height: 1.15;
+}
+.civ-rv-byline {
+  font-size: 12.5px;
+  color: var(--ink-mute);
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+/* Current reading */
+.civ-rv-current {
+  padding: 18px var(--gutter) 8px;
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+}
+.civ-rv-level {
+  font-size: 54px;
+  font-weight: 300;
+  letter-spacing: -2px;
+  font-family: var(--mono);
+  line-height: 1;
+}
+.civ-rv-unit {
+  font-size: 20px;
+  color: var(--ink-mute);
+  margin-left: 4px;
+}
+.civ-rv-obs {
+  font-size: 12px;
+  color: var(--ink-mute);
+  font-family: var(--mono);
+  margin-top: 4px;
+}
+.civ-rv-trend {
+  font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.45;
+}
+
+/* Section label */
+.civ-rv-sec {
+  padding: 10px var(--gutter) 8px;
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--ink-mute);
+  letter-spacing: 1.2px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+/* Gauge list */
+.civ-rv-gauges {
+  padding: 0 var(--gutter);
+}
+.civ-rv-gauge {
+  padding: 14px 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.civ-rv-gauge + .civ-rv-gauge {
+  border-top: 1px solid var(--line);
+}
+.civ-rv-gauge-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 5px;
+  flex-shrink: 0;
+}
+.civ-rv-gauge-name {
+  font-size: 14px;
+  font-weight: 500;
+}
+.civ-rv-gauge-meta {
+  font-size: 11.5px;
+  color: var(--ink-mute);
+  font-family: var(--mono);
+  margin-top: 2px;
+}
+.civ-rv-gauge-level {
+  font-size: 16px;
+  font-weight: 700;
+  font-family: var(--mono);
+  min-width: 50px;
+  text-align: right;
+}
+
+/* Flood stages */
+.civ-rv-stages {
+  padding: 0 var(--gutter);
+}
+.civ-rv-stage {
+  padding: 9px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.civ-rv-stage + .civ-rv-stage {
+  border-top: 1px solid var(--line);
+}
+.civ-rv-stage-bar {
+  width: 6px;
+  height: 18px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.civ-rv-stage-name {
+  font-size: 13px;
+  font-weight: 500;
+  width: 80px;
+}
+.civ-rv-stage-val {
+  font-size: 13px;
+  font-weight: 700;
+  font-family: var(--mono);
+  width: 48px;
+}
+.civ-rv-stage-note {
+  font-size: 11.5px;
+  color: var(--ink-soft);
+  flex: 1;
+}
+
+/* Provenance footer */
+.civ-rv-prov {
+  margin: 16px var(--gutter) 26px;
+  padding: 12px 14px;
+  background: var(--paper-soft);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font-size: 11.5px;
+  font-family: var(--mono);
+  color: var(--ink-mute);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.civ-rv-prov-diamond {
+  color: var(--ink);
+}
+.civ-rv-prov-val {
+  color: var(--ink-soft);
+}

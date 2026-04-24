@@ -1,0 +1,107 @@
+/* WildfireScreen — prefix: civ-wf- */
+
+.civ-wf {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--paper);
+  font-family: var(--font);
+  color: var(--ink);
+  padding-bottom: 60px;
+}
+
+/* Sub-navigation header */
+.civ-wf-nav {
+  padding: 10px var(--gutter) 14px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.civ-wf-back {
+  font-size: 18px;
+  color: var(--ink-soft);
+  width: 20px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--font);
+  -webkit-tap-highlight-color: transparent;
+}
+.civ-wf-nav-title {
+  flex: 1;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+.civ-wf-nav-crumb {
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--ink-mute);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+/* Header */
+.civ-wf-header {
+  padding: 14px var(--gutter);
+  border-bottom: 1px solid var(--line);
+}
+.civ-wf-kicker {
+  font-size: 11px;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  font-weight: 600;
+}
+.civ-wf-title {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin-top: 4px;
+  text-wrap: balance;
+  line-height: 1.15;
+}
+.civ-wf-byline {
+  font-size: 12.5px;
+  color: var(--ink-mute);
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+/* Empty state */
+.civ-wf-empty {
+  padding: 28px var(--gutter);
+  text-align: center;
+}
+.civ-wf-empty-icon {
+  font-size: 48px;
+  color: var(--ink-mute);
+  margin-bottom: 12px;
+}
+.civ-wf-empty-msg {
+  font-size: 14px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+
+/* Provenance footer */
+.civ-wf-prov {
+  margin: 16px var(--gutter) 26px;
+  padding: 12px 14px;
+  background: var(--paper-soft);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font-size: 11.5px;
+  font-family: var(--mono);
+  color: var(--ink-mute);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.civ-wf-prov-diamond {
+  color: var(--ink);
+}
+.civ-wf-prov-val {
+  color: var(--ink-soft);
+}

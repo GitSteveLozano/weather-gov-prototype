@@ -1,0 +1,294 @@
+/* AirQualityScreen — prefix: civ-aq- */
+
+.civ-aq {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--paper);
+  font-family: var(--font);
+  color: var(--ink);
+  padding-bottom: 60px;
+}
+
+/* Sub-navigation header */
+.civ-aq-nav {
+  padding: 10px var(--gutter) 14px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.civ-aq-back {
+  font-size: 18px;
+  color: var(--ink-soft);
+  width: 20px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--font);
+  -webkit-tap-highlight-color: transparent;
+}
+.civ-aq-nav-title {
+  flex: 1;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+.civ-aq-nav-crumb {
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--ink-mute);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+/* Header */
+.civ-aq-header {
+  padding: 14px var(--gutter);
+  border-bottom: 1px solid var(--line);
+}
+.civ-aq-kicker {
+  font-size: 11px;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  font-weight: 600;
+}
+.civ-aq-title {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin-top: 4px;
+  text-wrap: balance;
+  line-height: 1.15;
+}
+.civ-aq-byline {
+  font-size: 12.5px;
+  color: var(--ink-mute);
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+/* Big AQI display */
+.civ-aq-hero {
+  padding: 18px var(--gutter) 6px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.civ-aq-gauge {
+  width: 110px;
+  height: 110px;
+  border-radius: 14px;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.civ-aq-gauge-label {
+  font-size: 10px;
+  font-family: var(--mono);
+  letter-spacing: 1.5px;
+  opacity: 0.85;
+}
+.civ-aq-gauge-val {
+  font-size: 44px;
+  font-weight: 700;
+  letter-spacing: -1.2px;
+  line-height: 1;
+}
+.civ-aq-gauge-cat {
+  font-size: 9px;
+  font-family: var(--mono);
+  margin-top: 2px;
+  opacity: 0.9;
+  letter-spacing: 0.5px;
+}
+.civ-aq-category {
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.civ-aq-guidance {
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin-top: 6px;
+  line-height: 1.45;
+}
+
+/* AQI scale strip */
+.civ-aq-scale {
+  padding: 14px var(--gutter) 8px;
+}
+.civ-aq-scale-bar {
+  display: flex;
+  height: 10px;
+  border-radius: 5px;
+  overflow: hidden;
+}
+.civ-aq-scale-track {
+  position: relative;
+  height: 24px;
+  margin-top: 4px;
+  font-size: 9.5px;
+  font-family: var(--mono);
+  color: var(--ink-mute);
+}
+.civ-aq-scale-marker {
+  position: absolute;
+  transform: translateX(-50%);
+  text-align: center;
+}
+.civ-aq-scale-tick {
+  width: 1px;
+  height: 6px;
+  background: var(--ink);
+  margin: 0 auto;
+}
+.civ-aq-scale-num {
+  color: var(--ink);
+  font-weight: 600;
+  margin-top: 1px;
+}
+
+/* Section label */
+.civ-aq-sec {
+  padding: 16px var(--gutter) 8px;
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--ink-mute);
+  letter-spacing: 1.2px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+/* Pollutant rows */
+.civ-aq-pollutants {
+  padding: 0 var(--gutter);
+}
+.civ-aq-pollutant {
+  padding: 12px 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.civ-aq-pollutant + .civ-aq-pollutant {
+  border-top: 1px solid var(--line);
+}
+.civ-aq-poll-id {
+  width: 52px;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: var(--mono);
+}
+.civ-aq-poll-name {
+  font-size: 13.5px;
+  font-weight: 500;
+}
+.civ-aq-poll-primary {
+  font-size: 9.5px;
+  font-family: var(--mono);
+  margin-left: 5px;
+  letter-spacing: 0.8px;
+}
+.civ-aq-poll-detail {
+  font-size: 11.5px;
+  color: var(--ink-mute);
+  font-family: var(--mono);
+  margin-top: 2px;
+}
+.civ-aq-poll-aqi {
+  font-size: 15px;
+  font-weight: 700;
+  font-family: var(--mono);
+  min-width: 36px;
+  text-align: right;
+}
+
+/* 4-day forecast */
+.civ-aq-forecast {
+  padding: 0 var(--gutter);
+  display: flex;
+  gap: 10px;
+}
+.civ-aq-fday {
+  flex: 1;
+  padding: 12px 8px;
+  border-radius: 10px;
+  text-align: center;
+}
+.civ-aq-fday-when {
+  font-size: 11px;
+  color: var(--ink-soft);
+  font-family: var(--mono);
+}
+.civ-aq-fday-val {
+  font-size: 22px;
+  font-weight: 700;
+  margin-top: 6px;
+}
+.civ-aq-fday-cat {
+  font-size: 10px;
+  color: var(--ink-mute);
+  font-family: var(--mono);
+  margin-top: 2px;
+}
+
+/* Sensors */
+.civ-aq-sensors {
+  padding: 0 var(--gutter);
+}
+.civ-aq-sensor {
+  padding: 10px 0;
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+}
+.civ-aq-sensor + .civ-aq-sensor {
+  border-top: 1px solid var(--line);
+}
+.civ-aq-sensor-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+.civ-aq-sensor-name {
+  font-size: 13px;
+  font-weight: 500;
+}
+.civ-aq-sensor-id {
+  font-size: 11px;
+  color: var(--ink-mute);
+  font-family: var(--mono);
+  margin-top: 1px;
+}
+.civ-aq-sensor-dist {
+  font-size: 11px;
+  color: var(--ink-soft);
+  font-family: var(--mono);
+}
+
+/* Provenance footer */
+.civ-aq-prov {
+  margin: 16px var(--gutter) 26px;
+  padding: 12px 14px;
+  background: var(--paper-soft);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font-size: 11.5px;
+  font-family: var(--mono);
+  color: var(--ink-mute);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.civ-aq-prov-diamond {
+  color: var(--ink);
+}
+.civ-aq-prov-val {
+  color: var(--ink-soft);
+}

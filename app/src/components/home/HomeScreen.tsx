@@ -3,6 +3,7 @@ import type { DepthLevel } from '../../App';
 import { SBWordmark } from '../shared/SBLogo';
 import { WxIcon, forecastToCondition } from '../shared/WxIcon';
 import { SeverityChip, nwsToSeverity } from '../shared/SeverityChip';
+import { NearbyNowStrip } from './NearbyNow';
 import './HomeScreen.css';
 
 interface Props {
@@ -166,6 +167,16 @@ export function HomeScreen({ data, depth, onOpenSettings, onOpenBrief, onOpenAsk
             </div>
             <div className="hm-dive-text">{data.hazards.forecasterDiscussion.text.slice(0, 400)}{data.hazards.forecasterDiscussion.text.length > 400 ? '…' : ''}</div>
           </div>
+        </>
+      )}
+
+      {/* ── Nearby & Now contextual chips (Scan + Dive) ── */}
+      {depth !== 'glance' && (
+        <>
+          <SectionLabel text="Nearby & now" />
+          <NearbyNowStrip data={data} onNavigate={(screen) => {
+            if (screen === 'marine') onOpenMarine?.();
+          }} />
         </>
       )}
 

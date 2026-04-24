@@ -7,6 +7,7 @@ import { HomeCarto } from './components/home/HomeCarto';
 import { HomeData } from './components/home/HomeData';
 import { RadarTab } from './components/radar/RadarTab';
 import type { RadarStyle } from './components/radar/RadarTab';
+import { MoreScreen } from './components/more/MoreScreen';
 import { Settings } from './components/settings/Settings';
 import { BriefScreen } from './components/agentic/BriefScreen';
 import { AskScreen } from './components/agentic/AskScreen';
