@@ -1,0 +1,163 @@
+/* SnowScreen — prefix: snow- */
+
+.snow {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--paper);
+  font-family: var(--font);
+  color: var(--ink);
+  padding-bottom: 40px;
+}
+
+/* Sub-navigation header */
+.snow-nav {
+  padding: 10px var(--gutter) 14px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.snow-back {
+  font-size: 18px;
+  color: var(--ink-soft);
+  width: 20px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--font);
+  -webkit-tap-highlight-color: transparent;
+}
+.snow-nav-title {
+  flex: 1;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+.snow-nav-crumb {
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--ink-mute);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+/* Masthead */
+.snow-masthead {
+  padding: 14px var(--gutter);
+  border-bottom: 1px solid var(--line);
+}
+.snow-label {
+  font-size: 11px;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  font-weight: 600;
+}
+.snow-title {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin-top: 4px;
+}
+.snow-subtitle {
+  font-size: 13px;
+  color: var(--ink-mute);
+  margin-top: 2px;
+}
+
+/* Probability section */
+.snow-prob-wrap {
+  padding: 18px var(--gutter) 14px;
+}
+.snow-prob {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px 14px 10px;
+}
+.snow-prob-header {
+  font-size: 10.5px;
+  color: var(--ink-mute);
+  font-family: var(--mono);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+.snow-prob-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+}
+.snow-prob-threshold {
+  width: 40px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--mono);
+}
+.snow-prob-track {
+  flex: 1;
+  height: 10px;
+  background: var(--paper-soft);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.snow-prob-fill {
+  height: 100%;
+  background: var(--sky-clear);
+  border-radius: 2px;
+}
+.snow-prob-pct {
+  width: 40px;
+  font-size: 12px;
+  color: var(--ink-mute);
+  font-family: var(--mono);
+  text-align: right;
+}
+
+/* Stats grid */
+.snow-grid {
+  padding: 0 var(--gutter) 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.snow-stat {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.snow-stat-label {
+  font-size: 10px;
+  color: var(--ink-mute);
+  font-family: var(--mono);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.snow-stat-val {
+  font-size: 17px;
+  font-weight: 600;
+  font-family: var(--mono);
+  margin-top: 4px;
+}
+.snow-stat-sub {
+  font-size: 11px;
+  color: var(--ink-mute);
+  margin-top: 2px;
+}
+
+/* Footer */
+.snow-footer {
+  padding: 14px var(--gutter) 8px;
+  font-size: 10px;
+  color: var(--ink-mute);
+  font-family: var(--mono);
+  letter-spacing: 0.8px;
+  border-top: 1px solid var(--line);
+  margin-top: 8px;
+  line-height: 1.5;
+}
