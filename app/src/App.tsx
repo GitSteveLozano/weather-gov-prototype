@@ -10,9 +10,13 @@ import type { RadarStyle } from './components/radar/RadarTab';
 import { Settings } from './components/settings/Settings';
 import { BriefScreen } from './components/agentic/BriefScreen';
 import { AskScreen } from './components/agentic/AskScreen';
+import { MarineScreen } from './components/specialty/MarineScreen';
+import { AviationScreen } from './components/specialty/AviationScreen';
+import { FireScreen } from './components/specialty/FireScreen';
+import { AlertDetail } from './components/alerts/AlertDetail';
 import { ModeBar } from './components/common/ModeBar';
 import type { ModeId } from './components/common/ModeBar';
-import type { DataDensity } from './types/weather';
+import type { DataDensity, Alert } from './types/weather';
 import './index.css';
 
 export type ThemeMode = 'light' | 'system' | 'dark';
@@ -39,6 +43,7 @@ export default function App() {
   const [onboarded, setOnboarded] = useState(() => load('sb-onboarded', false));
   const [mode, setMode] = useState<ModeId>('home');
   const [sub, setSub] = useState<SubScreen>(null);
+  const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
   const [theme, setTheme] = useState<ThemeMode>(() => load('sb-theme', 'system'));
   const [skin, setSkin] = useState<HomeSkin>(() => load('sb-skin', 'civic'));
   const [depth, setDepth] = useState<DepthLevel>(() => load('sb-depth-level', 'scan'));
@@ -55,6 +60,8 @@ export default function App() {
   const handleDepth = useCallback((d: DepthLevel) => { setDepth(d); save('sb-depth-level', d); }, []);
   const handleRadarStyle = useCallback((s: RadarStyle) => { setRadarStyle(s); save('sb-radar-style', s); }, []);
 
+  const openAlert = useCallback((alert: Alert) => { setSelectedAlert(alert); setSub('alert-detail'); }, []);
+
   if (!onboarded) return <Onboarding onComplete={handleOnboardingComplete} />;
 
   // Sub-screens (full-screen overlays)
@@ -65,22 +72,21 @@ export default function App() {
   );
   if (sub === 'brief') return <BriefScreen data={data} onBack={() => setSub(null)} />;
   if (sub === 'ask') return <AskScreen data={data} onBack={() => setSub(null)} />;
+  if (sub === 'marine') return <MarineScreen data={data} onBack={() => setSub(null)} />;
+  if (sub === 'aviation') return <AviationScreen onBack={() => setSub(null)} />;
+  if (sub === 'fire') return <FireScreen data={data} onBack={() => setSub(null)} />;
+  if (sub === 'alert-detail' && selectedAlert) return <AlertDetail alert={selectedAlert} onBack={() => { setSub(null); setSelectedAlert(null); }} />;
 
-  // Try to dynamically load specialty screens if they exist
-  // These will be added by the background agent — for now show a placeholder
-  if (sub === 'marine' || sub === 'aviation' || sub === 'fire') {
-    return (
-      <div style={{ minHeight: '100dvh', maxWidth: 430, margin: '0 auto', background: 'var(--paper)', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ padding: 14, borderBottom: '1px solid var(--line)', display: 'flex', alignItems: 'center', gap: 10 }}>
-          <button onClick={() => setSub(null)} style={{ background: 'none', border: 'none', fontSize: 24, color: 'var(--ink-soft)', cursor: 'pointer' }}>‹</button>
-          <span style={{ fontSize: 17, fontWeight: 600 }}>{sub === 'marine' ? 'Marine' : sub === 'aviation' ? 'Aviation' : 'Fire Weather'}</span>
-        </div>
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ink-mute)', fontSize: 14 }}>Coming soon</div>
-      </div>
-    );
-  }
-
-  const homeProps = { data, depth, onOpenSettings: () => setSub('settings'), onOpenBrief: () => setSub('brief'), onOpenAsk: () => setSub('ask') };
+  const homeProps = {
+    data, depth,
+    onOpenSettings: () => setSub('settings'),
+    onOpenBrief: () => setSub('brief'),
+    onOpenAsk: () => setSub('ask'),
+    onOpenMarine: () => setSub('marine'),
+    onOpenAviation: () => setSub('aviation'),
+    onOpenFire: () => setSub('fire'),
+    onOpenAlert: openAlert,
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh', maxWidth: 430, margin: '0 auto', background: 'var(--paper)' }}>

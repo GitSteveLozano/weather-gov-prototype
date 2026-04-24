@@ -1,4 +1,4 @@
-import type { WeatherData } from '../../types/weather';
+import type { WeatherData, Alert } from '../../types/weather';
 import type { DepthLevel } from '../../App';
 import { SBWordmark } from '../shared/SBLogo';
 import { WxIcon, forecastToCondition } from '../shared/WxIcon';
@@ -11,13 +11,17 @@ interface Props {
   onOpenSettings: () => void;
   onOpenBrief?: () => void;
   onOpenAsk?: () => void;
+  onOpenMarine?: () => void;
+  onOpenAviation?: () => void;
+  onOpenFire?: () => void;
+  onOpenAlert?: (alert: Alert) => void;
 }
 
 function formatHour(iso: string) {
   return new Date(iso).toLocaleString('en-US', { hour: 'numeric', hour12: true });
 }
 
-export function HomeScreen({ data, depth, onOpenSettings, onOpenBrief, onOpenAsk }: Props) {
+export function HomeScreen({ data, depth, onOpenSettings, onOpenBrief, onOpenAsk, onOpenMarine, onOpenAlert }: Props) {
   const { periods, hourly, alerts, env, point } = data;
   const p0 = periods[0];
 
@@ -71,7 +75,7 @@ export function HomeScreen({ data, depth, onOpenSettings, onOpenBrief, onOpenAsk
         const sev = nwsToSeverity(a.severity);
         const colors: Record<string, string> = { statement: 'var(--sev-statement)', advisory: 'var(--sev-advisory)', watch: 'var(--sev-watch)', warning: 'var(--sev-warning)', emergency: 'var(--sev-emergency)' };
         return (
-          <div key={i} className="hm-alert">
+          <div key={i} className="hm-alert" onClick={() => onOpenAlert?.(al)}>
             <div className="hm-alert-bar" style={{ background: colors[sev] }} />
             <div className="hm-alert-body">
               <SeverityChip level={sev} small />
@@ -161,6 +165,19 @@ export function HomeScreen({ data, depth, onOpenSettings, onOpenBrief, onOpenAsk
               </span>
             </div>
             <div className="hm-dive-text">{data.hazards.forecasterDiscussion.text.slice(0, 400)}{data.hazards.forecasterDiscussion.text.length > 400 ? '…' : ''}</div>
+          </div>
+        </>
+      )}
+
+      {/* ── Specialty products (Dive only) ── */}
+      {depth === 'dive' && (
+        <>
+          <SectionLabel text="Specialty products" />
+          <div className="hm-spec-grid">
+            {onOpenMarine && <div className="hm-spec-card" onClick={onOpenMarine}><span className="hm-spec-ico">🌊</span><span className="hm-spec-name">Marine</span></div>}
+            <div className="hm-spec-card"><span className="hm-spec-ico">✈️</span><span className="hm-spec-name">Aviation</span></div>
+            <div className="hm-spec-card"><span className="hm-spec-ico">🔥</span><span className="hm-spec-name">Fire</span></div>
+            <div className="hm-spec-card"><span className="hm-spec-ico">🌀</span><span className="hm-spec-name">Hurricane</span></div>
           </div>
         </>
       )}
