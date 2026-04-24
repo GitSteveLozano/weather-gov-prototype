@@ -22,6 +22,12 @@ import { EarthquakeScreen } from './components/civic/EarthquakeScreen';
 import { RiverScreen } from './components/civic/RiverScreen';
 import { WildfireScreen } from './components/civic/WildfireScreen';
 import { TsunamiScreen } from './components/civic/TsunamiScreen';
+import { HealthScreen } from './components/health/HealthScreen';
+import { HurricaneScreen } from './components/events/HurricaneScreen';
+import { LightningScreen } from './components/events/LightningScreen';
+import { SnowScreen } from './components/events/SnowScreen';
+import { MoonTideScreen } from './components/events/MoonTideScreen';
+import { WindScreen } from './components/specialty/WindScreen';
 import { ModeBar } from './components/common/ModeBar';
 import type { ModeId } from './components/common/ModeBar';
 import type { DataDensity, Alert } from './types/weather';
@@ -30,7 +36,7 @@ import './index.css';
 export type ThemeMode = 'light' | 'system' | 'dark';
 export type HomeSkin = 'civic' | 'atmospheric' | 'cartographic' | 'data';
 export type DepthLevel = 'glance' | 'scan' | 'dive';
-export type SubScreen = null | 'settings' | 'brief' | 'ask' | 'marine' | 'aviation' | 'fire' | 'alert-detail' | 'air-quality' | 'climate' | 'drought' | 'earthquake' | 'river' | 'wildfire' | 'tsunami';
+export type SubScreen = null | 'settings' | 'brief' | 'ask' | 'marine' | 'aviation' | 'fire' | 'alert-detail' | 'air-quality' | 'climate' | 'drought' | 'earthquake' | 'river' | 'wildfire' | 'tsunami' | 'health' | 'hurricane' | 'lightning' | 'snow' | 'moon' | 'wind';
 
 function load<T>(key: string, fallback: T): T {
   try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch { return fallback; }
@@ -91,6 +97,12 @@ export default function App() {
   if (sub === 'river') return <RiverScreen data={data} onBack={() => setSub(null)} />;
   if (sub === 'wildfire') return <WildfireScreen onBack={() => setSub(null)} />;
   if (sub === 'tsunami') return <TsunamiScreen onBack={() => setSub(null)} />;
+  if (sub === 'health') return <HealthScreen data={data} onBack={() => setSub(null)} />;
+  if (sub === 'hurricane') return <HurricaneScreen onBack={() => setSub(null)} />;
+  if (sub === 'lightning') return <LightningScreen onBack={() => setSub(null)} />;
+  if (sub === 'snow') return <SnowScreen onBack={() => setSub(null)} />;
+  if (sub === 'moon') return <MoonTideScreen onBack={() => setSub(null)} />;
+  if (sub === 'wind') return <WindScreen data={data} onBack={() => setSub(null)} />;
 
   const handleNavigate = useCallback((screen: string) => {
     setSub(screen as any);

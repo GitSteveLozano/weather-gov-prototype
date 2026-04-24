@@ -147,7 +147,7 @@ export function HomeScreen({ data, depth, onOpenSettings, onOpenBrief, onOpenAsk
           <div className="hm-cards">
             <MiniCard label="AIR QUALITY" value={env.aqi ?? '—'} unit="AQI" note={env.aqi != null ? (env.aqi <= 50 ? 'Good' : 'Moderate') : '—'} onClick={() => onNavigate?.('air-quality')} />
             <MiniCard label="UV INDEX" value={env.uv ?? '—'} note={env.uv != null ? (env.uv <= 2 ? 'Low' : env.uv <= 5 ? 'Moderate' : 'High') : '—'} onClick={() => onNavigate?.('climate')} />
-            <MiniCard label="WIND" value={env.windMph ?? '—'} unit="mph" note={env.windDir ?? '—'} onClick={() => onNavigate?.('marine')} />
+            <MiniCard label="WIND" value={env.windMph ?? '—'} unit="mph" note={env.windDir ?? '—'} onClick={() => onNavigate?.('wind')} />
             <MiniCard label="HUMIDITY" value={env.humidity ?? '—'} unit="%" note={env.humidity != null ? (env.humidity < 60 ? 'Comfortable' : 'Muggy') : '—'} />
             <MiniCard label="PRESSURE" value={env.pressure ?? '—'} unit="in" note="Steady" />
             <MiniCard label="VISIBILITY" value={env.visibMi ?? '—'} unit="mi" note={(env.visibMi ?? 0) >= 6 ? 'Clear' : 'Reduced'} />

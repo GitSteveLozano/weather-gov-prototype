@@ -1,0 +1,170 @@
+/* HealthScreen — prefix: health- */
+
+.health {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--paper);
+  font-family: var(--font);
+  color: var(--ink);
+  padding-bottom: 40px;
+}
+
+/* Sub-navigation header */
+.health-nav {
+  padding: 10px var(--gutter) 14px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.health-back {
+  font-size: 18px;
+  color: var(--ink-soft);
+  width: 20px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--font);
+  -webkit-tap-highlight-color: transparent;
+}
+.health-nav-title {
+  flex: 1;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+.health-nav-crumb {
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--ink-mute);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+/* Masthead */
+.health-masthead {
+  padding: 14px var(--gutter) 16px;
+  border-bottom: 1px solid var(--line);
+}
+.health-label {
+  font-size: 11px;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  font-weight: 600;
+}
+.health-title {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin-top: 4px;
+}
+
+/* AQI + UV pair cards */
+.health-pair {
+  padding: 16px var(--gutter);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.health-stat {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+.health-stat-label {
+  font-size: 10px;
+  color: var(--ink-mute);
+  font-family: var(--mono);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.health-stat-val {
+  font-size: 32px;
+  font-weight: 400;
+  letter-spacing: -1px;
+  line-height: 1;
+  margin-top: 4px;
+}
+.health-stat-sub {
+  font-size: 12px;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+/* Pollen section */
+.health-sec {
+  padding: 4px var(--gutter) 8px;
+  font-size: 10.5px;
+  color: var(--ink-mute);
+  font-family: var(--mono);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.health-pollen-wrap {
+  padding: 0 var(--gutter) 14px;
+}
+.health-pollen {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.health-pollen-row {
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid var(--line);
+}
+.health-pollen-row:last-child {
+  border-bottom: none;
+}
+.health-pollen-name {
+  flex: 1;
+  font-size: 13px;
+}
+.health-pollen-bars {
+  display: flex;
+  gap: 3px;
+}
+.health-pollen-bar {
+  width: 8px;
+  height: 14px;
+  border-radius: 2px;
+  background: var(--line);
+}
+.health-pollen-scale {
+  width: 70px;
+  font-size: 11px;
+  color: var(--ink-mute);
+  font-family: var(--mono);
+  text-align: right;
+}
+
+/* Tip card */
+.health-tip {
+  margin: 0 var(--gutter) 20px;
+  background: var(--blue-soft);
+  border: 1px solid rgba(29, 78, 216, 0.13);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--ink-soft);
+}
+
+/* Footer */
+.health-footer {
+  padding: 14px var(--gutter) 8px;
+  font-size: 10px;
+  color: var(--ink-mute);
+  font-family: var(--mono);
+  letter-spacing: 0.8px;
+  border-top: 1px solid var(--line);
+  margin-top: 8px;
+  line-height: 1.5;
+}

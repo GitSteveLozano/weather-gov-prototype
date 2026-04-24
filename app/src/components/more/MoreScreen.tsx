@@ -134,8 +134,18 @@ export function MoreScreen({ onNavigate }: Props) {
         <Row icon={<AnchorIcon />} title="Marine" sub="Coastal, offshore, high seas" onClick={() => onNavigate('marine')} />
         <Row icon={<PlaneIcon />} title="Aviation" sub="METAR, TAF, SIGMET" onClick={() => onNavigate('aviation')} />
         <Row icon={<FlameIcon />} title="Fire weather" sub="RH, wind, red-flag conditions" onClick={() => onNavigate('fire')} />
-        <Row icon={<WaveIcon />} title="Hurricane" sub="Active tropical systems" onClick={() => onNavigate('hurricane')} />
+        <Row icon={<WaveIcon />} title="Hurricane" sub="Cone of uncertainty, storm tracking" onClick={() => onNavigate('hurricane')} />
         <Row icon={<AuroraIcon />} title="Aurora" sub="Kp forecast, cloud cover" onClick={() => onNavigate('aurora')} />
+      </div>
+
+      {/* Health & conditions */}
+      <GroupLabel>Health & conditions</GroupLabel>
+      <div>
+        <Row icon={<PollenIcon />} title="Health" sub="Pollen, AQI, UV — outdoor safety" onClick={() => onNavigate('health')} />
+        <Row icon={<PollenIcon />} title="Wind detail" sub="Speed, gusts, direction, Beaufort" onClick={() => onNavigate('wind')} />
+        <Row icon={<AuroraIcon />} title="Moon & tides" sub="Phase, rise/set, tide chart" onClick={() => onNavigate('moon')} />
+        <Row icon={<FlameIcon />} title="Lightning" sub="Live strike map, nearest strike" onClick={() => onNavigate('lightning')} />
+        <Row icon={<WaveIcon />} title="Snow forecast" sub="Accumulation probabilities" onClick={() => onNavigate('snow')} />
       </div>
 
       {/* Civic data */}
@@ -145,6 +155,7 @@ export function MoreScreen({ onNavigate }: Props) {
         <Row icon={<DroughtIcon />} title="Drought" sub="U.S. Drought Monitor" onClick={() => onNavigate('drought')} />
         <Row icon={<QuakeIcon />} title="Earthquake" sub="USGS seismic data" onClick={() => onNavigate('earthquake')} />
         <Row icon={<RiverIcon />} title="River gauges" sub="AHPS hydrograph, nearest gauge" onClick={() => onNavigate('river')} />
+        <Row icon={<RiverIcon />} title="Climate" sub="Today vs. 30-year normal" onClick={() => onNavigate('climate')} />
       </div>
 
       {/* Settings */}
