@@ -1,0 +1,615 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Skybureau · Spec Sheet</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Fraunces:opsz,wght@9..144,500;9..144,700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --paper: #faf8f3;
+    --paper-soft: #f1efe9;
+    --ink: #1a1613;
+    --ink-soft: #5a544c;
+    --ink-mute: #8a8378;
+    --line: #e5e1d6;
+    --line-strong: #c9c4b5;
+    --blue: #2c5f8d;
+    --blue-soft: #e4ecf3;
+    --advisory: #d99a1a;
+    --watch: #c7651f;
+    --warning: #b02d2d;
+    --emergency: #8a1860;
+    --ai: #6b5a3a;
+    --mono: 'JetBrains Mono', ui-monospace, monospace;
+    --sans: 'Inter Tight', -apple-system, system-ui, sans-serif;
+    --serif: 'Fraunces', Georgia, serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--paper); color: var(--ink); font-family: var(--sans); font-size: 14px; line-height: 1.55; }
+
+  .page { max-width: 920px; margin: 0 auto; padding: 72px 56px 120px; }
+
+  /* Cover */
+  header.cover { border-bottom: 1.5px solid var(--ink); padding-bottom: 40px; margin-bottom: 48px; }
+  header.cover .eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--ink-mute); font-weight: 600; }
+  header.cover h1 { font-family: var(--serif); font-size: 64px; font-weight: 700; letter-spacing: -2px; margin: 8px 0 14px; line-height: 1; }
+  header.cover .deck { font-size: 18px; color: var(--ink-soft); max-width: 620px; line-height: 1.5; margin-bottom: 28px; }
+  header.cover .meta { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; font-size: 12px; font-family: var(--mono); color: var(--ink-soft); }
+  header.cover .meta dt { text-transform: uppercase; letter-spacing: 1.2px; font-size: 10px; color: var(--ink-mute); margin-bottom: 4px; }
+  header.cover .meta dd { margin: 0; font-weight: 500; color: var(--ink); }
+
+  /* Section */
+  section { margin: 56px 0; scroll-margin-top: 20px; }
+  section > h2 { font-family: var(--serif); font-size: 34px; font-weight: 700; letter-spacing: -0.8px; margin: 0 0 6px; }
+  section > .sectsub { color: var(--ink-soft); font-size: 14.5px; max-width: 700px; margin-bottom: 24px; }
+  section > h2 .num { font-family: var(--mono); font-size: 13px; color: var(--ink-mute); letter-spacing: 1.5px; margin-right: 14px; font-weight: 500; vertical-align: 7px; }
+
+  /* Screen block */
+  .screen { border: 1px solid var(--line); background: #fff; border-radius: 8px; margin: 18px 0; overflow: hidden; page-break-inside: avoid; }
+  .screen > h3 { margin: 0; padding: 16px 20px; font-size: 17px; font-weight: 600; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 12px; letter-spacing: -0.2px; }
+  .screen > h3 .id { font-family: var(--mono); font-size: 10px; letter-spacing: 1.2px; padding: 2px 7px; background: var(--paper-soft); border: 1px solid var(--line); border-radius: 3px; color: var(--ink-mute); font-weight: 500; text-transform: uppercase; }
+  .screen > h3 .kind { font-family: var(--mono); font-size: 10.5px; color: var(--ink-mute); font-weight: 500; letter-spacing: 0.8px; text-transform: uppercase; margin-left: auto; }
+
+  .screen-body { padding: 18px 20px 20px; display: grid; grid-template-columns: 180px 1fr; gap: 12px 20px; }
+  .screen-body dt { font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: 1px; color: var(--ink-mute); font-weight: 600; padding-top: 2px; }
+  .screen-body dd { margin: 0; font-size: 13.5px; color: var(--ink); line-height: 1.55; }
+
+  /* Tap table inside screen */
+  table.taps { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.taps th, table.taps td { text-align: left; padding: 7px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+  table.taps th { font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: 1px; color: var(--ink-mute); font-weight: 600; }
+  table.taps td { color: var(--ink); }
+  table.taps td:nth-child(1) { width: 210px; font-weight: 500; }
+  table.taps td:nth-child(2) { width: 60px; font-family: var(--mono); color: var(--ink-mute); font-size: 11.5px; }
+  table.taps td:nth-child(3) { color: var(--ink-soft); }
+  table.taps tr:last-child td { border-bottom: 0; }
+
+  /* Alert severity row */
+  .sev-scale { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 14px 0 20px; }
+  .sev { padding: 12px 14px; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
+  .sev .bar { height: 4px; border-radius: 4px; margin-bottom: 10px; }
+  .sev .name { font-weight: 600; font-size: 14px; }
+  .sev .desc { font-size: 11.5px; color: var(--ink-soft); margin-top: 4px; line-height: 1.4; }
+  .sev .treatment { font-size: 10.5px; color: var(--ink-mute); font-family: var(--mono); margin-top: 8px; letter-spacing: 0.5px; }
+
+  /* TOC */
+  nav.toc { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 20px 24px; margin: 28px 0 48px; page-break-inside: avoid; }
+  nav.toc h2 { font-family: var(--mono); font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--ink-mute); margin: 0 0 12px; font-weight: 600; }
+  nav.toc ol { list-style: none; padding: 0; margin: 0; columns: 2; column-gap: 40px; }
+  nav.toc ol li { margin: 4px 0; font-size: 13.5px; break-inside: avoid; }
+  nav.toc ol li a { color: var(--ink); text-decoration: none; display: flex; gap: 10px; padding: 3px 0; border-bottom: 1px dotted transparent; }
+  nav.toc ol li a:hover { border-bottom-color: var(--line-strong); }
+  nav.toc ol li a .n { font-family: var(--mono); font-size: 11px; color: var(--ink-mute); width: 22px; }
+  nav.toc ol li a .title { flex: 1; }
+  nav.toc ol li a .count { font-family: var(--mono); font-size: 10.5px; color: var(--ink-mute); }
+
+  /* Kind pill colors */
+  .kind-launch { color: #5a544c !important; }
+  .kind-home { color: var(--ink) !important; }
+  .kind-depth { color: var(--blue) !important; }
+  .kind-alert { color: var(--emergency) !important; }
+  .kind-settings { color: #5a544c !important; }
+  .kind-specialty { color: #3a6b7a !important; }
+  .kind-ai { color: var(--ai) !important; }
+  .kind-system { color: #666 !important; }
+
+  /* Inline code */
+  code, .code { font-family: var(--mono); font-size: 12.5px; padding: 1px 5px; background: var(--paper-soft); border: 1px solid var(--line); border-radius: 3px; color: var(--ink); }
+
+  /* Callout */
+  .callout { background: var(--paper-soft); border-left: 3px solid var(--ink); padding: 14px 18px; margin: 20px 0; font-size: 13.5px; color: var(--ink); border-radius: 0 6px 6px 0; }
+  .callout.warn { border-left-color: var(--emergency); background: #fff0ec; }
+  .callout strong { font-weight: 600; }
+
+  /* Footer */
+  footer { margin-top: 80px; padding-top: 24px; border-top: 1px solid var(--line); font-size: 12px; color: var(--ink-mute); font-family: var(--mono); letter-spacing: 0.3px; text-align: center; }
+
+  /* Print */
+  @media print {
+    html, body { background: #fff; }
+    .page { padding: 20px 0; max-width: none; }
+    section { page-break-inside: avoid; }
+    nav.toc a:hover { border-bottom-color: transparent; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="cover">
+  <div class="eyebrow">◇ Skybureau · Engineering handoff</div>
+  <h1>Spec sheet</h1>
+  <p class="deck">Every screen in the Skybureau weather app, its data contracts, its tap targets, and where each one leads. Companion to the App Map in the design canvas.</p>
+  <dl class="meta">
+    <div><dt>Version</dt><dd>1.0</dd></div>
+    <div><dt>Target</dt><dd>iOS 17+ · Android 14+</dd></div>
+    <div><dt>Screens</dt><dd>38</dd></div>
+    <div><dt>Last updated</dt><dd id="date">—</dd></div>
+  </dl>
+</header>
+
+<nav class="toc">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="#s01"><span class="n">01</span><span class="title">Interaction model</span></a></li>
+    <li><a href="#s02"><span class="n">02</span><span class="title">Launch & onboarding</span><span class="count">5</span></a></li>
+    <li><a href="#s03"><span class="n">03</span><span class="title">Home screen</span><span class="count">4</span></a></li>
+    <li><a href="#s04"><span class="n">04</span><span class="title">Depth system</span><span class="count">3</span></a></li>
+    <li><a href="#s05"><span class="n">05</span><span class="title">Alert system</span><span class="count">6</span></a></li>
+    <li><a href="#s06"><span class="n">06</span><span class="title">Forecast detail</span><span class="count">4</span></a></li>
+    <li><a href="#s07"><span class="n">07</span><span class="title">Settings tree</span><span class="count">5</span></a></li>
+    <li><a href="#s08"><span class="n">08</span><span class="title">Agentic · AI</span><span class="count">3</span></a></li>
+    <li><a href="#s09"><span class="n">09</span><span class="title">Specialty products</span><span class="count">5</span></a></li>
+    <li><a href="#s10"><span class="n">10</span><span class="title">System surfaces</span><span class="count">5</span></a></li>
+    <li><a href="#s11"><span class="n">11</span><span class="title">Data contracts</span></a></li>
+    <li><a href="#s12"><span class="n">12</span><span class="title">Accessibility targets</span></a></li>
+  </ol>
+</nav>
+
+<!-- ─────────────────────────────────────────────────────── -->
+<section id="s01">
+  <h2><span class="num">01</span>Interaction model</h2>
+  <div class="sectsub">The load-bearing rules that govern every screen. If you only read one section, read this.</div>
+
+  <div class="callout"><strong>Depth is the core gesture.</strong> Vertical swipe on the home canvas cycles <code>Glance → Scan → Dive</code>. Depth persists per-surface (home, radar, alerts) and survives app restart. Default is <code>Scan</code>, chosen during onboarding.</div>
+
+  <div class="callout"><strong>Back is always a chevron in the top-left.</strong> No gesture-only back. Detail screens always animate in from the right; sheets animate up from the bottom.</div>
+
+  <div class="callout warn"><strong>Life-safety is non-negotiable.</strong> Tornado Emergency, Flash Flood Emergency, and any <code>CAP</code> event flagged <code>Extreme + Immediate</code> bypass quiet hours, silent mode, and current screen. They render as full-screen takeovers that require an explicit acknowledgement tap.</div>
+
+  <h3 style="font-size: 14px; font-family: var(--mono); letter-spacing: 1.2px; text-transform: uppercase; color: var(--ink-mute); margin: 28px 0 12px;">Alert severity scale</h3>
+  <div class="sev-scale">
+    <div class="sev"><div class="bar" style="background: var(--ink-mute)"></div><div class="name">Statement</div><div class="desc">Informational; no action required</div><div class="treatment">AMBIENT · no badge</div></div>
+    <div class="sev"><div class="bar" style="background: var(--advisory)"></div><div class="name">Advisory</div><div class="desc">Inconvenience, not danger</div><div class="treatment">BANNER · tappable</div></div>
+    <div class="sev"><div class="bar" style="background: var(--watch)"></div><div class="name">Watch</div><div class="desc">Conditions favorable</div><div class="treatment">BANNER · push optional</div></div>
+    <div class="sev"><div class="bar" style="background: var(--warning)"></div><div class="name">Warning</div><div class="desc">Imminent or occurring</div><div class="treatment">BANNER · push · haptic</div></div>
+    <div class="sev"><div class="bar" style="background: var(--emergency)"></div><div class="name">Emergency</div><div class="desc">Life-safety; immediate action</div><div class="treatment">TAKEOVER · overrides silent</div></div>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────────────────── -->
+<section id="s02">
+  <h2><span class="num">02</span>Launch & onboarding</h2>
+  <div class="sectsub">First-run only. After completion, the user skips directly to Home on every subsequent launch. State is stored in secure device storage.</div>
+
+  <div class="screen">
+    <h3><span class="id">W-01</span>Welcome<span class="kind kind-launch">Launch</span></h3>
+    <div class="screen-body">
+      <dt>Purpose</dt><dd>Set the product's voice and explain what Skybureau is and isn't. One paragraph, max.</dd>
+      <dt>Tap targets</dt><dd>
+        <table class="taps">
+          <tr><td>Get started</td><td>→ W-02</td><td>Primary CTA</td></tr>
+          <tr><td>I already have an account</td><td>→ sheet</td><td>Restore prior settings via iCloud / Google Sign-In</td></tr>
+        </table>
+      </dd>
+      <dt>Notes</dt><dd>No account is required. The app works fully offline-first with on-device location.</dd>
+    </div>
+  </div>
+
+  <div class="screen">
+    <h3><span class="id">W-02</span>Permissions<span class="kind kind-launch">Launch</span></h3>
+    <div class="screen-body">
+      <dt>Purpose</dt><dd>Request precise location and push notifications. Both are optional but strongly recommended.</dd>
+      <dt>Tap targets</dt><dd>
+        <table class="taps">
+          <tr><td>Allow location</td><td>→ system</td><td>Triggers iOS/Android permission dialog</td></tr>
+          <tr><td>Allow notifications</td><td>→ system</td><td>Triggers system permission dialog</td></tr>
+          <tr><td>Continue</td><td>→ W-03</td><td>Proceeds even if denied</td></tr>
+          <tr><td>Skip</td><td>→ W-04</td><td>User can enter location manually</td></tr>
+        </table>
+      </dd>
+      <dt>Denied state</dt><dd>If location denied, onboarding routes to W-04 (search) with a banner explaining degraded functionality.</dd>
+    </div>
+  </div>
+
+  <div class="screen">
+    <h3><span class="id">W-03</span>Depth choice<span class="kind kind-launch">Launch</span></h3>
+    <div class="screen-body">
+      <dt>Purpose</dt><dd>User picks a default information density. Reversible later in Settings.</dd>
+      <dt>Tap targets</dt><dd>
+        <table class="taps">
+          <tr><td>Glance</td><td>→ W-04</td><td>Sets default depth; minimal data</td></tr>
+          <tr><td>Scan (recommended)</td><td>→ W-04</td><td>Sets default depth; balanced</td></tr>
+          <tr><td>Dive</td><td>→ W-04</td><td>Sets default depth; dense / pro</td></tr>
+        </table>
+      </dd>
+    </div>
+  </div>
+
+  <div class="screen">
+    <h3><span class="id">W-04</span>Location search<span class="kind kind-launch">Launch</span></h3>
+    <div class="screen-body">
+      <dt>Purpose</dt><dd>Set home location. If location permission was granted, the current city is preselected.</dd>
+      <dt>Tap targets</dt><dd>
+        <table class="taps">
+          <tr><td>Search field</td><td>inline</td><td>Autocomplete via Mapbox / Apple MapKit</td></tr>
+          <tr><td>Use current location</td><td>inline</td><td>Visible only if location granted</td></tr>
+          <tr><td>Result row</td><td>→ H-01</td><td>Sets home, closes onboarding</td></tr>
+        </table>
+      </dd>
+    </div>
+  </div>
+
+  <div class="screen">
+    <h3><span class="id">W-05</span>Notification priming (post-first-forecast)<span class="kind kind-launch">Launch</span></h3>
+    <div class="screen-body">
+      <dt>Purpose</dt><dd>If the user skipped push permission at W-02, re-prompt contextually after they see their first forecast. Stop asking after two declines.</dd>
+      <dt>Trigger</dt><dd>On fourth app open or when first significant alert is available for home location, whichever comes first.</dd>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────────────────── -->
+<section id="s03">
+  <h2><span class="num">03</span>Home screen</h2>
+  <div class="sectsub">One information architecture, four visual directions. Pick one at launch as the product skin; IA is identical.</div>
+
+  <div class="screen">
+    <h3><span class="id">H-01</span>Home · Civic Modern (A)<span class="kind kind-home">Home</span></h3>
+    <div class="screen-body">
+      <dt>Purpose</dt><dd>Editorial, type-first treatment. Default for users who want newspaper-grade clarity.</dd>
+      <dt>Data contract</dt><dd>NWS gridpoint forecast (hourly + daily), active CAP alerts, radar tile URL. All cached locally for 15 min.</dd>
+      <dt>Tap targets</dt><dd>
+        <table class="taps">
+          <tr><td>Temperature hero</td><td>→ D-03</td><td>Opens Dive view with full hourly breakdown</td></tr>
+          <tr><td>Hourly chip strip</td><td>→ F-01</td><td>Horizontal scroll; tap any chip opens Hourly Detail at that hour</td></tr>
+          <tr><td>10-day forecast card</td><td>→ F-02</td><td>Full 10-day outlook</td></tr>
+          <tr><td>Radar preview</td><td>→ F-03</td><td>Full-screen radar</td></tr>
+          <tr><td>Alert banner</td><td>→ A-05</td><td>Single alert detail; present only if active CAP</td></tr>
+          <tr><td>⚙︎ icon (top-right)</td><td>→ S-01</td><td>Settings index</td></tr>
+          <tr><td>Location name (top)</td><td>→ sheet</td><td>Saved locations switcher</td></tr>
+          <tr><td>Swipe up / down</td><td>cycles depth</td><td>Glance ↔ Scan ↔ Dive</td></tr>
+        </table>
+      </dd>
+    </div>
+  </div>
+
+  <div class="screen">
+    <h3><span class="id">H-02</span>Home · Atmospheric (B)<span class="kind kind-home">Home</span></h3>
+    <div class="screen-body">
+      <dt>Purpose</dt><dd>Time-of-day gradient sky; glass cards over ambient weather. Emotive direction.</dd>
+      <dt>Conditional rendering</dt><dd>Backdrop pulls from a lookup of 12 condition × 4 time-of-day palettes. Reduce-motion respects system setting and stills the ambient motion layer.</dd>
+      <dt>Tap targets</dt><dd>Same set as H-01. Alert banner is rendered with slight extra opacity to remain legible over the sky.</dd>
+    </div>
+  </div>
+
+  <div class="screen">
+    <h3><span class="id">H-03</span>Home · Cartographic (C)<span class="kind kind-home">Home</span></h3>
+    <div class="screen-body">
+      <dt>Purpose</dt><dd>Map is the hero. For users who live in radar / storm chasers.</dd>
+      <dt>Tap targets</dt><dd>
+        <table class="taps">
+          <tr><td>Map body</td><td>→ F-03</td><td>Full radar; same data as preview</td></tr>
+          <tr><td>Floating data chips</td><td>→ F-01…F-04</td><td>Temperature, wind, precip — each opens its Dive detail</td></tr>
+          <tr><td>Layer toggle (bottom-right)</td><td>inline</td><td>Cycles radar / satellite / temperature layer</td></tr>
+        </table>
+      </dd>
+    </div>
+  </div>
+
+  <div class="screen">
+    <h3><span class="id">H-04</span>Home · Data-forward (D)<span class="kind kind-home">Home</span></h3>
+    <div class="screen-body">
+      <dt>Purpose</dt><dd>Dashboard / terminal aesthetic. Bloomberg for weather.</dd>
+      <dt>Notes</dt><dd>Opens at <code>Dive</code> depth by default regardless of user setting. Respects <code>preferredDepth</code> on second open.</dd>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────────────────── -->
+<section id="s04">
+  <h2><span class="num">04</span>Depth system</h2>
+  <div class="sectsub">Three information densities on the same forecast data. Gesture-driven, not menu-driven.</div>
+
+  <div class="screen">
+    <h3><span class="id">D-01</span>Glance<span class="kind kind-depth">Depth</span></h3>
+    <div class="screen-body">
+      <dt>Contents</dt><dd>Big temperature number, one-sentence natural-language summary, single hero icon, any active alert banner. Nothing else.</dd>
+      <dt>Intent</dt><dd>Morning-glance use case. Read in under 1 second.</dd>
+    </div>
+  </div>
+  <div class="screen">
+    <h3><span class="id">D-02</span>Scan<span class="kind kind-depth">Depth</span></h3>
+    <div class="screen-body">
+      <dt>Contents</dt><dd>Hero temperature, 12-hour chip strip, 7-day mini, radar preview, AQI + UV pair, alerts. This is the default.</dd>
+    </div>
+  </div>
+  <div class="screen">
+    <h3><span class="id">D-03</span>Dive<span class="kind kind-depth">Depth</span></h3>
+    <div class="screen-body">
+      <dt>Contents</dt><dd>Everything in Scan plus wind/pressure/humidity trend sparklines, model confidence bands, 10-day, and (when a convective watch is active) SPC outlook inset.</dd>
+      <dt>Notes</dt><dd>Dive surfaces provenance pills — every data card shows <code>◇ source · lead time · update time</code>.</dd>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────────────────── -->
+<section id="s05">
+  <h2><span class="num">05</span>Alert system</h2>
+  <div class="sectsub">From subtle banner to full-screen takeover. The escalation is controlled by the NWS CAP event severity + urgency fields, mapped to our five-level scale.</div>
+
+  <div class="screen">
+    <h3><span class="id">A-01</span>Ambient statement<span class="kind kind-alert">Alert</span></h3>
+    <div class="screen-body">
+      <dt>Trigger</dt><dd>CAP event severity = <code>Minor</code>, urgency = <code>Future</code>.</dd>
+      <dt>Treatment</dt><dd>Inline text below hero; no color accent. Not a tap target.</dd>
+    </div>
+  </div>
+  <div class="screen">
+    <h3><span class="id">A-02</span>Advisory banner<span class="kind kind-alert">Alert</span></h3>
+    <div class="screen-body">
+      <dt>Trigger</dt><dd>CAP severity = <code>Moderate</code>.</dd>
+      <dt>Treatment</dt><dd>Yellow pill at top of home. Tap opens A-05.</dd>
+    </div>
+  </div>
+  <div class="screen">
+    <h3><span class="id">A-03</span>Watch banner<span class="kind kind-alert">Alert</span></h3>
+    <div class="screen-body">
+      <dt>Trigger</dt><dd>CAP severity = <code>Severe</code>, urgency = <code>Expected</code>.</dd>
+      <dt>Treatment</dt><dd>Orange banner. Triggers push if enabled.</dd>
+    </div>
+  </div>
+  <div class="screen">
+    <h3><span class="id">A-04</span>Warning banner<span class="kind kind-alert">Alert</span></h3>
+    <div class="screen-body">
+      <dt>Trigger</dt><dd>CAP severity = <code>Severe</code>, urgency = <code>Immediate</code>.</dd>
+      <dt>Treatment</dt><dd>Red banner, haptic on appearance. Push. Long-press to dismiss (session only).</dd>
+    </div>
+  </div>
+  <div class="screen">
+    <h3><span class="id">A-05</span>Single alert detail<span class="kind kind-alert">Alert</span></h3>
+    <div class="screen-body">
+      <dt>Contents</dt><dd>Full CAP text (headline, description, instruction), affected area polygon on map, expiration countdown, <em>Safety drawer</em> link.</dd>
+      <dt>Tap targets</dt><dd>
+        <table class="taps">
+          <tr><td>What to do</td><td>→ A-07</td><td>Safety drawer</td></tr>
+          <tr><td>Share</td><td>→ system</td><td>Share sheet; deep-link to alert</td></tr>
+          <tr><td>View on map</td><td>→ F-03</td><td>Full radar with polygon overlay</td></tr>
+        </table>
+      </dd>
+    </div>
+  </div>
+  <div class="screen">
+    <h3><span class="id">A-06</span>Emergency takeover<span class="kind kind-alert">Alert</span></h3>
+    <div class="screen-body">
+      <dt>Trigger</dt><dd>CAP severity = <code>Extreme</code>, urgency = <code>Immediate</code>. (Tornado Emergency, Flash Flood Emergency, specific civil emergencies.)</dd>
+      <dt>Treatment</dt><dd>Full-screen magenta takeover. Bypasses silent mode and quiet hours. Requires explicit acknowledgement tap to dismiss; cannot be swipe-dismissed.</dd>
+      <dt>Notes</dt><dd>Logs acknowledgement with timestamp. Useful for testing by support.</dd>
+    </div>
+  </div>
+  <div class="screen">
+    <h3><span class="id">A-07</span>Safety drawer<span class="kind kind-alert">Alert</span></h3>
+    <div class="screen-body">
+      <dt>Contents</dt><dd>Plain-language what-to-do for this specific hazard type. Sourced from Ready.gov + NWS safety pages; curated in-repo, not scraped at runtime.</dd>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────────────────── -->
+<section id="s06">
+  <h2><span class="num">06</span>Forecast detail</h2>
+  <div class="sectsub">Tapping a card on Home opens its dedicated detail screen. All detail screens support depth — Dive adds model confidence and provenance.</div>
+
+  <div class="screen">
+    <h3><span class="id">F-01</span>Hourly detail<span class="kind kind-depth">Depth</span></h3>
+    <div class="screen-body">
+      <dt>Contents</dt><dd>48-hour temperature + precip + wind strip. Minute-cast inset for next 60 min when precip is near.</dd>
+    </div>
+  </div>
+  <div class="screen">
+    <h3><span class="id">F-02</span>10-day forecast<span class="kind kind-depth">Depth</span></h3>
+    <div class="screen-body">
+      <dt>Contents</dt><dd>Day rows with hi/lo, precip chance, icon, confidence band (Dive only).</dd>
+    </div>
+  </div>
+  <div class="screen">
+    <h3><span class="id">F-03</span>Radar · full<span class="kind kind-depth">Depth</span></h3>
+    <div class="screen-body">
+      <dt>Contents</dt><dd>MRMS tiled radar, 2-hr animated loop, layer toggle (reflectivity / velocity / satellite / temperature / lightning). Alert polygons overlaid if active.</dd>
+    </div>
+  </div>
+  <div class="screen">
+    <h3><span class="id">F-04</span>Wind · Dive<span class="kind kind-depth">Depth</span></h3>
+    <div class="screen-body">
+      <dt>Contents</dt><dd>Speed + gust sparklines, compass rose, pressure trend, ensemble spread.</dd>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────────────────── -->
+<section id="s07">
+  <h2><span class="num">07</span>Settings tree</h2>
+  <div class="sectsub">Settings index is a list of categories. Each row pushes a focused detail screen. No nested sub-menus more than one level deep.</div>
+
+  <div class="screen">
+    <h3><span class="id">S-01</span>Settings · index<span class="kind kind-settings">Settings</span></h3>
+    <div class="screen-body">
+      <dt>Rows</dt><dd>Depth default · Units · Locations · Alert categories · Notification timing · Brief personalization · Accessibility · Specialty opt-in · Data sources · Location privacy · Export my data.</dd>
+    </div>
+  </div>
+  <div class="screen">
+    <h3><span class="id">S-02</span>Alert categories<span class="kind kind-settings">Settings</span></h3>
+    <div class="screen-body">
+      <dt>Contents</dt><dd>12 NWS product types grouped by hazard class. Life-safety row is locked ON and shows a <code>locked</code> pill.</dd>
+    </div>
+  </div>
+  <div class="screen">
+    <h3><span class="id">S-03</span>Notification timing<span class="kind kind-settings">Settings</span></h3>
+    <div class="screen-body">
+      <dt>Contents</dt><dd>Morning brief time, quiet hours window, precip nowcast lead time, routine windows (commute, dog walk).</dd>
+      <dt>Data write</dt><dd>Every change posts <code>settings.updated</code> event to the notification scheduler.</dd>
+    </div>
+  </div>
+  <div class="screen">
+    <h3><span class="id">S-04</span>Brief personalization<span class="kind kind-settings">Settings</span></h3>
+    <div class="screen-body">
+      <dt>Contents</dt><dd>Coverage toggles, commute route + mode, wardrobe thresholds (sliders), sensitivities (pollen, AQI, migraine pressure), tone + reading level.</dd>
+    </div>
+  </div>
+  <div class="screen">
+    <h3><span class="id">S-05</span>Accessibility<span class="kind kind-settings">Settings</span></h3>
+    <div class="screen-body">
+      <dt>Contents</dt><dd>Text size (6 stops), bold weight, line spacing, high contrast, reduce transparency, color-blind palette picker, reduce motion, audio playback rate, verbose screen-reader labels.</dd>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────────────────── -->
+<section id="s08">
+  <h2><span class="num">08</span>Agentic · AI</h2>
+  <div class="sectsub">Three careful AI moves. Every output shows sources; none fabricate numbers. All generation happens server-side with deterministic fallbacks.</div>
+
+  <div class="screen">
+    <h3><span class="id">AI-01</span>Skybureau Brief<span class="kind kind-ai">AI</span></h3>
+    <div class="screen-body">
+      <dt>Trigger</dt><dd>Daily at user's configured brief time (default 6:45 AM local). Also surfaced as a home card between 5–10 AM.</dd>
+      <dt>Contents</dt><dd>Templated paragraphs filled with real forecast values. Sections shown are controlled by S-04 toggles.</dd>
+      <dt>Fallback</dt><dd>If generation fails, render a structured template with raw forecast values — never show an empty or hallucinated brief.</dd>
+    </div>
+  </div>
+  <div class="screen">
+    <h3><span class="id">AI-02</span>Ask Skybureau<span class="kind kind-ai">AI</span></h3>
+    <div class="screen-body">
+      <dt>Purpose</dt><dd>Conversational Q&A scoped strictly to weather, location, and forecast provenance. Refuses unrelated queries.</dd>
+      <dt>Transparency</dt><dd>Every answer includes a source pill (NWS · ECMWF · HRRR · etc.) and the timestamp of the underlying data.</dd>
+    </div>
+  </div>
+  <div class="screen">
+    <h3><span class="id">AI-03</span>Minute-cast<span class="kind kind-ai">AI</span></h3>
+    <div class="screen-body">
+      <dt>Purpose</dt><dd>60-minute precipitation nowcast with confidence bands. Surfaced automatically when precip is starting / ending within 90 minutes.</dd>
+      <dt>Data</dt><dd>MRMS + HRRR blend; confidence band rendered from ensemble spread.</dd>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────────────────── -->
+<section id="s09">
+  <h2><span class="num">09</span>Specialty products</h2>
+  <div class="sectsub">Opt-in surfaces for specific user groups. Disabled by default; toggled in S-01 → Specialty opt-in. Once enabled, they add a Home chip and relevant push categories.</div>
+
+  <div class="screen">
+    <h3><span class="id">SP-01</span>Marine · Coastal<span class="kind kind-specialty">Specialty</span></h3>
+    <div class="screen-body">
+      <dt>Contents</dt><dd>Wave height, swell period + direction, water temp, tide curve, visibility, small-craft advisory.</dd>
+    </div>
+  </div>
+  <div class="screen">
+    <h3><span class="id">SP-02</span>Marine · Offshore / High seas<span class="kind kind-specialty">Specialty</span></h3>
+    <div class="screen-body">
+      <dt>Contents</dt><dd>OPC bulletins, 500-mb analysis, ice edge (high seas only).</dd>
+    </div>
+  </div>
+  <div class="screen">
+    <h3><span class="id">SP-03</span>Aviation<span class="kind kind-specialty">Specialty</span></h3>
+    <div class="screen-body">
+      <dt>Contents</dt><dd>METAR, TAF (decoded + raw toggle), PIREPs within 50 nm, ceiling + visibility flight-category strip.</dd>
+    </div>
+  </div>
+  <div class="screen">
+    <h3><span class="id">SP-04</span>Fire weather<span class="kind kind-specialty">Specialty</span></h3>
+    <div class="screen-body">
+      <dt>Contents</dt><dd>Red Flag criteria rubric (RH, wind, fuel moisture), spot forecast request link.</dd>
+    </div>
+  </div>
+  <div class="screen">
+    <h3><span class="id">SP-05</span>Hurricane · Aurora · Flood · SKYWARN<span class="kind kind-specialty">Specialty</span></h3>
+    <div class="screen-body">
+      <dt>Contents</dt><dd>NHC cone, SWPC Kp forecast, NWPS inundation, community spotter reports. Each is a standalone opt-in surface.</dd>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────────────────── -->
+<section id="s10">
+  <h2><span class="num">10</span>System surfaces</h2>
+  <div class="sectsub">Things that live outside the app itself: lock screen, widgets, watch, push.</div>
+
+  <div class="screen">
+    <h3><span class="id">SY-01</span>Lock screen live activity<span class="kind kind-system">System</span></h3>
+    <div class="screen-body">
+      <dt>Use cases</dt><dd>Active alert countdown, minute-cast (rain in 12 min), storm tracking.</dd>
+    </div>
+  </div>
+  <div class="screen">
+    <h3><span class="id">SY-02</span>Home widgets<span class="kind kind-system">System</span></h3>
+    <div class="screen-body">
+      <dt>Sizes</dt><dd>Small (current + icon), medium (12-hr strip), large (full day + alert).</dd>
+    </div>
+  </div>
+  <div class="screen">
+    <h3><span class="id">SY-03</span>Apple Watch face<span class="kind kind-system">System</span></h3>
+    <div class="screen-body">
+      <dt>Complications</dt><dd>Temp + condition, precip next 60 min, UV, wind. Rendered with watchOS native controls.</dd>
+    </div>
+  </div>
+  <div class="screen">
+    <h3><span class="id">SY-04</span>Push notifications<span class="kind kind-system">System</span></h3>
+    <div class="screen-body">
+      <dt>Categories</dt><dd>Brief · Nowcast · Alert (5 severities) · Routine · Specialty. Each maps to a separate iOS/Android notification category so users can tune them in system settings too.</dd>
+    </div>
+  </div>
+  <div class="screen">
+    <h3><span class="id">SY-05</span>Saved locations<span class="kind kind-system">System</span></h3>
+    <div class="screen-body">
+      <dt>Purpose</dt><dd>Home, Work, and up to 6 travel locations. Tap any to switch home view to that city. Long-press to reorder.</dd>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────────────────── -->
+<section id="s11">
+  <h2><span class="num">11</span>Data contracts</h2>
+  <div class="sectsub">Every data source used by the app. All are public-service feeds; no commercial APIs required for core function.</div>
+
+  <table class="taps" style="margin-top: 12px;">
+    <tr><th>Source</th><th>Refresh</th><th>Used in</th></tr>
+    <tr><td>NWS Gridpoint Forecast</td><td>1 hr</td><td>Home · Hourly · 10-day</td></tr>
+    <tr><td>NWS CAP Alerts (Atom/JSON)</td><td>2 min</td><td>All alert surfaces</td></tr>
+    <tr><td>MRMS Radar Tiles</td><td>2 min</td><td>Radar preview + full</td></tr>
+    <tr><td>HRRR (NOMADS)</td><td>1 hr</td><td>Confidence bands · Minute-cast blend</td></tr>
+    <tr><td>ECMWF HRES (licensed)</td><td>12 hr</td><td>Dive · 10-day blend</td></tr>
+    <tr><td>SPC Convective Outlook</td><td>3 hr</td><td>Dive when watch active</td></tr>
+    <tr><td>AirNow AQI</td><td>1 hr</td><td>Scan + Dive air quality chip</td></tr>
+    <tr><td>USGS Hydro</td><td>15 min</td><td>Flood specialty</td></tr>
+    <tr><td>NHC Storm Cones</td><td>3–6 hr</td><td>Hurricane specialty</td></tr>
+    <tr><td>SWPC Kp / Aurora</td><td>15 min</td><td>Aurora specialty</td></tr>
+    <tr><td>NDBC Buoy / CO-OPS Tides</td><td>6 min</td><td>Marine specialty</td></tr>
+    <tr><td>NOAA Aviation (METAR/TAF)</td><td>1 hr / 6 hr</td><td>Aviation specialty</td></tr>
+  </table>
+
+  <div class="callout" style="margin-top: 24px;">
+    <strong>Caching.</strong> Every feed is cached locally for at least 2× its refresh interval. The app opens with cached data instantly and updates in the background. Every card renders its source + lead time + update time on Dive.
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────────────────── -->
+<section id="s12">
+  <h2><span class="num">12</span>Accessibility targets</h2>
+  <div class="sectsub">Public-service product: must meet WCAG 2.2 AA at minimum, with explicit additional commitments below.</div>
+
+  <div class="screen">
+    <div class="screen-body">
+      <dt>Text contrast</dt><dd>All text meets 4.5:1 at Default size; 3:1 for large text. High-contrast mode pushes this to 7:1.</dd>
+      <dt>Text sizing</dt><dd>Six stops (XS–XXL) plus respect for system Dynamic Type / fontScale. No text is baked into SVG — all labels are real DOM nodes.</dd>
+      <dt>Color-blind</dt><dd>Severity scale has a non-color redundancy (pattern/icon) on alert banners. Three alt palettes ship (Deuter/Prota/Tritan).</dd>
+      <dt>Motion</dt><dd>Reduce-motion stills ambient sky motion, plays radar at 1× only, and disables Depth-cycle gesture animation.</dd>
+      <dt>Screen reader</dt><dd>Every numeric reading is announced with its unit. Radar frames have spatial-narration alt text ("storm cell moving northeast at 35 mph, 12 miles west of you").</dd>
+      <dt>Hit targets</dt><dd>Minimum 44×44 pt on iOS, 48×48 dp on Android.</dd>
+      <dt>Audio</dt><dd>All brief and alert copy is available as read-aloud using the system voice; user can tune speaking rate (0.8–1.5×).</dd>
+    </div>
+  </div>
+</section>
+
+<footer>
+  Skybureau v1.0 · Spec sheet · a public-service weather project · not affiliated with NOAA or NWS
+</footer>
+
+</div>
+
+<script>
+  document.getElementById('date').textContent = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+</script>
+</body>
+</html>

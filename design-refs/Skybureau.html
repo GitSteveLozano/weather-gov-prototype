@@ -24,6 +24,7 @@
 <script type="text/babel" src="agentic.jsx"></script>
 <script type="text/babel" src="civic.jsx"></script>
 <script type="text/babel" src="spc.jsx"></script>
+<script type="text/babel" src="appmap.jsx"></script>
 
 <script type="text/babel">
 /* global DesignCanvas, DCSection, DCArtboard, IOSDevice, HomeCivic, HomeAtmos, HomeCarto, HomeData,
@@ -34,7 +35,7 @@
    BriefHome, AskScreen, MinuteCast, LockScreen, WidgetsScreen, SavedLocations, WatchFace,
    ConfidenceForecast, HealthScreen, HurricaneScreen, LightningScreen, SnowScreen, MoonTideScreen,
    SeasonalOutlook, HeatRiskScreen, AuroraScreen, FloodScreen, SkywarnScreen,
-   SafetyDrawer, HistoricalScreen, ProvenanceScreen, SPCOutlook */
+   SafetyDrawer, HistoricalScreen, ProvenanceScreen, SPCOutlook, AppMap */
 
 // iPhone-like device mini-frame (402x874 scaled via the artboard wrapper)
 function Phone({ children, dark = false }) {
@@ -50,6 +51,13 @@ function App() {
 
       <DCSection id="intro" title="Skybureau · weather, redesigned"
         subtitle="A modern public-service forecast. One app, three depths — Glance, Scan, Dive. Original brand; not affiliated with NOAA/NWS.">
+      </DCSection>
+
+      <DCSection id="appmap" title="App map · how it flows"
+        subtitle="Every screen and every tap target. Use this to orient before diving into individual artboards. Pairs with the Skybureau spec sheet for handoff.">
+        <DCArtboard id="appmap" label="App map · full flow" width={1840} height={1080}>
+          <AppMap />
+        </DCArtboard>
       </DCSection>
 
       <DCSection id="homes" title="Home screen · four directions"
