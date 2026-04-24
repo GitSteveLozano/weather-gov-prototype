@@ -35,6 +35,7 @@ import { AuroraScreen } from './components/civic/AuroraScreen';
 import { FloodInundationScreen } from './components/civic/FloodInundationScreen';
 import { SkywarnScreen } from './components/civic/SkywarnScreen';
 import { SafetyDrawer } from './components/alerts/SafetyDrawer';
+import { EmergencyTakeover } from './components/alerts/EmergencyTakeover';
 import { ModeBar } from './components/common/ModeBar';
 import type { ModeId } from './components/common/ModeBar';
 import type { DataDensity, Alert } from './types/weather';
@@ -69,6 +70,7 @@ export default function App() {
   const [skin, setSkin] = useState<HomeSkin>(() => load('sb-skin', 'civic'));
   const [depth, setDepth] = useState<DepthLevel>(() => load('sb-depth-level', 'scan'));
   const [radarStyle, setRadarStyle] = useState<RadarStyle>(() => load('sb-radar-style', 'clean'));
+  const [emergencyDismissed, setEmergencyDismissed] = useState(false);
 
   const handleOnboardingComplete = useCallback((d: DataDensity) => {
     save('sb-onboarded', true);
@@ -145,6 +147,13 @@ export default function App() {
         {mode === 'more' && <MoreScreen onNavigate={(screen) => setSub(screen as SubScreen)} />}
       </div>
       <ModeBar active={mode} onChange={setMode} />
+      {/* Emergency takeover — renders over everything for Extreme alerts */}
+      {!emergencyDismissed && data.alerts.some(a => a.properties.severity === 'Extreme') && (
+        <EmergencyTakeover
+          alert={data.alerts.find(a => a.properties.severity === 'Extreme')!}
+          onDismiss={() => setEmergencyDismissed(true)}
+        />
+      )}
     </div>
   );
 }
