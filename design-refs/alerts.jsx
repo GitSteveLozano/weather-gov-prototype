@@ -207,6 +207,9 @@ function DepthScan() {
         Rain arrives around 8 tonight, heaviest 9–11pm.
       </div>
 
+      {/* NearbyNow contextual chips */}
+      <NearbyNowStrip />
+
       {/* hourly strip */}
       <div className="sb-scroll" style={{ padding: '0 22px 16px', overflowX: 'auto', borderTop: `1px solid ${AT.line}`, paddingTop: 14 }}>
         <div style={{ display: 'flex', gap: 18, minWidth: 'max-content' }}>
@@ -337,6 +340,9 @@ function DepthDive() {
           </div>
         </div>
       </div>
+
+      {/* Context Today — civic-data chips that qualify right now */}
+      <ContextTodayGrid />
     </div>
   );
 }

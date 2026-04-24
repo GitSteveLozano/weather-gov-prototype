@@ -1010,4 +1010,270 @@ function FlagRow({ label, met, detail, last }) {
   );
 }
 
-Object.assign(window, { OnboardingWelcome, OnboardingPermission, OnboardingDepth, LocationSearch, SettingsScreen, SettingsAlerts, SettingsNotifications, SettingsBrief, SettingsAccessibility, MarineScreen, MarineCoastal, MarineOffshore, MarineHighSeas, AviationScreen, FireScreen });
+Object.assign(window, { OnboardingWelcome, OnboardingPermission, OnboardingDepth, LocationSearch, SettingsScreen, SettingsAlerts, SettingsNotifications, SettingsBrief, SettingsAccessibility, MarineScreen, MarineCoastal, MarineOffshore, MarineHighSeas, AviationScreen, FireScreen, MoreScreen, LocationSwitcher });
+
+// ─────────────────────────────────────────────────────────────
+// MoreScreen — the "More" tab. The hub for everything not on
+// Home / Radar / Alerts. This is the canonical entry point for:
+//   · Skybureau Brief (AI) + Ask Skybureau
+//   · Specialty products (Marine / Aviation / Fire)
+//   · Saved locations
+//   · Settings (and all its sub-screens)
+//   · About / data sources / privacy
+// ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// LocationSwitcher — bottom-sheet on Home. Tapping the city
+// name in the Home header opens this. Saved locations with
+// live conditions, a search field, and a Manage link to the
+// full CRUD screen under More.
+// ─────────────────────────────────────────────────────────────
+function LocationSwitcher() {
+  const current = 'home';
+  const locs = [
+    { id: 'home', name: 'Silver Spring, MD',     sub: 'Current location',  temp: 64, cond: 'partly-cloudy-day', alert: null },
+    { id: 'beth', name: 'Bethesda, MD',          sub: '7 mi SW',           temp: 65, cond: 'partly-cloudy-day', alert: null },
+    { id: 'oc',   name: 'Ocean City, MD',        sub: 'Beach house',       temp: 58, cond: 'fog',               alert: 'advisory' },
+    { id: 'dc',   name: 'Washington, DC',        sub: 'Office',            temp: 66, cond: 'partly-cloudy-day', alert: null },
+    { id: 'lwk',  name: 'Lewes, DE',             sub: "Parents'",          temp: 57, cond: 'overcast',          alert: null },
+    { id: 'mtc',  name: 'Mountain Lake, VA',     sub: 'Weekend',           temp: 48, cond: 'rain',              alert: 'watch' },
+  ];
+  const alertColor = (l) => l === 'warning' ? '#d63a2f' : l === 'watch' ? '#e8701e' : l === 'advisory' ? '#d4a017' : null;
+  return (
+    <div style={{ position: 'absolute', inset: 0, zIndex: 50 }}>
+      {/* backdrop */}
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(20,18,14,0.35)' }} />
+      {/* sheet */}
+      <div style={{
+        position: 'absolute', left: 0, right: 0, bottom: 0,
+        background: E.paper, borderTopLeftRadius: 22, borderTopRightRadius: 22,
+        boxShadow: '0 -8px 30px rgba(0,0,0,0.12)',
+        maxHeight: '78%', display: 'flex', flexDirection: 'column',
+      }}>
+        {/* grabber */}
+        <div style={{ padding: '8px 0 4px', display: 'flex', justifyContent: 'center' }}>
+          <div style={{ width: 34, height: 4, borderRadius: 2, background: E.line }} />
+        </div>
+        {/* header */}
+        <div style={{ padding: '8px 20px 14px', display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+          <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: -0.4 }}>Locations</div>
+          <div style={{ fontSize: 13, color: E.blue, fontWeight: 500 }}>Manage</div>
+        </div>
+        {/* search */}
+        <div style={{ padding: '0 20px 10px' }}>
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px',
+            background: E.paperSoft, borderRadius: 10, border: `1px solid ${E.line}`,
+          }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <circle cx="11" cy="11" r="7" stroke={E.inkMute} strokeWidth="2"/>
+              <path d="M17 17l4 4" stroke={E.inkMute} strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+            <div style={{ fontSize: 13.5, color: E.inkMute }}>Search cities, ZIP, coordinates</div>
+          </div>
+        </div>
+        {/* list */}
+        <div className="sb-scroll" style={{ flex: 1, overflowY: 'auto', padding: '2px 0 12px' }}>
+          {locs.map((l, i) => {
+            const ac = alertColor(l.alert);
+            const on = l.id === current;
+            return (
+              <div key={l.id} style={{
+                display: 'flex', alignItems: 'center', gap: 14,
+                padding: '12px 20px',
+                borderLeft: on ? `3px solid ${E.ink}` : '3px solid transparent',
+                background: on ? E.paperSoft : 'transparent',
+              }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.2 }}>{l.name}</div>
+                    {ac && <div style={{ width: 7, height: 7, borderRadius: 4, background: ac, flexShrink: 0 }} />}
+                  </div>
+                  <div style={{ fontSize: 11.5, color: E.inkMute, fontFamily: E.mono, marginTop: 2 }}>
+                    {l.sub}{l.alert ? ` · ${l.alert}` : ''}
+                  </div>
+                </div>
+                <WxIcon kind={l.cond} size={22} color={E.inkSoft} />
+                <div style={{ fontSize: 22, fontWeight: 300, fontFamily: E.mono, minWidth: 38, textAlign: 'right', letterSpacing: -0.5 }}>{l.temp}°</div>
+              </div>
+            );
+          })}
+          {/* add */}
+          <div style={{ padding: '14px 20px 4px' }}>
+            <div style={{
+              padding: '12px 14px', border: `1px dashed ${E.line}`, borderRadius: 10,
+              color: E.blue, fontSize: 13.5, fontWeight: 500,
+              display: 'flex', alignItems: 'center', gap: 10,
+            }}>
+              <div style={{ fontSize: 18, lineHeight: 1 }}>+</div>
+              Add a location
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MoreScreen() {
+  const Row = ({ icon, title, sub, trail, first, hazard }) => (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 14,
+      padding: '14px 20px', borderTop: first ? 'none' : `1px solid ${E.line}`,
+      cursor: 'default',
+    }}>
+      <div style={{
+        width: 36, height: 36, borderRadius: 9,
+        background: hazard ? `${hazard}18` : E.paperSoft,
+        border: `1px solid ${hazard ? hazard + '40' : E.line}`,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color: hazard || E.ink, flexShrink: 0,
+      }}>{icon}</div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 15, fontWeight: 600, color: E.ink, lineHeight: 1.2 }}>{title}</div>
+        {sub && <div style={{ fontSize: 12.5, color: E.inkMute, lineHeight: 1.3, marginTop: 2 }}>{sub}</div>}
+      </div>
+      {trail && <div style={{ fontSize: 11.5, color: E.inkMute, fontFamily: E.mono, letterSpacing: 0.3 }}>{trail}</div>}
+      <svg width="7" height="12" viewBox="0 0 7 12" fill="none" style={{ flexShrink: 0, marginLeft: 4 }}>
+        <path d="M1 1l5 5-5 5" stroke={E.inkMute} strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </div>
+  );
+
+  const GroupLabel = ({ children }) => (
+    <div style={{
+      padding: '22px 20px 6px', fontSize: 10, fontFamily: E.mono,
+      color: E.inkMute, letterSpacing: 1.2, textTransform: 'uppercase', fontWeight: 600,
+    }}>{children}</div>
+  );
+
+  return (
+    <div className="sb sb-scroll" style={{
+      width: '100%', height: '100%', overflowY: 'auto', background: E.paper,
+      fontFamily: E.font, color: E.ink, paddingBottom: 96,
+    }}>
+      <div style={{ height: 54 }} />
+
+      {/* Page header */}
+      <div style={{ padding: '12px 20px 8px' }}>
+        <div style={{ fontSize: 32, fontWeight: 700, letterSpacing: -0.8 }}>More</div>
+        <div style={{ fontSize: 13, color: E.inkSoft, marginTop: 4 }}>
+          Specialty products, civic data, and everything else.
+        </div>
+      </div>
+
+      {/* Featured: Brief + Ask as a two-up tile */}
+      <div style={{ padding: '10px 20px 2px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <div style={{
+          background: E.ink, color: E.paper, borderRadius: 14, padding: '16px 14px',
+          position: 'relative', overflow: 'hidden',
+        }}>
+          <div style={{ fontSize: 10, fontFamily: E.mono, letterSpacing: 1.2, opacity: 0.6, textTransform: 'uppercase' }}>Today · 6:45 AM</div>
+          <div style={{ fontSize: 17, fontWeight: 600, marginTop: 6, letterSpacing: -0.3 }}>Skybureau Brief</div>
+          <div style={{ fontSize: 11.5, opacity: 0.7, marginTop: 3, lineHeight: 1.4 }}>Your morning briefing, ready.</div>
+          <div style={{ position: 'absolute', bottom: 10, right: 12, opacity: 0.5 }}>
+            <Star />
+          </div>
+        </div>
+        <div style={{
+          background: E.paperSoft, border: `1px solid ${E.line}`, borderRadius: 14, padding: '16px 14px',
+          position: 'relative', overflow: 'hidden',
+        }}>
+          <div style={{ fontSize: 10, fontFamily: E.mono, letterSpacing: 1.2, color: E.inkMute, textTransform: 'uppercase' }}>Ask ✦</div>
+          <div style={{ fontSize: 17, fontWeight: 600, marginTop: 6, letterSpacing: -0.3 }}>Ask Skybureau</div>
+          <div style={{ fontSize: 11.5, color: E.inkSoft, marginTop: 3, lineHeight: 1.4 }}>Questions in plain language.</div>
+          <div style={{ position: 'absolute', bottom: 10, right: 12, opacity: 0.5 }}>
+            <Spark />
+          </div>
+        </div>
+      </div>
+
+      {/* Locations — elevated above specialty/civic since it's high-frequency */}
+      <GroupLabel>Locations</GroupLabel>
+      <div style={{ background: E.paper }}>
+        <Row first icon={<Pin />} title="Saved locations" sub="Home · Bethesda · Ocean City +2" trail="5" />
+        <Row icon={<Clock />} title="Alert history" sub="Past 30 days" trail="12" />
+      </div>
+
+      {/* Specialty */}
+      <GroupLabel>Specialty products</GroupLabel>
+      <div style={{ background: E.paper }}>
+        <Row first icon={<Anchor />} title="Marine" sub="Coastal, offshore, high seas" trail="On" hazard={E.blue} />
+        <Row icon={<Plane />} title="Aviation" sub="METAR, TAF, SIGMET, winds aloft" trail="Off" />
+        <Row icon={<Flame />} title="Fire weather" sub="RH, wind, Haines, red-flag conditions" trail="Off" hazard="#b8572c" />
+        <Row icon={<Snowflake />} title="Winter" sub="Snow depth, road temps, forecast SWE" trail="Off" />
+        <Row icon={<Wave />} title="Hurricane center" sub="Active tropical systems" trail="Season" />
+        <Row icon={<Aurora />} title="Aurora" sub="Kp forecast, cloud cover check" trail="Off" />
+        <Row icon={<Pollen />} title="Health & air" sub="Pollen, AQI, heat risk, migraine pressure" trail="On" />
+        <Row icon={<Binoculars />} title="SKYWARN spotter" sub="Report to your local NWS office" />
+      </div>
+
+      {/* Civic data */}
+      <GroupLabel>Civic data</GroupLabel>
+      <div style={{ background: E.paper }}>
+        <Row first icon={<Pollen />} title="Air quality" sub="AQI, pollutants, sensor map" trail="118 USG" hazard="#e8701e" />
+        <Row icon={<Flame />} title="Wildfire & smoke" sub="Active fires, HRRR-Smoke plume" trail="3 fires" hazard="#b8572c" />
+        <Row icon={<Drought />} title="Drought monitor" sub="U.S. Drought Monitor · weekly" trail="D1" hazard="#d4a017" />
+        <Row icon={<River />} title="River & flood" sub="AHPS hydrograph · nearest gauge" trail="6.4 ft" hazard={E.blue} />
+        <Row icon={<Quake />} title="Earthquakes" sub="USGS · within 800 mi" trail="5 recent" />
+        <Row icon={<Tsunami />} title="Tsunami" sub="NTWC advisories for saved locations" trail="1 active" hazard="#d63a2f" />
+        <Row icon={<Climate />} title="Climate · today vs. normal" sub="30-year baseline, monthly anomaly" trail="+3.4°F" />
+      </div>
+
+      {/* Settings */}
+      <GroupLabel>Settings</GroupLabel>
+      <div style={{ background: E.paper }}>
+        <Row first icon={<Gear />} title="Settings" sub="Units, alerts, notifications, radar style, accessibility, privacy" />
+      </div>
+
+      {/* About */}
+      <GroupLabel>About</GroupLabel>
+      <div style={{ background: E.paper }}>
+        <Row first icon={<Info />} title="Data sources" sub="NWS, MRMS, HRRR, ECMWF" />
+        <Row icon={<Doc />} title="How to read a forecast" sub="A short guide" />
+        <Row icon={<Question />} title="Help & contact" />
+        <Row icon={<Heart />} title="What's new" sub="v2.4 · Radar style picker" />
+      </div>
+
+      {/* Footer provenance */}
+      <div style={{
+        padding: '32px 20px 20px', textAlign: 'center',
+        fontSize: 10.5, fontFamily: E.mono, color: E.inkMute, letterSpacing: 0.5,
+      }}>
+        skybureau · v2.4.1 <br />
+        <span style={{ color: E.inkSoft }}>public-service weather data from NWS, NOAA, USGS</span>
+      </div>
+    </div>
+  );
+}
+
+// Tiny icon components for the More list
+const ICO = { w: 18, h: 18, sw: 1.6 };
+const Star = () => <svg width={ICO.w} height={ICO.h} viewBox="0 0 24 24" fill="none"><path d="M12 3l2.6 6 6.4.6-4.8 4.4 1.4 6.3L12 17l-5.6 3.3L7.8 14 3 9.6 9.4 9 12 3z" stroke="currentColor" strokeWidth={ICO.sw} strokeLinejoin="round"/></svg>;
+const Spark = () => <svg width={ICO.w} height={ICO.h} viewBox="0 0 24 24" fill="none"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.5 5.5l2.8 2.8M15.7 15.7l2.8 2.8M18.5 5.5l-2.8 2.8M8.3 15.7l-2.8 2.8" stroke="currentColor" strokeWidth={ICO.sw} strokeLinecap="round"/></svg>;
+const Bell = () => <svg width={ICO.w} height={ICO.h} viewBox="0 0 24 24" fill="none"><path d="M6 16V11a6 6 0 1 1 12 0v5l1.5 2h-15L6 16z" stroke="currentColor" strokeWidth={ICO.sw} strokeLinejoin="round"/><path d="M10 21h4" stroke="currentColor" strokeWidth={ICO.sw} strokeLinecap="round"/></svg>;
+const Anchor = () => <svg width={ICO.w} height={ICO.h} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="5" r="2" stroke="currentColor" strokeWidth={ICO.sw}/><path d="M12 7v13M5 14c0 3.5 3.5 6 7 6s7-2.5 7-6M8 11h8" stroke="currentColor" strokeWidth={ICO.sw} strokeLinecap="round"/></svg>;
+const Plane = () => <svg width={ICO.w} height={ICO.h} viewBox="0 0 24 24" fill="none"><path d="M3 13l18-8-7 16-2-6-9-2z" stroke="currentColor" strokeWidth={ICO.sw} strokeLinejoin="round"/></svg>;
+const Flame = () => <svg width={ICO.w} height={ICO.h} viewBox="0 0 24 24" fill="none"><path d="M12 3c1 3 4 5 4 9a4 4 0 1 1-8 0c0-2 1-3 1-5 .5 1.5 1.5 2 3-4z" stroke="currentColor" strokeWidth={ICO.sw} strokeLinejoin="round"/></svg>;
+const Snowflake = () => <svg width={ICO.w} height={ICO.h} viewBox="0 0 24 24" fill="none"><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4M12 6l-2 2M12 6l2 2M12 18l-2-2M12 18l2-2M6 12l2 2M6 12l2-2M18 12l-2 2M18 12l-2-2" stroke="currentColor" strokeWidth={ICO.sw} strokeLinecap="round"/></svg>;
+const Wave = () => <svg width={ICO.w} height={ICO.h} viewBox="0 0 24 24" fill="none"><path d="M3 12c3 0 3-3 6-3s3 3 6 3 3-3 6-3M3 17c3 0 3-3 6-3s3 3 6 3 3-3 6-3" stroke="currentColor" strokeWidth={ICO.sw} strokeLinecap="round"/></svg>;
+const Aurora = () => <svg width={ICO.w} height={ICO.h} viewBox="0 0 24 24" fill="none"><path d="M4 20c2-10 4-13 8-13s6 3 8 13M8 20c1-6 2-8 4-8s3 2 4 8" stroke="currentColor" strokeWidth={ICO.sw} strokeLinecap="round"/></svg>;
+const Pollen = () => <svg width={ICO.w} height={ICO.h} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth={ICO.sw}/><circle cx="12" cy="4" r="1.5" stroke="currentColor" strokeWidth={ICO.sw}/><circle cx="12" cy="20" r="1.5" stroke="currentColor" strokeWidth={ICO.sw}/><circle cx="4" cy="12" r="1.5" stroke="currentColor" strokeWidth={ICO.sw}/><circle cx="20" cy="12" r="1.5" stroke="currentColor" strokeWidth={ICO.sw}/></svg>;
+const Binoculars = () => <svg width={ICO.w} height={ICO.h} viewBox="0 0 24 24" fill="none"><circle cx="6" cy="16" r="3.5" stroke="currentColor" strokeWidth={ICO.sw}/><circle cx="18" cy="16" r="3.5" stroke="currentColor" strokeWidth={ICO.sw}/><path d="M9 15h6M8 13V6h3v7M13 13V6h3v7" stroke="currentColor" strokeWidth={ICO.sw} strokeLinejoin="round"/></svg>;
+const Pin = () => <svg width={ICO.w} height={ICO.h} viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-7-7-12a7 7 0 1 1 14 0c0 5-7 12-7 12z" stroke="currentColor" strokeWidth={ICO.sw} strokeLinejoin="round"/><circle cx="12" cy="9" r="2.5" stroke="currentColor" strokeWidth={ICO.sw}/></svg>;
+const Search = () => <svg width={ICO.w} height={ICO.h} viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth={ICO.sw}/><path d="M17 17l4 4" stroke="currentColor" strokeWidth={ICO.sw} strokeLinecap="round"/></svg>;
+const Gear = () => <svg width={ICO.w} height={ICO.h} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth={ICO.sw}/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2" stroke="currentColor" strokeWidth={ICO.sw} strokeLinecap="round"/></svg>;
+const BellSlash = () => <svg width={ICO.w} height={ICO.h} viewBox="0 0 24 24" fill="none"><path d="M6 16V11a6 6 0 0 1 10.5-4M18 11v5l1.5 2h-15" stroke="currentColor" strokeWidth={ICO.sw} strokeLinejoin="round" strokeLinecap="round"/><path d="M4 4l16 16" stroke="currentColor" strokeWidth={ICO.sw} strokeLinecap="round"/></svg>;
+const Radar = () => <svg width={ICO.w} height={ICO.h} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth={ICO.sw}/><circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth={ICO.sw} opacity="0.5"/><path d="M12 12l6-6" stroke="currentColor" strokeWidth={ICO.sw} strokeLinecap="round"/></svg>;
+const BriefIcon = () => <svg width={ICO.w} height={ICO.h} viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" strokeWidth={ICO.sw}/><path d="M8 9h8M8 13h8M8 17h5" stroke="currentColor" strokeWidth={ICO.sw} strokeLinecap="round"/></svg>;
+const Access = () => <svg width={ICO.w} height={ICO.h} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="5" r="1.8" stroke="currentColor" strokeWidth={ICO.sw}/><path d="M5 9l3.5 1.5V20M19 9l-3.5 1.5V20M8.5 14h7" stroke="currentColor" strokeWidth={ICO.sw} strokeLinecap="round" strokeLinejoin="round"/></svg>;
+const Lock = () => <svg width={ICO.w} height={ICO.h} viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="9" rx="1.5" stroke="currentColor" strokeWidth={ICO.sw}/><path d="M8 11V8a4 4 0 1 1 8 0v3" stroke="currentColor" strokeWidth={ICO.sw}/></svg>;
+const Info = () => <svg width={ICO.w} height={ICO.h} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth={ICO.sw}/><path d="M12 8h0M12 11v5" stroke="currentColor" strokeWidth={ICO.sw+0.3} strokeLinecap="round"/></svg>;
+const Doc = () => <svg width={ICO.w} height={ICO.h} viewBox="0 0 24 24" fill="none"><path d="M6 3h9l4 4v14H6V3z" stroke="currentColor" strokeWidth={ICO.sw} strokeLinejoin="round"/><path d="M15 3v4h4M9 13h6M9 17h4" stroke="currentColor" strokeWidth={ICO.sw} strokeLinecap="round"/></svg>;
+const Question = () => <svg width={ICO.w} height={ICO.h} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth={ICO.sw}/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3V14M12 17h0" stroke="currentColor" strokeWidth={ICO.sw} strokeLinecap="round"/></svg>;
+const Heart = () => <svg width={ICO.w} height={ICO.h} viewBox="0 0 24 24" fill="none"><path d="M12 20s-7-4.5-7-11a4 4 0 0 1 7-2.5A4 4 0 0 1 19 9c0 6.5-7 11-7 11z" stroke="currentColor" strokeWidth={ICO.sw} strokeLinejoin="round"/></svg>;
+const Drought = () => <svg width={ICO.w} height={ICO.h} viewBox="0 0 24 24" fill="none"><path d="M12 3c3 5 6 8 6 12a6 6 0 1 1-12 0c0-4 3-7 6-12z" stroke="currentColor" strokeWidth={ICO.sw} strokeLinejoin="round"/><path d="M9 20c0-2 .5-3 1.5-4" stroke="currentColor" strokeWidth={ICO.sw} strokeLinecap="round"/></svg>;
+const River = () => <svg width={ICO.w} height={ICO.h} viewBox="0 0 24 24" fill="none"><path d="M3 8c3 0 3 2 6 2s3-2 6-2 3 2 6 2M3 14c3 0 3 2 6 2s3-2 6-2 3 2 6 2" stroke="currentColor" strokeWidth={ICO.sw} strokeLinecap="round"/></svg>;
+const Quake = () => <svg width={ICO.w} height={ICO.h} viewBox="0 0 24 24" fill="none"><path d="M3 12h2l2-5 3 10 3-14 3 12 2-3h3" stroke="currentColor" strokeWidth={ICO.sw} strokeLinejoin="round" strokeLinecap="round"/></svg>;
+const Tsunami = () => <svg width={ICO.w} height={ICO.h} viewBox="0 0 24 24" fill="none"><path d="M3 16c0-4 4-7 9-7s9 3 9 7" stroke="currentColor" strokeWidth={ICO.sw} strokeLinecap="round"/><path d="M3 20c3 0 3-2 6-2s3 2 6 2 3-2 6-2" stroke="currentColor" strokeWidth={ICO.sw} strokeLinecap="round"/><path d="M8 13l2-3 2 2 2-4 2 3" stroke="currentColor" strokeWidth={ICO.sw} strokeLinejoin="round" strokeLinecap="round"/></svg>;
+const Climate = () => <svg width={ICO.w} height={ICO.h} viewBox="0 0 24 24" fill="none"><path d="M4 20h16M4 20V6M4 14l4-4 4 3 4-6 4 4" stroke="currentColor" strokeWidth={ICO.sw} strokeLinejoin="round" strokeLinecap="round"/></svg>;
+const Clock = () => <svg width={ICO.w} height={ICO.h} viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth={ICO.sw}/><path d="M12 7v5l3.5 2.5" stroke="currentColor" strokeWidth={ICO.sw} strokeLinecap="round" strokeLinejoin="round"/></svg>;

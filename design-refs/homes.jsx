@@ -7,7 +7,7 @@ const F = SB_FAKE;
 // ─────────────────────────────────────────────────────────────
 // A. Civic Modern — typographic, editorial, big numbers
 // ─────────────────────────────────────────────────────────────
-function HomeCivic({ units = 'F', banner = null }) {
+function HomeCivic({ units = 'F', banner = null, hideTabBar = false }) {
   const now = F.now;
   const temp = units === 'C' ? Math.round((now.temp - 32) * 5/9) : now.temp;
   const hi = units === 'C' ? Math.round((now.high - 32) * 5/9) : now.high;
@@ -16,7 +16,7 @@ function HomeCivic({ units = 'F', banner = null }) {
   return (
     <div className="sb sb-scroll" style={{
       width: '100%', height: '100%', overflowY: 'auto', background: T.paper,
-      fontFamily: T.font, color: T.ink, paddingBottom: 40,
+      fontFamily: T.font, color: T.ink, paddingBottom: 96,
     }}>
       {/* status bar space */}
       <div style={{ height: 54 }} />
@@ -29,13 +29,18 @@ function HomeCivic({ units = 'F', banner = null }) {
         </div>
       </div>
 
-      {/* Location masthead */}
+      {/* Location masthead — tappable to open switcher */}
       <div style={{ padding: '18px 22px 6px', borderBottom: `1px solid ${T.line}` }}>
         <div style={{ fontSize: 11, letterSpacing: 1.8, textTransform: 'uppercase', color: T.inkMute, fontWeight: 600 }}>
           Forecast for
         </div>
-        <div style={{ fontSize: 26, fontWeight: 700, letterSpacing: -0.8, marginTop: 4, lineHeight: 1.05 }}>
-          {F.location.name}, <span style={{ color: T.inkMute, fontWeight: 400 }}>{F.location.state}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ fontSize: 26, fontWeight: 700, letterSpacing: -0.8, marginTop: 4, lineHeight: 1.05 }}>
+            {F.location.name}, <span style={{ color: T.inkMute, fontWeight: 400 }}>{F.location.state}</span>
+          </div>
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ marginTop: 6, color: T.inkMute }}>
+            <path d="M2 4.5l4 4 4-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
         </div>
       </div>
 
@@ -170,7 +175,7 @@ function MiniCard({ title, value, unit, note }) {
 // ─────────────────────────────────────────────────────────────
 // B. Atmospheric — sky gradient behind data
 // ─────────────────────────────────────────────────────────────
-function HomeAtmos({ units = 'F', condition = 'clear-day', banner = null }) {
+function HomeAtmos({ units = 'F', condition = 'clear-day', banner = null, hideTabBar = false }) {
   const now = F.now;
   const temp = units === 'C' ? Math.round((now.temp - 32) * 5/9) : now.temp;
 
@@ -195,7 +200,7 @@ function HomeAtmos({ units = 'F', condition = 'clear-day', banner = null }) {
     <div className="sb sb-scroll" style={{
       width: '100%', height: '100%', overflowY: 'auto',
       background: `linear-gradient(180deg, ${sky[0]} 0%, ${sky[1]} 55%, ${sky[2]} 100%)`,
-      fontFamily: T.font, color: fg, paddingBottom: 40,
+      fontFamily: T.font, color: fg, paddingBottom: 96,
       position: 'relative',
     }}>
       {/* weather effects layer */}
@@ -354,14 +359,14 @@ function GlassStat({ label, value, bg, border, fg, mute }) {
 // ─────────────────────────────────────────────────────────────
 // C. Cartographic — radar map is the hero
 // ─────────────────────────────────────────────────────────────
-function HomeCarto({ units = 'F', banner = null }) {
+function HomeCarto({ units = 'F', banner = null, hideTabBar = false }) {
   const now = F.now;
   const temp = units === 'C' ? Math.round((now.temp - 32) * 5/9) : now.temp;
 
   return (
     <div className="sb sb-scroll" style={{
       width: '100%', height: '100%', overflowY: 'auto', background: T.paper,
-      fontFamily: T.font, color: T.ink,
+      fontFamily: T.font, color: T.ink, paddingBottom: 90,
     }}>
       <div style={{ height: 54 }} />
 
@@ -578,7 +583,7 @@ function FakeMap() {
 // ─────────────────────────────────────────────────────────────
 // D. Data-forward — dense dashboard for nerds
 // ─────────────────────────────────────────────────────────────
-function HomeData({ units = 'F', banner = null }) {
+function HomeData({ units = 'F', banner = null, hideTabBar = false }) {
   const now = F.now;
   const temp = units === 'C' ? Math.round((now.temp - 32) * 5/9) : now.temp;
   const tempSeries = F.hourly.map(h => units === 'C' ? (h[1]-32)*5/9 : h[1]);
@@ -587,7 +592,7 @@ function HomeData({ units = 'F', banner = null }) {
   return (
     <div className="sb sb-scroll" style={{
       width: '100%', height: '100%', overflowY: 'auto', background: T.paper,
-      fontFamily: T.font, color: T.ink, paddingBottom: 40,
+      fontFamily: T.font, color: T.ink, paddingBottom: 96,
     }}>
       <div style={{ height: 54 }} />
 

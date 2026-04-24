@@ -112,6 +112,21 @@ function AppMap() {
         <Node x={530} y={60} w={170} type="depth" label="Hourly detail" sub="tap hour chip" />
         <Node x={530} y={130} w={170} type="depth" label="10-day forecast" sub="tap day card" />
         <Node x={530} y={200} w={170} type="depth" label="Radar · full" sub="tap map preview" />
+        {/* Radar sub-flow — styles + cell sheet */}
+        <g opacity="0.95">
+          <rect x="520" y="566" width="190" height="158" rx="6" fill="#f8f5ee" stroke={AM.blue} strokeWidth="1" strokeDasharray="3 2" />
+          <text x="528" y="583" fontSize="9.5" fontFamily={AM.mono} fill={AM.blue} letterSpacing="1.1" fontWeight="600">RADAR · STYLE OPTIONS</text>
+          <line x1="528" y1="590" x2="700" y2="590" stroke={AM.line} />
+          <text x="528" y="605" fontSize="11" fill={AM.ink} fontWeight="500">• Clean (default)</text>
+          <text x="528" y="622" fontSize="11" fill={AM.ink} fontWeight="500">• Enthusiast</text>
+          <text x="540" y="637" fontSize="10" fontFamily={AM.mono} fill={AM.inkMute}>tap cell → sheet</text>
+          <text x="528" y="654" fontSize="11" fill={AM.ink} fontWeight="500">• Narrative</text>
+          <line x1="528" y1="667" x2="700" y2="667" stroke={AM.line} />
+          <text x="528" y="682" fontSize="10" fontFamily={AM.mono} fill={AM.inkSoft}>picked in:</text>
+          <text x="528" y="697" fontSize="10.5" fontFamily={AM.mono} fill={AM.blue} fontWeight="600">Settings → Radar style</text>
+          <text x="528" y="714" fontSize="9.5" fontFamily={AM.mono} fill={AM.inkMute}>shared: timeline, layers, alerts</text>
+        </g>
+        <line x1="615" y1="223" x2="615" y2="566" stroke={AM.blue} strokeWidth="1" strokeDasharray="3 2" />
         <Node x={530} y={270} w={170} type="depth" label="Wind · Dive" sub="tap wind chip" />
         <Node x={530} y={340} w={170} type="depth" label="Precip · Dive" sub="tap precip chip" />
         <Node x={530} y={410} w={170} type="depth" label="Air quality" sub="tap AQI chip" />
@@ -308,4 +323,117 @@ function LegendChip({ color }) {
   );
 }
 
-Object.assign(window, { AppMap });
+Object.assign(window, { AppMap, NavModel });
+
+// ─────────────────────────────────────────────────────────────
+// NavModel — simpler diagram showing the 4-tab system and what
+// lives under each tab. Uses the tab bar as the visual spine.
+// ─────────────────────────────────────────────────────────────
+function NavModel() {
+  const ink = AM.ink, soft = AM.inkSoft, mute = AM.inkMute, line = AM.line;
+  const TAB_W = 310, TAB_GAP = 20;
+  const TABS_Y = 120;
+  const BAR_Y = 690;
+
+  const TabCol = ({ x, title, subtitle, kind, items, hazard }) => {
+    const color = hazard || ink;
+    return (
+      <g>
+        {/* tab header */}
+        <rect x={x} y={TABS_Y} width={TAB_W} height={64} rx="10" fill="#fff" stroke={color} strokeWidth="1.5"/>
+        <text x={x + 18} y={TABS_Y + 24} fontSize="10" fontFamily={AM.mono} fill={mute} letterSpacing="1.2" fontWeight="600">{kind}</text>
+        <text x={x + 18} y={TABS_Y + 47} fontSize="20" fontWeight="700" fill={ink} letterSpacing="-0.4">{title}</text>
+        <text x={x + TAB_W - 18} y={TABS_Y + 42} fontSize="11" fontFamily={AM.mono} fill={mute} textAnchor="end">tab {kind === 'HOME' ? '1' : kind === 'RADAR' ? '2' : '3'}</text>
+
+        {/* description */}
+        <text x={x + 18} y={TABS_Y + 86} fontSize="13" fill={soft}>{subtitle}</text>
+
+        {/* vertical connector */}
+        <line x1={x + TAB_W/2} y1={TABS_Y + 100} x2={x + TAB_W/2} y2={TABS_Y + 130} stroke={line} strokeDasharray="3 3"/>
+
+        {/* contents box */}
+        <rect x={x} y={TABS_Y + 130} width={TAB_W} height={items.length * 34 + 40} rx="8" fill="#faf8f3" stroke={line}/>
+        <text x={x + 18} y={TABS_Y + 154} fontSize="10" fontFamily={AM.mono} fill={mute} letterSpacing="1.1" fontWeight="600">CONTAINS</text>
+        {items.map((item, i) => {
+          const y = TABS_Y + 178 + i * 34;
+          return (
+            <g key={i}>
+              <circle cx={x + 24} cy={y - 4} r="2.5" fill={item.accent || color}/>
+              <text x={x + 36} y={y} fontSize="13" fontWeight="600" fill={ink}>{item.name}</text>
+              <text x={x + 36} y={y + 15} fontSize="11" fill={mute} fontFamily={AM.mono}>{item.ref}</text>
+            </g>
+          );
+        })}
+      </g>
+    );
+  };
+
+  return (
+    <div style={{ width: '100%', height: '100%', background: AM.paper, fontFamily: AM.font, color: ink, padding: 36, position: 'relative' }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 14, marginBottom: 6 }}>
+        <div style={{ fontSize: 10, fontFamily: AM.mono, color: mute, letterSpacing: 1.4, fontWeight: 600 }}>NAVIGATION MODEL</div>
+        <div style={{ height: 1, flex: 1, background: line }} />
+      </div>
+      <div style={{ fontSize: 28, fontWeight: 700, letterSpacing: -0.6, marginTop: 4 }}>Three tabs. Alerts come to you.</div>
+      <div style={{ fontSize: 14, color: soft, marginTop: 6, maxWidth: 900 }}>
+        Bottom tab bar is always visible except in onboarding, fullscreen emergency takeovers, and modal sheets. Alerts are surfaced contextually — on Home, on Radar, on the lock screen — never as their own tab. If a feature isn't primary weather data, it lives in More.
+      </div>
+
+      <svg width="1328" height="720" viewBox="0 0 1328 720" style={{ marginTop: 24, display: 'block' }}>
+        <TabCol x={0} kind="HOME" title="Home" subtitle="Forecast + alert banner. Depth-swipeable."
+          items={[
+            { name: 'Home · Civic / Atmos / Carto / Data', ref: 'H-01 … H-04' },
+            { name: 'Alert banner (when active)', ref: 'A-01…A-04 · tap for list', accent: AM.emergency },
+            { name: 'Alerts list', ref: 'A-06 · opened from banner', accent: AM.emergency },
+            { name: 'Depth: Glance / Scan / Dive', ref: 'D-01, D-02, D-03 · swipe' },
+            { name: 'Hourly · 10-day · detail', ref: 'F-01, F-02, F-04…F-07' },
+            { name: 'Skybureau Brief card (AM)', ref: 'AI-01 · home card 5–10 AM' },
+            { name: 'Ask ✦ (top-right)', ref: 'AI-02 · sheet' },
+            { name: 'Location switcher', ref: 'SV-05 · tap city name' },
+          ]}
+        />
+        <TabCol x={TAB_W + TAB_GAP} kind="RADAR" title="Radar" subtitle="Full-bleed map. Three styles."
+          items={[
+            { name: 'Radar · Clean / Enth. / Narrative', ref: 'F-03 · styles A·B·C' },
+            { name: 'Alert polygon overlay', ref: 'tap for alert detail', accent: AM.emergency },
+            { name: 'Storm-cell detail', ref: 'F-03b · tap cell (Enth.)' },
+            { name: 'Timeline scrub · layer toggle', ref: '−2h → +90m' },
+            { name: 'Style switcher', ref: '→ S-06 · top-right label tap' },
+          ]}
+        />
+        <TabCol x={(TAB_W + TAB_GAP) * 2} kind="MORE" title="More" subtitle="The hub for everything else." hazard={AM.blue}
+          items={[
+            { name: 'Brief · Ask', ref: 'AI-01, AI-02 · Personalized' },
+            { name: 'Marine / Aviation / Fire + 5 more', ref: 'SP-01 … SP-12 · Specialty' },
+            { name: 'Civic data · 7 screens', ref: 'AQ · Fire · Drought · …' },
+            { name: 'Saved locations · Alert history', ref: 'SV-05, SV-05b' },
+            { name: 'Settings (one row → full tree)', ref: 'S-01 … S-06' },
+            { name: 'Data sources · Privacy · About', ref: 'SY-01 … SY-06 · About' },
+          ]}
+        />
+
+        {/* the tab bar itself as visual spine */}
+        <g>
+          <rect x={0} y={BAR_Y} width={1328} height={66} rx="12" fill="#fff" stroke={ink} strokeWidth="1.5"/>
+          <line x1={442} y1={BAR_Y + 12} x2={442} y2={BAR_Y + 54} stroke={line}/>
+          <line x1={886} y1={BAR_Y + 12} x2={886} y2={BAR_Y + 54} stroke={line}/>
+          {['Home', 'Radar', 'More'].map((t, i) => (
+            <g key={t}>
+              <text x={221 + i * 442} y={BAR_Y + 42} fontSize="15" fontWeight="700" textAnchor="middle" fill={ink}>{t}</text>
+              <rect x={221 + i * 442 - 14} y={BAR_Y + 12} width={28} height={3} rx="1.5" fill={ink}/>
+            </g>
+          ))}
+          <text x={1298} y={BAR_Y + 32} fontSize="10" fontFamily={AM.mono} fill={mute} textAnchor="end" letterSpacing="1.2" fontWeight="600">TAB BAR</text>
+          <text x={1298} y={BAR_Y + 50} fontSize="10.5" fontFamily={AM.mono} fill={soft} textAnchor="end">persistent · hidden only in onboarding + emergency takeover</text>
+        </g>
+      </svg>
+
+      {/* rules footer */}
+      <div style={{ position: 'absolute', left: 36, right: 36, bottom: 22, display: 'flex', gap: 36, fontSize: 11.5, color: soft, fontFamily: AM.mono }}>
+        <div><b style={{ color: ink }}>Push-on-top</b> · detail screens slide in from the right over the active tab. Tab bar stays visible.</div>
+        <div><b style={{ color: ink }}>Sheets</b> · modal sheets (Ask, locations, safety) come up from bottom. Tab bar dims.</div>
+        <div><b style={{ color: ink }}>Takeover</b> · only Emergency (A-05 Warning+) and Onboarding hide the tab bar.</div>
+      </div>
+    </div>
+  );
+}

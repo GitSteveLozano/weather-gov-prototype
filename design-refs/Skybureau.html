@@ -18,11 +18,13 @@
 <script type="text/babel" src="shared.jsx"></script>
 <script type="text/babel" src="ios-frame.jsx"></script>
 <script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="chips.jsx"></script>
 <script type="text/babel" src="homes.jsx"></script>
 <script type="text/babel" src="alerts.jsx"></script>
 <script type="text/babel" src="extras.jsx"></script>
 <script type="text/babel" src="agentic.jsx"></script>
 <script type="text/babel" src="civic.jsx"></script>
+<script type="text/babel" src="civic-data.jsx"></script>
 <script type="text/babel" src="spc.jsx"></script>
 <script type="text/babel" src="radar.jsx"></script>
 <script type="text/babel" src="appmap.jsx"></script>
@@ -36,12 +38,22 @@
    BriefHome, AskScreen, MinuteCast, LockScreen, WidgetsScreen, SavedLocations, WatchFace,
    ConfidenceForecast, HealthScreen, HurricaneScreen, LightningScreen, SnowScreen, MoonTideScreen,
    SeasonalOutlook, HeatRiskScreen, AuroraScreen, FloodScreen, SkywarnScreen,
-   SafetyDrawer, HistoricalScreen, ProvenanceScreen, SPCOutlook, AppMap,
-   RadarScreen, StormCellSheet, SettingsRadar */
+   SafetyDrawer, HistoricalScreen, ProvenanceScreen, SPCOutlook, AppMap, NavModel,
+   RadarScreen, StormCellSheet, SettingsRadar, SBTabBar, MoreScreen, LocationSwitcher,
+   AirQualityScreen, WildfireScreen, DroughtScreen, RiverScreen,
+   EarthquakeScreen, TsunamiScreen, ClimateScreen,
+   NearbyNowStrip, ContextTodayGrid, ChipLogicDoc */
 
 // iPhone-like device mini-frame (402x874 scaled via the artboard wrapper)
-function Phone({ children, dark = false }) {
-  return <IOSDevice width={402} height={874} dark={dark}>{children}</IOSDevice>;
+function Phone({ children, dark = false, tab = null }) {
+  return (
+    <IOSDevice width={402} height={874} dark={dark}>
+      <div style={{ position: 'absolute', inset: 0 }}>
+        {children}
+        {tab && <SBTabBar active={tab} dark={dark} />}
+      </div>
+    </IOSDevice>
+  );
 }
 
 function App() {
@@ -60,62 +72,78 @@ function App() {
         <DCArtboard id="appmap" label="App map · full flow" width={1840} height={1080}>
           <AppMap />
         </DCArtboard>
+        <DCArtboard id="navmodel" label="Navigation model · 4-tab system" width={1400} height={860}>
+          <NavModel />
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="more-nav" title="More tab · the hub for everything else"
+        subtitle="3-tab system: Home / Radar / More. Alerts are surfaced in context — on Home, Radar, lock screen — never as their own tab. The More tab is the canonical entry point for Brief, Ask, Locations, Specialty, Settings, and About.">
+        <DCArtboard id="more" label="More · hub" width={AB_W} height={AB_H}>
+          <Phone tab="more"><MoreScreen /></Phone>
+        </DCArtboard>
       </DCSection>
 
       <DCSection id="homes" title="Home screen · four directions"
         subtitle="Same data, same IA — four visual languages. All share type (Inter Tight + JetBrains Mono), severity scale, and information hierarchy.">
         <DCArtboard id="civic" label="A · Civic Modern" width={AB_W} height={AB_H}>
-          <Phone><HomeCivic banner={banner} /></Phone>
+          <Phone tab="home"><HomeCivic banner={banner} /></Phone>
         </DCArtboard>
         <DCArtboard id="atmos" label="B · Atmospheric · clear day" width={AB_W} height={AB_H}>
-          <Phone><HomeAtmos condition="clear-day" /></Phone>
+          <Phone tab="home"><HomeAtmos condition="clear-day" /></Phone>
         </DCArtboard>
         <DCArtboard id="atmos-night" label="B · Atmospheric · night" width={AB_W} height={AB_H}>
-          <Phone dark><HomeAtmos condition="clear-night" /></Phone>
+          <Phone dark tab="home"><HomeAtmos condition="clear-night" /></Phone>
         </DCArtboard>
         <DCArtboard id="atmos-rain" label="B · Atmospheric · rain" width={AB_W} height={AB_H}>
-          <Phone dark><HomeAtmos condition="rain" /></Phone>
+          <Phone dark tab="home"><HomeAtmos condition="rain" /></Phone>
         </DCArtboard>
         <DCArtboard id="carto" label="C · Cartographic" width={AB_W} height={AB_H}>
-          <Phone><HomeCarto banner={banner} /></Phone>
+          <Phone tab="home"><HomeCarto banner={banner} /></Phone>
         </DCArtboard>
         <DCArtboard id="data" label="D · Data-forward" width={AB_W} height={AB_H}>
-          <Phone><HomeData /></Phone>
+          <Phone tab="home"><HomeData /></Phone>
+        </DCArtboard>
+        <DCArtboard id="loc-switcher" label="Location switcher · sheet from Home header" width={AB_W} height={AB_H}>
+          <Phone tab="home">
+            <HomeCivic />
+            <LocationSwitcher />
+          </Phone>
         </DCArtboard>
       </DCSection>
 
       <DCSection id="depth" title="Depth system · Glance → Scan → Dive"
         subtitle="One tap reveals more. The same forecast, three densities — a UX bargain for casual users and weather nerds alike.">
         <DCArtboard id="glance" label="1 · Glance" width={AB_W} height={AB_H}>
-          <Phone><DepthGlance /></Phone>
+          <Phone tab="home"><DepthGlance /></Phone>
         </DCArtboard>
         <DCArtboard id="scan" label="2 · Scan" width={AB_W} height={AB_H}>
-          <Phone><DepthScan /></Phone>
+          <Phone tab="home"><DepthScan /></Phone>
         </DCArtboard>
         <DCArtboard id="dive" label="3 · Dive · Wind detail" width={AB_W} height={AB_H}>
-          <Phone><DepthDive /></Phone>
+          <Phone tab="home"><DepthDive /></Phone>
         </DCArtboard>
       </DCSection>
 
       <DCSection id="alerts" title="Alert system · severity throughout"
-        subtitle="Color-coded scale: Statement → Advisory → Watch → Warning → Emergency. Subtle banners for lower severity; full-screen takeover for life-safety.">
-        <DCArtboard id="banner-stmt" label="Statement · banner" width={AB_W} height={AB_H}>
-          <Phone><HomeCivic banner={<SBAlertBanner level="statement" title="Special Weather Statement" until="strong winds along ridgetops" />} /></Phone>
+        subtitle="Alerts are surfaced where they're relevant, never as their own tab. Banners on Home, polygons on Radar, push on the lock screen, life-safety takeover for warnings. The full list lives one tap behind the Home banner, and in More → Alert history.">
+        <DCArtboard id="banner-stmt" label="Statement · banner on Home" width={AB_W} height={AB_H}>
+          <Phone tab="home"><HomeCivic banner={<SBAlertBanner level="statement" title="Special Weather Statement" until="strong winds along ridgetops" />} /></Phone>
         </DCArtboard>
         <DCArtboard id="banner-adv" label="Advisory · banner" width={AB_W} height={AB_H}>
-          <Phone><HomeCivic banner={<SBAlertBanner level="advisory" title="Dense Fog Advisory" until="until 9 AM" />} /></Phone>
+          <Phone tab="home"><HomeCivic banner={<SBAlertBanner level="advisory" title="Dense Fog Advisory" until="until 9 AM" />} /></Phone>
         </DCArtboard>
         <DCArtboard id="banner-watch" label="Watch · banner" width={AB_W} height={AB_H}>
-          <Phone><HomeCivic banner={<SBAlertBanner level="watch" title="Flash Flood Watch" until="until 8 PM tonight" />} /></Phone>
+          <Phone tab="home"><HomeCivic banner={<SBAlertBanner level="watch" title="Flash Flood Watch" until="until 8 PM tonight" />} /></Phone>
         </DCArtboard>
         <DCArtboard id="banner-warn" label="Warning · banner" width={AB_W} height={AB_H}>
-          <Phone><HomeCivic banner={<SBAlertBanner level="warning" title="Severe Thunderstorm Warning" until="until 2:30 PM" />} /></Phone>
+          <Phone tab="home"><HomeCivic banner={<SBAlertBanner level="warning" title="Severe Thunderstorm Warning" until="until 2:30 PM" />} /></Phone>
         </DCArtboard>
         <DCArtboard id="emergency" label="Emergency · full-screen takeover" width={AB_W} height={AB_H}>
           <Phone dark><SBEmergencyTakeover /></Phone>
         </DCArtboard>
-        <DCArtboard id="alerts-list" label="All active alerts" width={AB_W} height={AB_H}>
-          <Phone><SBAlertsScreen /></Phone>
+        <DCArtboard id="alerts-list" label="Active alerts list · opened from banner" width={AB_W} height={AB_H}>
+          <Phone tab="more"><SBAlertsScreen /></Phone>
         </DCArtboard>
       </DCSection>
 
@@ -135,8 +163,8 @@ function App() {
         </DCArtboard>
       </DCSection>
 
-      <DCSection id="settings" title="Personalization · every aspect"
-        subtitle="Deep controls with a clear index. Each row opens a focused detail screen — alerts, notifications, brief tuning, accessibility.">
+      <DCSection id="settings" title="Settings · index + detail screens"
+        subtitle="Reached from More → Settings. The index lists every category; each row opens a focused detail screen. Radar style lives here, not in More.">
         <DCArtboard id="settings-main" label="Settings · index" width={AB_W} height={AB_H}>
           <Phone><SettingsScreen /></Phone>
         </DCArtboard>
@@ -160,16 +188,16 @@ function App() {
       <DCSection id="radar" title="Radar · one screen, three user styles"
         subtitle="A full-bleed map with a −2h → +90m timeline. User picks the style in Settings: Clean, Enthusiast (storm cells), or Narrative (plain-language overlay).">
         <DCArtboard id="radar-clean" label="Clean · default" width={AB_W} height={AB_H}>
-          <Phone dark><RadarScreen style="clean" /></Phone>
+          <Phone dark tab="radar"><RadarScreen style="clean" /></Phone>
         </DCArtboard>
         <DCArtboard id="radar-enth" label="Enthusiast · storm cells" width={AB_W} height={AB_H}>
-          <Phone dark><RadarScreen style="enthusiast" /></Phone>
+          <Phone dark tab="radar"><RadarScreen style="enthusiast" /></Phone>
         </DCArtboard>
         <DCArtboard id="radar-narr" label="Narrative · explained" width={AB_W} height={AB_H}>
-          <Phone dark><RadarScreen style="narrative" /></Phone>
+          <Phone dark tab="radar"><RadarScreen style="narrative" /></Phone>
         </DCArtboard>
         <DCArtboard id="radar-cell" label="Storm-cell detail (tap cell)" width={AB_W} height={AB_H}>
-          <Phone dark><StormCellSheet /></Phone>
+          <Phone dark tab="radar"><StormCellSheet /></Phone>
         </DCArtboard>
       </DCSection>
 
@@ -240,6 +268,38 @@ function App() {
         </DCArtboard>
         <DCArtboard id="skywarn" label="SKYWARN · Community reports" width={AB_W} height={AB_H}>
           <Phone><SkywarnScreen /></Phone>
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="chip-logic" title="Context chips · earned, not defaulted"
+        subtitle="How Skybureau decides which civic screens to surface onto Home. Chips appear only when a trigger fires — a dead chip is noise. Long-press explains why.">
+        <DCArtboard id="chip-logic-doc" label="Promotion ruleset" width={1440} height={920}>
+          <ChipLogicDoc />
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="civic-data" title="Civic data · the 90% nobody else packages"
+        subtitle="Air quality, wildfire & smoke, drought, river flood stage, earthquakes, tsunami, and climate normals. Every screen cites its source. Reached from More → Civic data.">
+        <DCArtboard id="aq" label="Air quality · full breakdown" width={AB_W} height={AB_H}>
+          <Phone><AirQualityScreen /></Phone>
+        </DCArtboard>
+        <DCArtboard id="wildfire" label="Wildfire & smoke" width={AB_W} height={AB_H}>
+          <Phone><WildfireScreen /></Phone>
+        </DCArtboard>
+        <DCArtboard id="drought" label="Drought · U.S. Drought Monitor" width={AB_W} height={AB_H}>
+          <Phone><DroughtScreen /></Phone>
+        </DCArtboard>
+        <DCArtboard id="river" label="River · hydrograph" width={AB_W} height={AB_H}>
+          <Phone><RiverScreen /></Phone>
+        </DCArtboard>
+        <DCArtboard id="quake" label="Earthquake · regional feed" width={AB_W} height={AB_H}>
+          <Phone><EarthquakeScreen /></Phone>
+        </DCArtboard>
+        <DCArtboard id="tsunami" label="Tsunami · active advisory" width={AB_W} height={AB_H}>
+          <Phone dark><TsunamiScreen /></Phone>
+        </DCArtboard>
+        <DCArtboard id="climate" label="Climate · today vs. normal" width={AB_W} height={AB_H}>
+          <Phone><ClimateScreen /></Phone>
         </DCArtboard>
       </DCSection>
 

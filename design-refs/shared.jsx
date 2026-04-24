@@ -275,6 +275,79 @@ const SB_FAKE = {
   ],
 };
 
+// ─────────────────────────────────────────────────────────────
+// BottomTabBar — always-visible system navigation.
+// 4 tabs: Home, Radar, Alerts, More.
+// Hidden on: onboarding, fullscreen takeovers, sheets.
+// ─────────────────────────────────────────────────────────────
+function SBTabBar({ active = 'home', dark = false }) {
+  const ink = dark ? SB_TOKENS.nightInk : SB_TOKENS.ink;
+  const mute = dark ? SB_TOKENS.nightInkMute : SB_TOKENS.inkMute;
+  const bg = dark ? 'rgba(13,15,20,0.92)' : 'rgba(246,242,234,0.94)';
+  const line = dark ? SB_TOKENS.nightLine : SB_TOKENS.line;
+
+  const Tab = ({ id, label, children }) => {
+    const on = active === id;
+    return (
+      <div style={{
+        flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
+        gap: 3, padding: '6px 0 2px', color: on ? ink : mute,
+        position: 'relative', cursor: 'default',
+      }}>
+        {on && <div style={{
+          position: 'absolute', top: 0, width: 18, height: 2, background: ink, borderRadius: 1,
+        }} />}
+        {children}
+        <div style={{
+          fontSize: 10, fontWeight: on ? 600 : 500, letterSpacing: 0.1,
+          fontFamily: SB_TOKENS.font,
+        }}>{label}</div>
+      </div>
+    );
+  };
+
+  const ICON = 20;
+  const stroke = 1.7;
+  return (
+    <div style={{
+      position: 'absolute', left: 0, right: 0, bottom: 0,
+      height: 68, paddingBottom: 14,
+      background: bg,
+      backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+      borderTop: `1px solid ${line}`,
+      display: 'flex', alignItems: 'flex-start',
+      zIndex: 40,
+    }}>
+      <Tab id="home" label="Home">
+        <svg width={ICON} height={ICON} viewBox="0 0 24 24" fill="none">
+          <path d="M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1v-9z"
+            stroke="currentColor" strokeWidth={stroke} strokeLinejoin="round"
+            fill={active === 'home' ? 'currentColor' : 'none'} fillOpacity={active === 'home' ? 0.08 : 1}/>
+        </svg>
+      </Tab>
+      <Tab id="radar" label="Radar">
+        <svg width={ICON} height={ICON} viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth={stroke} />
+          <circle cx="12" cy="12" r="4.5" stroke="currentColor" strokeWidth={stroke} opacity="0.5" />
+          <path d="M12 12 L18.5 8.5" stroke="currentColor" strokeWidth={stroke} strokeLinecap="round" />
+          <circle cx="12" cy="12" r="1.3" fill="currentColor" />
+        </svg>
+      </Tab>
+      <Tab id="more" label="More">
+        <svg width={ICON} height={ICON} viewBox="0 0 24 24" fill="none">
+          <circle cx="5.5" cy="7" r="1.2" fill="currentColor" />
+          <circle cx="12"  cy="7" r="1.2" fill="currentColor" />
+          <circle cx="18.5" cy="7" r="1.2" fill="currentColor" />
+          <circle cx="5.5" cy="13" r="1.2" fill="currentColor" />
+          <circle cx="12"  cy="13" r="1.2" fill="currentColor" />
+          <circle cx="18.5" cy="13" r="1.2" fill="currentColor" />
+          <path d="M4 18.5h16" stroke="currentColor" strokeWidth={stroke} strokeLinecap="round" />
+        </svg>
+      </Tab>
+    </div>
+  );
+}
+
 Object.assign(window, {
-  SB_TOKENS, SB_FAKE, SBLogo, SBWordmark, WxIcon, SBSeverityChip, SBBars, SBLineChart,
+  SB_TOKENS, SB_FAKE, SBLogo, SBWordmark, WxIcon, SBSeverityChip, SBBars, SBLineChart, SBTabBar,
 });
