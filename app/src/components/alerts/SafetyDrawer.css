@@ -1,0 +1,116 @@
+/* SafetyDrawer — prefix: sd- */
+
+.sd {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--paper);
+  font-family: var(--font);
+  color: var(--ink);
+  padding-bottom: 60px;
+}
+
+/* Sub-nav */
+.sd-nav {
+  padding: 10px var(--gutter) 14px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sd-back {
+  font-size: 18px;
+  color: var(--ink-soft);
+  width: 20px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--font);
+  -webkit-tap-highlight-color: transparent;
+}
+.sd-nav-title {
+  flex: 1;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+
+/* Warning-colored header */
+.sd-header {
+  background: var(--sev-warning);
+  color: #fff;
+  padding: 16px var(--gutter);
+}
+.sd-header-badge {
+  font-size: 10.5px;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  font-weight: 700;
+  opacity: 0.9;
+}
+.sd-header-title {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+  margin-top: 6px;
+}
+
+/* Intro */
+.sd-intro {
+  padding: 18px var(--gutter) 8px;
+  font-size: 14px;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+/* Safety blocks */
+.sd-block {
+  padding: 10px var(--gutter);
+}
+.sd-block-title {
+  font-size: 10.5px;
+  color: var(--ink-mute);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+.sd-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 10px;
+}
+.sd-step {
+  display: flex;
+  gap: 10px;
+  font-size: 13.5px;
+  line-height: 1.4;
+}
+.sd-step-num {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  background: var(--paper-soft);
+  border: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-top: 1px;
+}
+.sd-step-text {
+  flex: 1;
+}
+
+/* Attribution */
+.sd-attrib {
+  padding: 4px var(--gutter) 20px;
+  font-size: 11px;
+  color: var(--ink-mute);
+  line-height: 1.5;
+  text-align: center;
+}

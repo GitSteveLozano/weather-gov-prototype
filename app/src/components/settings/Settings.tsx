@@ -12,7 +12,7 @@ interface Props {
   radarStyle: RadarStyle; onRadarStyleChange: (s: RadarStyle) => void;
 }
 
-type SubScreen = null | 'depth' | 'skin' | 'alerts' | 'radar' | 'units' | 'locations' | 'notifications' | 'datasources' | 'privacy';
+type SubScreen = null | 'depth' | 'skin' | 'alerts' | 'radar' | 'units' | 'locations' | 'notifications' | 'datasources' | 'privacy' | 'brief-settings' | 'accessibility';
 
 export function Settings({ onClose, theme, onThemeChange, skin, onSkinChange, depth, onDepthChange, radarStyle, onRadarStyleChange }: Props) {
   const [sub, setSub] = useState<SubScreen>(null);
@@ -231,6 +231,78 @@ export function Settings({ onClose, theme, onThemeChange, skin, onSkinChange, de
     </div>
   );
 
+  // ── Sub: Brief personalization ──
+  if (sub === 'brief-settings') return (
+    <div className="st"><SubNav title="Brief personalization" onBack={() => setSub(null)} />
+      <div className="st-scroll">
+        <div className="st-hint">The morning brief is written for you. These inputs shape what gets mentioned and how thresholds are set.</div>
+        <Section title="What to cover">
+          <ToggleRow label="Today's headline" on />
+          <ToggleRow label="Commute windows" on />
+          <ToggleRow label="Wardrobe suggestion" on />
+          <ToggleRow label="Pollen & air quality" on />
+          <ToggleRow label="UV and sun times" />
+          <ToggleRow label="Tomorrow preview" on />
+        </Section>
+        <Section title="Commute">
+          <TapRow label="Home → Work" sub="Honolulu → Pearl City · 12 mi" />
+          <SegmentRow options={['Drive', 'Transit', 'Bike', 'Walk']} selected={0} label="Mode" />
+          <ToggleRow label="Flag if delay likely > 10 min" on />
+        </Section>
+        <Section title="Wardrobe thresholds">
+          <TapRow label="Cold threshold" value="68° F" />
+          <TapRow label="Warm threshold" value="85° F" />
+          <TapRow label="Rain-gear threshold" value="30% chance" />
+          <ToggleRow label="I run warm" sub="Suggest lighter layers" />
+        </Section>
+        <Section title="Sensitivities">
+          <ToggleRow label="Pollen" sub="Tree · Grass · Weed" on />
+          <ToggleRow label="Air quality (AQI)" on />
+          <ToggleRow label="Migraine pressure drops" sub="Flag when Δ ≥ 6 mb / 3 hr" />
+          <ToggleRow label="Humidity" />
+        </Section>
+        <Section title="Tone">
+          <SegmentRow options={['Concise', 'Standard', 'Detailed']} selected={1} label="Reading level" />
+          <SegmentRow options={['Neutral', 'Warm', 'Technical']} selected={1} label="Voice" />
+          <ToggleRow label="Include a closing suggestion" sub={'e.g. "Bring the umbrella."'} on />
+        </Section>
+        <div style={{ height: 30 }} />
+      </div>
+    </div>
+  );
+
+  // ── Sub: Accessibility ──
+  if (sub === 'accessibility') return (
+    <div className="st"><SubNav title="Accessibility" onBack={() => setSub(null)} />
+      <div className="st-scroll">
+        <Section title="Text">
+          <TapRow label="Text size" value="Default" />
+          <ToggleRow label="Bold weight" />
+          <ToggleRow label="Increase line spacing" />
+        </Section>
+        <Section title="Color & contrast">
+          <ToggleRow label="High contrast" sub="Stronger separators, darker text" />
+          <ToggleRow label="Reduce transparency" />
+          <TapRow label="Color-blind palette" value="Off" />
+        </Section>
+        <Section title="Motion">
+          <ToggleRow label="Reduce motion" sub="Radar animates at 1× · no ambient sky motion" />
+          <ToggleRow label="Prefer static radar frames" />
+        </Section>
+        <Section title="Audio">
+          <ToggleRow label="Read aloud summaries" sub="Morning brief and alerts" />
+          <SegmentRow options={['0.8×', '1.0×', '1.2×', '1.5×']} selected={1} label="Speaking rate" />
+          <ToggleRow label="Haptics on alerts" on />
+        </Section>
+        <Section title="Screen reader">
+          <ToggleRow label="Verbose data labels" sub="Read units and trends explicitly" on />
+          <ToggleRow label="Describe radar frames" sub="Spatial narration for VoiceOver" />
+        </Section>
+        <div style={{ height: 30 }} />
+      </div>
+    </div>
+  );
+
   // ── Main index ──
   return (
     <div className="st">
@@ -266,6 +338,11 @@ export function Settings({ onClose, theme, onThemeChange, skin, onSkinChange, de
               ))}
             </div>
           </div>
+          <TapRow label="Accessibility" sub="Text size, contrast, motion, color-blind" onClick={() => setSub('accessibility')} />
+        </Section>
+
+        <Section title="Skybureau Brief">
+          <TapRow label="Brief personalization" sub="Commute, wardrobe, routines, tone" onClick={() => setSub('brief-settings')} />
         </Section>
 
         <Section title="Alerts & notifications">

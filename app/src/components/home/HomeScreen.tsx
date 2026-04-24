@@ -105,7 +105,7 @@ export function HomeScreen({ data, depth, onOpenSettings, onOpenBrief, onOpenAsk
       {depth !== 'glance' && (
         <>
           <SectionLabel text="Next 12 hours" />
-          <div className="hm-hourly sb-scroll">
+          <div className="hm-hourly sb-scroll" onClick={() => onNavigate?.('hourly')}>
             <div className="hm-hourly-inner">
               {hourly.map((h, i) => {
                 const pop = h.probabilityOfPrecipitation?.value ?? 0;
@@ -122,7 +122,7 @@ export function HomeScreen({ data, depth, onOpenSettings, onOpenBrief, onOpenAsk
           </div>
 
           <SectionLabel text="7-day outlook" />
-          <div className="hm-daily">
+          <div className="hm-daily" onClick={() => onNavigate?.('daily')} style={{ cursor: 'pointer' }}>
             {dayPairs.slice(0, 7).map((pair, i) => {
               const d = pair.day, n = pair.night;
               const dHi = d.temperature, dLo = n?.temperature ?? d.temperature;

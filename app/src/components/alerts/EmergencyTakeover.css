@@ -1,0 +1,147 @@
+/* EmergencyTakeover — prefix: et- */
+
+@keyframes et-drift {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-40px); }
+}
+
+@keyframes et-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.et-takeover {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: #1a0812;
+  color: #fff;
+  font-family: var(--font);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.et-bars {
+  position: absolute;
+  top: 54px;
+  left: 0;
+  right: 0;
+  height: 6px;
+  overflow: hidden;
+}
+.et-bars-inner {
+  display: flex;
+  animation: et-drift 1.2s linear infinite;
+  background: repeating-linear-gradient(90deg, #fff 0 20px, transparent 20px 40px);
+  height: 6px;
+  width: 120%;
+}
+
+.et-spacer {
+  height: 80px;
+  flex-shrink: 0;
+}
+
+.et-badge-wrap {
+  padding: 24px 22px 8px;
+}
+.et-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  background: #fff;
+  color: var(--sev-emergency);
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  animation: et-pulse 1.4s ease-in-out infinite;
+}
+
+.et-content {
+  padding: 12px 22px 0;
+  flex: 1;
+}
+
+.et-issued {
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  opacity: 0.8;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.et-headline {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.8px;
+  line-height: 1.1;
+  text-wrap: balance;
+}
+
+.et-action-card {
+  margin-top: 22px;
+  padding: 16px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+.et-action-label {
+  font-size: 12px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  opacity: 0.85;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.et-action-text {
+  font-size: 16px;
+  line-height: 1.45;
+  font-weight: 500;
+}
+
+.et-meta {
+  margin-top: 20px;
+  font-size: 12px;
+  opacity: 0.75;
+  line-height: 1.6;
+}
+
+.et-buttons {
+  padding: 16px 16px 24px;
+  display: flex;
+  gap: 10px;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+.et-btn-shelter {
+  width: 100%;
+  padding: 16px;
+  border-radius: 10px;
+  background: #fff;
+  color: var(--sev-emergency);
+  border: none;
+  font-family: var(--font);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+}
+.et-btn-dismiss {
+  width: 100%;
+  padding: 14px;
+  border-radius: 10px;
+  background: transparent;
+  color: #fff;
+  border: 1.5px solid rgba(255, 255, 255, 0.5);
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}

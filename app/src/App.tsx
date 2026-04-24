@@ -36,7 +36,7 @@ import './index.css';
 export type ThemeMode = 'light' | 'system' | 'dark';
 export type HomeSkin = 'civic' | 'atmospheric' | 'cartographic' | 'data';
 export type DepthLevel = 'glance' | 'scan' | 'dive';
-export type SubScreen = null | 'settings' | 'brief' | 'ask' | 'marine' | 'aviation' | 'fire' | 'alert-detail' | 'air-quality' | 'climate' | 'drought' | 'earthquake' | 'river' | 'wildfire' | 'tsunami' | 'health' | 'hurricane' | 'lightning' | 'snow' | 'moon' | 'wind';
+export type SubScreen = null | 'settings' | 'brief' | 'ask' | 'marine' | 'aviation' | 'fire' | 'alert-detail' | 'air-quality' | 'climate' | 'drought' | 'earthquake' | 'river' | 'wildfire' | 'tsunami' | 'health' | 'hurricane' | 'lightning' | 'snow' | 'moon' | 'wind' | 'hourly' | 'daily' | 'minutecast' | 'aurora' | 'flood' | 'skywarn' | 'safety';
 
 function load<T>(key: string, fallback: T): T {
   try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch { return fallback; }

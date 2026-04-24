@@ -1,0 +1,202 @@
+/* DailyDetail — prefix: dd- */
+
+.dd {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--paper);
+  font-family: var(--font);
+  color: var(--ink);
+  padding-bottom: 60px;
+}
+
+/* Sub-nav */
+.dd-nav {
+  padding: 10px var(--gutter) 14px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.dd-back {
+  font-size: 18px;
+  color: var(--ink-soft);
+  width: 20px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--font);
+  -webkit-tap-highlight-color: transparent;
+}
+.dd-nav-title {
+  flex: 1;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+.dd-nav-crumb {
+  font-size: 11px;
+  color: var(--ink-mute);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+/* Header */
+.dd-header {
+  padding: 14px var(--gutter);
+  border-bottom: 1px solid var(--line);
+}
+.dd-kicker {
+  font-size: 11px;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  font-weight: 600;
+}
+.dd-title {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin-top: 4px;
+}
+.dd-byline {
+  font-size: 13px;
+  color: var(--ink-mute);
+  margin-top: 4px;
+}
+
+/* Day entries */
+.dd-day {
+  border-bottom: 1px solid var(--line);
+}
+.dd-day--open {
+  background: var(--paper-soft);
+}
+.dd-day-row {
+  padding: 12px var(--gutter);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.dd-day-label {
+  width: 64px;
+  flex-shrink: 0;
+}
+.dd-day-name {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+}
+.dd-day-date {
+  display: block;
+  font-size: 10px;
+  color: var(--ink-mute);
+  margin-top: 1px;
+}
+.dd-pop {
+  width: 30px;
+  font-size: 11px;
+  color: var(--sky-rain);
+  font-weight: 600;
+  text-align: right;
+  flex-shrink: 0;
+}
+.dd-lo {
+  width: 30px;
+  font-size: 13px;
+  color: var(--ink-mute);
+  text-align: right;
+  flex-shrink: 0;
+}
+.dd-bar {
+  flex: 1;
+  height: 4px;
+  background: var(--line);
+  border-radius: 2px;
+  position: relative;
+  min-width: 40px;
+}
+.dd-bar-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: var(--ink);
+  border-radius: 2px;
+}
+.dd-hi {
+  width: 30px;
+  font-size: 13px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.dd-chevron {
+  font-size: 16px;
+  color: var(--ink-mute);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+  width: 16px;
+  text-align: center;
+}
+.dd-chevron--open {
+  transform: rotate(90deg);
+}
+
+/* Expanded detail */
+.dd-detail {
+  padding: 0 var(--gutter) 14px;
+  padding-left: calc(var(--gutter) + 14px);
+}
+.dd-detail-section {
+  padding: 10px 0;
+}
+.dd-detail-night {
+  border-top: 1px solid var(--line);
+}
+.dd-detail-label {
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.dd-detail-text {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--ink-soft);
+}
+.dd-detail-stats {
+  margin-top: 8px;
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.dd-stat {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+}
+.dd-stat-label {
+  font-size: 10px;
+  color: var(--ink-mute);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.dd-stat-val {
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+/* Footer */
+.dd-footer {
+  padding: 18px var(--gutter) 24px;
+  font-size: 10.5px;
+  color: var(--ink-mute);
+  letter-spacing: 0.3px;
+  text-align: center;
+  border-top: 1px solid var(--line);
+  margin-top: 8px;
+}
