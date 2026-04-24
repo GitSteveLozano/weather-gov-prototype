@@ -2,6 +2,7 @@ import type { NWSPoint, ForecastPeriod, Alert, EnvData, GaugeSite, Hazards } fro
 
 const LAT = 21.3069;
 const LON = -157.8583;
+const NWS_HEADERS = { 'User-Agent': '(skybureau-prototype, contact@skybureau.app)' };
 
 export const GAUGE_SITES: GaugeSite[] = [
   { id: '16247100', name: 'Manoa-Palolo Canal', short: 'Manoa Canal', lat: 21.295, lon: -157.826, flood: 5.0, action: 3.5, level: null, flow: null },
@@ -22,17 +23,17 @@ export async function fetchWeather(): Promise<{
   alerts: Alert[];
 }> {
   const [ptR, alR] = await Promise.all([
-    fetch(`https://api.weather.gov/points/${LAT},${LON}`),
-    fetch('https://api.weather.gov/alerts/active?area=HI'),
+    fetch(`https://api.weather.gov/points/${LAT},${LON}`, { headers: NWS_HEADERS }),
+    fetch('https://api.weather.gov/alerts/active?area=HI', { headers: NWS_HEADERS }),
   ]);
   const pt = await ptR.json();
   const al = await alR.json();
   const pr = pt.properties;
 
   const [fcR, , hrR] = await Promise.all([
-    fetch(pr.forecast),
-    fetch(pr.forecastGridData),
-    fetch(pr.forecastHourly),
+    fetch(pr.forecast, { headers: NWS_HEADERS }),
+    fetch(pr.forecastGridData, { headers: NWS_HEADERS }),
+    fetch(pr.forecastHourly, { headers: NWS_HEADERS }),
   ]);
   const fc = await fcR.json();
   const hr = await hrR.json();
@@ -128,7 +129,7 @@ export async function fetchHazards(envData: EnvData): Promise<Hazards> {
   } catch { hazards.earthquake = { status: 'ok', detail: 'Unable to fetch' }; }
 
   try {
-    const surfR = await fetch('https://api.weather.gov/alerts/active?area=HI&event=High+Surf+Advisory,High+Surf+Warning,Rip+Current+Statement');
+    const surfR = await fetch('https://api.weather.gov/alerts/active?area=HI&event=High+Surf+Advisory,High+Surf+Warning,Rip+Current+Statement', { headers: NWS_HEADERS });
     const surfD = await surfR.json();
     const surfAlerts = surfD.features || [];
     hazards.surf = {
@@ -138,7 +139,7 @@ export async function fetchHazards(envData: EnvData): Promise<Hazards> {
   } catch { hazards.surf = { status: 'ok', detail: 'Unable to fetch' }; }
 
   try {
-    const tropR = await fetch('https://api.weather.gov/alerts/active?area=HI&event=Hurricane+Warning,Hurricane+Watch,Tropical+Storm+Warning,Tropical+Storm+Watch');
+    const tropR = await fetch('https://api.weather.gov/alerts/active?area=HI&event=Hurricane+Warning,Hurricane+Watch,Tropical+Storm+Warning,Tropical+Storm+Watch', { headers: NWS_HEADERS });
     const trop = await tropR.json();
     hazards.tropical = {
       status: (trop.features || []).length ? 'warning' : 'ok',
@@ -147,7 +148,7 @@ export async function fetchHazards(envData: EnvData): Promise<Hazards> {
   } catch { hazards.tropical = { status: 'ok', detail: 'Unable to fetch' }; }
 
   try {
-    const tsuR = await fetch('https://api.weather.gov/alerts/active?area=HI&event=Tsunami+Warning,Tsunami+Watch,Tsunami+Advisory');
+    const tsuR = await fetch('https://api.weather.gov/alerts/active?area=HI&event=Tsunami+Warning,Tsunami+Watch,Tsunami+Advisory', { headers: NWS_HEADERS });
     const tsu = await tsuR.json();
     hazards.tsunami = {
       status: (tsu.features || []).length ? 'warning' : 'ok',
@@ -171,11 +172,11 @@ export async function fetchHazards(envData: EnvData): Promise<Hazards> {
   };
 
   try {
-    const discR = await fetch('https://api.weather.gov/products?office=HFO&type=AFD&limit=1');
+    const discR = await fetch('https://api.weather.gov/products?office=HFO&type=AFD&limit=1', { headers: NWS_HEADERS });
     const discD = await discR.json();
     const latest = discD['@graph']?.[0];
     if (latest) {
-      const prodR = await fetch(`https://api.weather.gov/products/${latest.id}`);
+      const prodR = await fetch(`https://api.weather.gov/products/${latest.id}`, { headers: NWS_HEADERS });
       const prod = await prodR.json();
       hazards.forecasterDiscussion = {
         text: (prod.productText || '').slice(0, 800),
