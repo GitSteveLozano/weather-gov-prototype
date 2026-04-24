@@ -1,7 +1,4 @@
-interface LogoProps {
-  size?: number;
-  color?: string;
-}
+interface LogoProps { size?: number; color?: string; }
 
 export function SBLogo({ size = 20, color }: LogoProps) {
   const c = color || 'var(--ink)';
@@ -15,20 +12,10 @@ export function SBLogo({ size = 20, color }: LogoProps) {
   );
 }
 
-interface WordmarkProps {
-  size?: number;
-  color?: string;
-  weight?: number;
-}
-
-export function SBWordmark({ size = 15, color, weight = 600 }: WordmarkProps) {
+export function SBWordmark({ size = 15, color }: { size?: number; color?: string }) {
   const c = color || 'var(--ink)';
   return (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: 8,
-      fontFamily: 'var(--font)', fontWeight: weight,
-      fontSize: size, color: c, letterSpacing: -0.3,
-    }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font)', fontWeight: 600, fontSize: size, color: c, letterSpacing: -0.3 }}>
       <SBLogo size={size + 5} color={c} />
       <span>skybureau</span>
     </div>
