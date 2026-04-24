@@ -173,16 +173,20 @@ export async function fetchHazards(envData: EnvData): Promise<Hazards> {
 
   try {
     const discR = await fetch('https://api.weather.gov/products?office=HFO&type=AFD&limit=1', { headers: NWS_HEADERS });
-    const discD = await discR.json();
-    const latest = discD['@graph']?.[0];
-    if (latest) {
-      const prodR = await fetch(`https://api.weather.gov/products/${latest.id}`, { headers: NWS_HEADERS });
-      const prod = await prodR.json();
-      hazards.forecasterDiscussion = {
-        text: (prod.productText || '').slice(0, 800),
-        issued: latest.issuanceTime,
-        id: latest.id,
-      };
+    if (discR.ok) {
+      const discD = await discR.json();
+      const latest = discD['@graph']?.[0];
+      if (latest) {
+        const prodR = await fetch(`https://api.weather.gov/products/${latest.id}`, { headers: NWS_HEADERS });
+        if (prodR.ok) {
+          const prod = await prodR.json();
+          hazards.forecasterDiscussion = {
+            text: String(prod.productText || '').slice(0, 800),
+            issued: String(latest.issuanceTime || ''),
+            id: String(latest.id || ''),
+          };
+        }
+      }
     }
   } catch { /* AFD optional */ }
 

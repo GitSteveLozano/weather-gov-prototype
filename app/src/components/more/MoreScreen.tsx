@@ -135,7 +135,6 @@ export function MoreScreen({ onNavigate }: Props) {
         <Row icon={<PlaneIcon />} title="Aviation" sub="METAR, TAF, SIGMET" onClick={() => onNavigate('aviation')} />
         <Row icon={<FlameIcon />} title="Fire weather" sub="RH, wind, red-flag conditions" onClick={() => onNavigate('fire')} />
         <Row icon={<WaveIcon />} title="Hurricane" sub="Cone of uncertainty, storm tracking" onClick={() => onNavigate('hurricane')} />
-        <Row icon={<AuroraIcon />} title="Aurora" sub="Kp forecast, cloud cover" onClick={() => onNavigate('aurora')} />
       </div>
 
       {/* Health & conditions */}
