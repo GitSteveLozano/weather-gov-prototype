@@ -27,6 +27,22 @@ export function HomeScreen({ data, depth, onOpenSettings, onOpenBrief, onOpenAsk
   const { periods, hourly, alerts, env, point } = data;
   const p0 = periods[0];
 
+  // Debug: log all rendered values to find the object
+  if (p0) {
+    const vals = { temp: p0.temperature, cond: p0.shortForecast, detail: p0.detailedForecast, wind: p0.windSpeed, windDir: p0.windDirection };
+    for (const [k, v] of Object.entries(vals)) {
+      if (v !== null && v !== undefined && typeof v === 'object') {
+        console.error(`FOUND OBJECT in HomeScreen: ${k} =`, v);
+      }
+    }
+    const envVals = { windMph: env.windMph, windDir: env.windDir, uv: env.uv, aqi: env.aqi, humidity: env.humidity, pressure: env.pressure, visibMi: env.visibMi };
+    for (const [k, v] of Object.entries(envVals)) {
+      if (v !== null && v !== undefined && typeof v === 'object') {
+        console.error(`FOUND OBJECT in env: ${k} =`, v);
+      }
+    }
+  }
+
   if (data.loading && !p0) {
     return <div className="hm-loading"><div className="hm-spinner" /><span className="sb-mono">Loading forecast…</span></div>;
   }

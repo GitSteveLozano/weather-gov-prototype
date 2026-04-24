@@ -47,7 +47,7 @@ export function useWeather() {
       setData(prev => ({
         ...prev,
         loading: false,
-        error: e instanceof Error ? e.message : 'Failed to load weather data',
+        error: String(e instanceof Error ? e.message : 'Failed to load weather data'),
       }));
     }
   }, []);
