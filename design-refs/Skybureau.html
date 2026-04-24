@@ -24,6 +24,7 @@
 <script type="text/babel" src="agentic.jsx"></script>
 <script type="text/babel" src="civic.jsx"></script>
 <script type="text/babel" src="spc.jsx"></script>
+<script type="text/babel" src="radar.jsx"></script>
 <script type="text/babel" src="appmap.jsx"></script>
 
 <script type="text/babel">
@@ -35,7 +36,8 @@
    BriefHome, AskScreen, MinuteCast, LockScreen, WidgetsScreen, SavedLocations, WatchFace,
    ConfidenceForecast, HealthScreen, HurricaneScreen, LightningScreen, SnowScreen, MoonTideScreen,
    SeasonalOutlook, HeatRiskScreen, AuroraScreen, FloodScreen, SkywarnScreen,
-   SafetyDrawer, HistoricalScreen, ProvenanceScreen, SPCOutlook, AppMap */
+   SafetyDrawer, HistoricalScreen, ProvenanceScreen, SPCOutlook, AppMap,
+   RadarScreen, StormCellSheet, SettingsRadar */
 
 // iPhone-like device mini-frame (402x874 scaled via the artboard wrapper)
 function Phone({ children, dark = false }) {
@@ -149,6 +151,25 @@ function App() {
         </DCArtboard>
         <DCArtboard id="settings-a11y" label="Accessibility" width={AB_W} height={AB_H}>
           <Phone><SettingsAccessibility /></Phone>
+        </DCArtboard>
+        <DCArtboard id="settings-radar" label="Radar style" width={AB_W} height={AB_H}>
+          <Phone><SettingsRadar /></Phone>
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="radar" title="Radar · one screen, three user styles"
+        subtitle="A full-bleed map with a −2h → +90m timeline. User picks the style in Settings: Clean, Enthusiast (storm cells), or Narrative (plain-language overlay).">
+        <DCArtboard id="radar-clean" label="Clean · default" width={AB_W} height={AB_H}>
+          <Phone dark><RadarScreen style="clean" /></Phone>
+        </DCArtboard>
+        <DCArtboard id="radar-enth" label="Enthusiast · storm cells" width={AB_W} height={AB_H}>
+          <Phone dark><RadarScreen style="enthusiast" /></Phone>
+        </DCArtboard>
+        <DCArtboard id="radar-narr" label="Narrative · explained" width={AB_W} height={AB_H}>
+          <Phone dark><RadarScreen style="narrative" /></Phone>
+        </DCArtboard>
+        <DCArtboard id="radar-cell" label="Storm-cell detail (tap cell)" width={AB_W} height={AB_H}>
+          <Phone dark><StormCellSheet /></Phone>
         </DCArtboard>
       </DCSection>
 

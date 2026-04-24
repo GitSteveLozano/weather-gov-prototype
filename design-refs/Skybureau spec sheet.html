@@ -138,7 +138,7 @@
     <li><a href="#s04"><span class="n">04</span><span class="title">Depth system</span><span class="count">3</span></a></li>
     <li><a href="#s05"><span class="n">05</span><span class="title">Alert system</span><span class="count">6</span></a></li>
     <li><a href="#s06"><span class="n">06</span><span class="title">Forecast detail</span><span class="count">4</span></a></li>
-    <li><a href="#s07"><span class="n">07</span><span class="title">Settings tree</span><span class="count">5</span></a></li>
+    <li><a href="#s07"><span class="n">07</span><span class="title">Settings tree</span><span class="count">6</span></a></li>
     <li><a href="#s08"><span class="n">08</span><span class="title">Agentic · AI</span><span class="count">3</span></a></li>
     <li><a href="#s09"><span class="n">09</span><span class="title">Specialty products</span><span class="count">5</span></a></li>
     <li><a href="#s10"><span class="n">10</span><span class="title">System surfaces</span><span class="count">5</span></a></li>
@@ -406,7 +406,27 @@
   <div class="screen">
     <h3><span class="id">F-03</span>Radar · full<span class="kind kind-depth">Depth</span></h3>
     <div class="screen-body">
-      <dt>Contents</dt><dd>MRMS tiled radar, 2-hr animated loop, layer toggle (reflectivity / velocity / satellite / temperature / lightning). Alert polygons overlaid if active.</dd>
+      <dt>Purpose</dt><dd>One radar screen, three user-chosen styles. Timeline, layers, and data are identical; overlay density and vocabulary differ. Style is picked in <code>S-06</code> and persists.</dd>
+      <dt>Shared chrome</dt><dd>Full-bleed map, −2h → now → +90m timeline with play/scrub, layer toggle (reflectivity / velocity / satellite / temperature / lightning), alert polygons overlaid when active, location pin.</dd>
+      <dt>Style · Clean (default)</dt><dd>Reflectivity tiles + timeline only. No annotations. For users who know how to read radar and don't want a cluttered view.</dd>
+      <dt>Style · Enthusiast</dt><dd>Adds storm-cell tracking (rotation markers, hail cores, cell IDs, projected tracks with arrival-time ticks), lightning strikes, storm-relative motion vectors. Tap a cell → <code>F-03b</code>.</dd>
+      <dt>Style · Narrative</dt><dd>Plain-language overlays that sit on top of the map: "Light rain reaches you in 18 min", "Storm clearing by 7:45 PM", "No precipitation expected in the next 90 minutes." For non-enthusiasts who still want radar on the home screen.</dd>
+      <dt>Tap targets</dt><dd>
+        <table class="taps">
+          <tr><td>Storm cell (Enthusiast only)</td><td>→ F-03b</td><td>Cell detail sheet</td></tr>
+          <tr><td>Layer chip</td><td>inline</td><td>Cycles layer</td></tr>
+          <tr><td>Timeline</td><td>inline</td><td>Scrub to any time in window</td></tr>
+          <tr><td>Style label (top-right)</td><td>→ S-06</td><td>Switch style</td></tr>
+        </table>
+      </dd>
+    </div>
+  </div>
+  <div class="screen">
+    <h3><span class="id">F-03b</span>Storm-cell detail (sheet)<span class="kind kind-depth">Depth</span></h3>
+    <div class="screen-body">
+      <dt>Trigger</dt><dd>Tap any tracked cell on Enthusiast radar.</dd>
+      <dt>Contents</dt><dd>Cell ID, VIL, echo-top height, rotation (shear), hail probability + size, projected track with arrival-time ticks for up to 3 downstream locations, affiliated watch/warning polygons. Hazard chips (tornado / hail / wind / lightning) pill up when thresholds are crossed.</dd>
+      <dt>Sheet behavior</dt><dd>Half-height bottom sheet, draggable to full. Dismiss taps outside or chevron-down.</dd>
     </div>
   </div>
   <div class="screen">
@@ -451,6 +471,14 @@
     <h3><span class="id">S-05</span>Accessibility<span class="kind kind-settings">Settings</span></h3>
     <div class="screen-body">
       <dt>Contents</dt><dd>Text size (6 stops), bold weight, line spacing, high contrast, reduce transparency, color-blind palette picker, reduce motion, audio playback rate, verbose screen-reader labels.</dd>
+    </div>
+  </div>
+  <div class="screen">
+    <h3><span class="id">S-06</span>Radar style<span class="kind kind-settings">Settings</span></h3>
+    <div class="screen-body">
+      <dt>Purpose</dt><dd>Picks which style <code>F-03</code> renders in. Persists per device.</dd>
+      <dt>Contents</dt><dd>Three large option cards — <code>Clean</code>, <code>Enthusiast</code>, <code>Narrative</code> — each with a 2-line description, a miniature preview, and an example sentence (for Narrative) or a labeled annotation (for Enthusiast). A footnote explains that data and layers are identical across styles; only the annotation layer changes.</dd>
+      <dt>Default</dt><dd><code>Clean</code>. Depth default from onboarding (<code>W-03</code>) nudges this: Dive users default to Enthusiast, Glance users to Narrative.</dd>
     </div>
   </div>
 </section>

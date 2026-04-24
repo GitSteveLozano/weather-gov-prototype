@@ -4,6 +4,7 @@ import { Onboarding } from './components/onboarding/Onboarding';
 import { HomeScreen } from './components/home/HomeScreen';
 import { HomeAtmos } from './components/home/HomeAtmos';
 import { RadarTab } from './components/radar/RadarTab';
+import type { RadarStyle } from './components/radar/RadarTab';
 import { Settings } from './components/settings/Settings';
 import { ModeBar } from './components/common/ModeBar';
 import type { ModeId } from './components/common/ModeBar';
@@ -36,6 +37,7 @@ export default function App() {
   const [theme, setTheme] = useState<ThemeMode>(() => load('sb-theme', 'system'));
   const [skin, setSkin] = useState<HomeSkin>(() => load('sb-skin', 'civic'));
   const [depth, setDepth] = useState<DepthLevel>(() => load('sb-depth-level', 'scan'));
+  const [radarStyle, setRadarStyle] = useState<RadarStyle>(() => load('sb-radar-style', 'clean'));
 
   const handleOnboardingComplete = useCallback((d: DataDensity) => {
     save('sb-onboarded', true);
@@ -57,6 +59,10 @@ export default function App() {
     setDepth(d); save('sb-depth-level', d);
   }, []);
 
+  const handleRadarStyle = useCallback((s: RadarStyle) => {
+    setRadarStyle(s); save('sb-radar-style', s);
+  }, []);
+
   if (!onboarded) {
     return <Onboarding onComplete={handleOnboardingComplete} />;
   }
@@ -66,7 +72,7 @@ export default function App() {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {mode === 'home' && skin === 'civic' && <HomeScreen data={data} depth={depth} onOpenSettings={() => setShowSettings(true)} />}
         {mode === 'home' && skin === 'atmospheric' && <HomeAtmos data={data} depth={depth} onOpenSettings={() => setShowSettings(true)} />}
-        {mode === 'radar' && <RadarTab />}
+        {mode === 'radar' && <RadarTab radarStyle={radarStyle} />}
       </div>
       <ModeBar active={mode} onChange={setMode} />
       {showSettings && (
@@ -75,6 +81,7 @@ export default function App() {
           theme={theme} onThemeChange={handleTheme}
           skin={skin} onSkinChange={handleSkin}
           depth={depth} onDepthChange={handleDepth}
+          radarStyle={radarStyle} onRadarStyleChange={handleRadarStyle}
         />
       )}
     </div>

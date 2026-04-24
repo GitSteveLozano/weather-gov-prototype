@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { SBWordmark } from '../shared/SBLogo';
 import type { ThemeMode, HomeSkin, DepthLevel } from '../../App';
+import type { RadarStyle } from '../radar/RadarTab';
 import './Settings.css';
 
 interface Props {
@@ -8,11 +9,12 @@ interface Props {
   theme: ThemeMode; onThemeChange: (t: ThemeMode) => void;
   skin: HomeSkin; onSkinChange: (s: HomeSkin) => void;
   depth: DepthLevel; onDepthChange: (d: DepthLevel) => void;
+  radarStyle: RadarStyle; onRadarStyleChange: (s: RadarStyle) => void;
 }
 
-type SubScreen = null | 'depth' | 'skin' | 'alerts';
+type SubScreen = null | 'depth' | 'skin' | 'alerts' | 'radar';
 
-export function Settings({ onClose, theme, onThemeChange, skin, onSkinChange, depth, onDepthChange }: Props) {
+export function Settings({ onClose, theme, onThemeChange, skin, onSkinChange, depth, onDepthChange, radarStyle, onRadarStyleChange }: Props) {
   const [sub, setSub] = useState<SubScreen>(null);
 
   if (sub === 'depth') {
@@ -40,6 +42,22 @@ export function Settings({ onClose, theme, onThemeChange, skin, onSkinChange, de
           <RadioGroup value={skin} onChange={(v) => onSkinChange(v as HomeSkin)} options={[
             { id: 'civic', name: 'Civic Modern', desc: 'Typographic, editorial, big numbers. Newspaper clarity.' },
             { id: 'atmospheric', name: 'Atmospheric', desc: 'Sky gradients behind data. Emotive, beautiful.' },
+          ]} />
+        </div>
+      </div>
+    );
+  }
+
+  if (sub === 'radar') {
+    return (
+      <div className="st">
+        <SubNav title="Radar style" onBack={() => setSub(null)} />
+        <div className="st-scroll">
+          <div className="st-hint">All three share the same data, map, and timeline — the only difference is what's drawn on top.</div>
+          <RadioGroup value={radarStyle} onChange={(v) => onRadarStyleChange(v as RadarStyle)} options={[
+            { id: 'clean', name: 'Clean', desc: 'Minimal chrome. The radar map is the hero. For most people.' },
+            { id: 'enthusiast', name: 'Enthusiast', desc: 'Storm cells with motion vectors, echo top, VIL, and TVS markers. For chasers.' },
+            { id: 'narrative', name: 'Narrative', desc: 'Natural-language overlay — "Rain reaches you at 4:42 PM." Best when you want a verdict.' },
           ]} />
         </div>
       </div>
@@ -88,6 +106,7 @@ export function Settings({ onClose, theme, onThemeChange, skin, onSkinChange, de
         <Section title="Home screen">
           <TapRow label="Style" value={skin === 'civic' ? 'Civic Modern' : 'Atmospheric'} onClick={() => setSub('skin')} />
           <TapRow label="Default depth" value={depth.charAt(0).toUpperCase() + depth.slice(1)} onClick={() => setSub('depth')} />
+          <TapRow label="Radar style" value={radarStyle.charAt(0).toUpperCase() + radarStyle.slice(1)} onClick={() => setSub('radar')} />
         </Section>
 
         <Section title="Appearance">
