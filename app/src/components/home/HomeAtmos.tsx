@@ -9,6 +9,12 @@ interface Props {
   data: WeatherData;
   depth: DepthLevel;
   onOpenSettings: () => void;
+  onOpenBrief?: () => void;
+  onOpenAsk?: () => void;
+  onOpenMarine?: () => void;
+  onOpenAviation?: () => void;
+  onOpenFire?: () => void;
+  onOpenAlert?: (alert: any) => void;
 }
 
 function formatHour(iso: string) {

@@ -134,17 +134,17 @@ export function MoreScreen({ onNavigate }: Props) {
         <Row icon={<AnchorIcon />} title="Marine" sub="Coastal, offshore, high seas" onClick={() => onNavigate('marine')} />
         <Row icon={<PlaneIcon />} title="Aviation" sub="METAR, TAF, SIGMET" onClick={() => onNavigate('aviation')} />
         <Row icon={<FlameIcon />} title="Fire weather" sub="RH, wind, red-flag conditions" onClick={() => onNavigate('fire')} />
-        <Row icon={<WaveIcon />} title="Hurricane" sub="Active tropical systems" />
-        <Row icon={<AuroraIcon />} title="Aurora" sub="Kp forecast, cloud cover" />
+        <Row icon={<WaveIcon />} title="Hurricane" sub="Active tropical systems" onClick={() => onNavigate('hurricane')} />
+        <Row icon={<AuroraIcon />} title="Aurora" sub="Kp forecast, cloud cover" onClick={() => onNavigate('aurora')} />
       </div>
 
       {/* Civic data */}
       <GroupLabel>Civic data</GroupLabel>
       <div>
-        <Row icon={<PollenIcon />} title="Air Quality" sub="AQI, pollutants, sensor map" />
-        <Row icon={<DroughtIcon />} title="Drought" sub="U.S. Drought Monitor" />
-        <Row icon={<QuakeIcon />} title="Earthquake" sub="USGS seismic data" />
-        <Row icon={<RiverIcon />} title="River gauges" sub="AHPS hydrograph, nearest gauge" />
+        <Row icon={<PollenIcon />} title="Air Quality" sub="AQI, pollutants, sensor map" onClick={() => onNavigate('air-quality')} />
+        <Row icon={<DroughtIcon />} title="Drought" sub="U.S. Drought Monitor" onClick={() => onNavigate('drought')} />
+        <Row icon={<QuakeIcon />} title="Earthquake" sub="USGS seismic data" onClick={() => onNavigate('earthquake')} />
+        <Row icon={<RiverIcon />} title="River gauges" sub="AHPS hydrograph, nearest gauge" onClick={() => onNavigate('river')} />
       </div>
 
       {/* Settings */}
