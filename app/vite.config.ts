@@ -7,7 +7,6 @@ export default defineConfig({
     react(),
   ],
   build: {
-    minify: false,
-    chunkSizeWarningLimit: 1200,
+    chunkSizeWarningLimit: 600,
   },
 })

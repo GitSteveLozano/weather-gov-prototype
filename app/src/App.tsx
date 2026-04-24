@@ -84,6 +84,7 @@ export default function App() {
   const handleRadarStyle = useCallback((s: RadarStyle) => { setRadarStyle(s); save('sb-radar-style', s); }, []);
 
   const openAlert = useCallback((alert: Alert) => { setSelectedAlert(alert); setSub('alert-detail'); }, []);
+  const handleNavigate = useCallback((screen: string) => { setSub(screen as SubScreen); }, []);
 
   if (!onboarded) return <Onboarding onComplete={handleOnboardingComplete} />;
 
@@ -119,10 +120,6 @@ export default function App() {
   if (sub === 'flood') return <FloodInundationScreen onBack={() => setSub(null)} />;
   if (sub === 'skywarn') return <SkywarnScreen onBack={() => setSub(null)} />;
   if (sub === 'safety') return <SafetyDrawer alertEvent="Wind Advisory" onBack={() => setSub(null)} />;
-
-  const handleNavigate = useCallback((screen: string) => {
-    setSub(screen as any);
-  }, []);
 
   const homeProps = {
     data, depth,
