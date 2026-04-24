@@ -15,6 +15,13 @@ import { MarineScreen } from './components/specialty/MarineScreen';
 import { AviationScreen } from './components/specialty/AviationScreen';
 import { FireScreen } from './components/specialty/FireScreen';
 import { AlertDetail } from './components/alerts/AlertDetail';
+import { AirQualityScreen } from './components/civic/AirQualityScreen';
+import { ClimateScreen } from './components/civic/ClimateScreen';
+import { DroughtScreen } from './components/civic/DroughtScreen';
+import { EarthquakeScreen } from './components/civic/EarthquakeScreen';
+import { RiverScreen } from './components/civic/RiverScreen';
+import { WildfireScreen } from './components/civic/WildfireScreen';
+import { TsunamiScreen } from './components/civic/TsunamiScreen';
 import { ModeBar } from './components/common/ModeBar';
 import type { ModeId } from './components/common/ModeBar';
 import type { DataDensity, Alert } from './types/weather';
@@ -23,7 +30,7 @@ import './index.css';
 export type ThemeMode = 'light' | 'system' | 'dark';
 export type HomeSkin = 'civic' | 'atmospheric' | 'cartographic' | 'data';
 export type DepthLevel = 'glance' | 'scan' | 'dive';
-export type SubScreen = null | 'settings' | 'brief' | 'ask' | 'marine' | 'aviation' | 'fire' | 'alert-detail';
+export type SubScreen = null | 'settings' | 'brief' | 'ask' | 'marine' | 'aviation' | 'fire' | 'alert-detail' | 'air-quality' | 'climate' | 'drought' | 'earthquake' | 'river' | 'wildfire' | 'tsunami';
 
 function load<T>(key: string, fallback: T): T {
   try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch { return fallback; }
@@ -77,6 +84,13 @@ export default function App() {
   if (sub === 'aviation') return <AviationScreen onBack={() => setSub(null)} />;
   if (sub === 'fire') return <FireScreen data={data} onBack={() => setSub(null)} />;
   if (sub === 'alert-detail' && selectedAlert) return <AlertDetail alert={selectedAlert} onBack={() => { setSub(null); setSelectedAlert(null); }} />;
+  if (sub === 'air-quality') return <AirQualityScreen data={data} onBack={() => setSub(null)} />;
+  if (sub === 'climate') return <ClimateScreen data={data} onBack={() => setSub(null)} />;
+  if (sub === 'drought') return <DroughtScreen onBack={() => setSub(null)} />;
+  if (sub === 'earthquake') return <EarthquakeScreen data={data} onBack={() => setSub(null)} />;
+  if (sub === 'river') return <RiverScreen data={data} onBack={() => setSub(null)} />;
+  if (sub === 'wildfire') return <WildfireScreen onBack={() => setSub(null)} />;
+  if (sub === 'tsunami') return <TsunamiScreen onBack={() => setSub(null)} />;
 
   const homeProps = {
     data, depth,
