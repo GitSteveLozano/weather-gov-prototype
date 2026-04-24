@@ -92,9 +92,14 @@ export default function App() {
   if (sub === 'wildfire') return <WildfireScreen onBack={() => setSub(null)} />;
   if (sub === 'tsunami') return <TsunamiScreen onBack={() => setSub(null)} />;
 
+  const handleNavigate = useCallback((screen: string) => {
+    setSub(screen as any);
+  }, []);
+
   const homeProps = {
     data, depth,
     onOpenSettings: () => setSub('settings'),
+    onNavigate: handleNavigate,
     onOpenBrief: () => setSub('brief'),
     onOpenAsk: () => setSub('ask'),
     onOpenMarine: () => setSub('marine'),

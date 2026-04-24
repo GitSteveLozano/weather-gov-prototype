@@ -16,13 +16,14 @@ interface Props {
   onOpenAviation?: () => void;
   onOpenFire?: () => void;
   onOpenAlert?: (alert: Alert) => void;
+  onNavigate?: (screen: string) => void;
 }
 
 function formatHour(iso: string) {
   return new Date(iso).toLocaleString('en-US', { hour: 'numeric', hour12: true });
 }
 
-export function HomeScreen({ data, depth, onOpenSettings, onOpenBrief, onOpenAsk, onOpenMarine, onOpenAlert }: Props) {
+export function HomeScreen({ data, depth, onOpenSettings, onOpenBrief, onOpenAsk, onOpenAlert, onNavigate }: Props) {
   const { periods, hourly, alerts, env, point } = data;
   const p0 = periods[0];
 
@@ -144,9 +145,9 @@ export function HomeScreen({ data, depth, onOpenSettings, onOpenBrief, onOpenAsk
           </div>
 
           <div className="hm-cards">
-            <MiniCard label="AIR QUALITY" value={env.aqi ?? '—'} unit="AQI" note={env.aqi != null ? (env.aqi <= 50 ? 'Good' : 'Moderate') : '—'} />
-            <MiniCard label="UV INDEX" value={env.uv ?? '—'} note={env.uv != null ? (env.uv <= 2 ? 'Low' : env.uv <= 5 ? 'Moderate' : 'High') : '—'} />
-            <MiniCard label="WIND" value={env.windMph ?? '—'} unit="mph" note={env.windDir ?? '—'} />
+            <MiniCard label="AIR QUALITY" value={env.aqi ?? '—'} unit="AQI" note={env.aqi != null ? (env.aqi <= 50 ? 'Good' : 'Moderate') : '—'} onClick={() => onNavigate?.('air-quality')} />
+            <MiniCard label="UV INDEX" value={env.uv ?? '—'} note={env.uv != null ? (env.uv <= 2 ? 'Low' : env.uv <= 5 ? 'Moderate' : 'High') : '—'} onClick={() => onNavigate?.('climate')} />
+            <MiniCard label="WIND" value={env.windMph ?? '—'} unit="mph" note={env.windDir ?? '—'} onClick={() => onNavigate?.('marine')} />
             <MiniCard label="HUMIDITY" value={env.humidity ?? '—'} unit="%" note={env.humidity != null ? (env.humidity < 60 ? 'Comfortable' : 'Muggy') : '—'} />
             <MiniCard label="PRESSURE" value={env.pressure ?? '—'} unit="in" note="Steady" />
             <MiniCard label="VISIBILITY" value={env.visibMi ?? '—'} unit="mi" note={(env.visibMi ?? 0) >= 6 ? 'Clear' : 'Reduced'} />
@@ -174,9 +175,7 @@ export function HomeScreen({ data, depth, onOpenSettings, onOpenBrief, onOpenAsk
       {depth !== 'glance' && (
         <>
           <SectionLabel text="Nearby & now" />
-          <NearbyNowStrip data={data} onNavigate={(screen) => {
-            if (screen === 'marine') onOpenMarine?.();
-          }} />
+          <NearbyNowStrip data={data} onNavigate={(screen) => onNavigate?.(screen)} />
         </>
       )}
 
@@ -185,10 +184,12 @@ export function HomeScreen({ data, depth, onOpenSettings, onOpenBrief, onOpenAsk
         <>
           <SectionLabel text="Specialty products" />
           <div className="hm-spec-grid">
-            {onOpenMarine && <div className="hm-spec-card" onClick={onOpenMarine}><span className="hm-spec-ico">🌊</span><span className="hm-spec-name">Marine</span></div>}
-            <div className="hm-spec-card"><span className="hm-spec-ico">✈️</span><span className="hm-spec-name">Aviation</span></div>
-            <div className="hm-spec-card"><span className="hm-spec-ico">🔥</span><span className="hm-spec-name">Fire</span></div>
-            <div className="hm-spec-card"><span className="hm-spec-ico">🌀</span><span className="hm-spec-name">Hurricane</span></div>
+            <div className="hm-spec-card" onClick={() => onNavigate?.('marine')}><span className="hm-spec-ico">🌊</span><span className="hm-spec-name">Marine</span></div>
+            <div className="hm-spec-card" onClick={() => onNavigate?.('aviation')}><span className="hm-spec-ico">✈️</span><span className="hm-spec-name">Aviation</span></div>
+            <div className="hm-spec-card" onClick={() => onNavigate?.('fire')}><span className="hm-spec-ico">🔥</span><span className="hm-spec-name">Fire</span></div>
+            <div className="hm-spec-card" onClick={() => onNavigate?.('air-quality')}><span className="hm-spec-ico">💨</span><span className="hm-spec-name">Air Quality</span></div>
+            <div className="hm-spec-card" onClick={() => onNavigate?.('river')}><span className="hm-spec-ico">💧</span><span className="hm-spec-name">River Gauges</span></div>
+            <div className="hm-spec-card" onClick={() => onNavigate?.('earthquake')}><span className="hm-spec-ico">🔴</span><span className="hm-spec-name">Earthquake</span></div>
           </div>
         </>
       )}
@@ -223,9 +224,9 @@ function SectionLabel({ text }: { text: string }) {
   );
 }
 
-function MiniCard({ label, value, unit, note }: { label: string; value: string | number; unit?: string; note: string }) {
+function MiniCard({ label, value, unit, note, onClick }: { label: string; value: string | number; unit?: string; note: string; onClick?: () => void }) {
   return (
-    <div className="hm-card">
+    <div className={`hm-card${onClick ? ' hm-card-tap' : ''}`} onClick={onClick}>
       <div className="hm-card-label sb-mono">{label}</div>
       <div className="hm-card-value">{value}{unit && <span className="hm-card-unit sb-mono">{unit}</span>}</div>
       <div className="hm-card-note">{note}</div>

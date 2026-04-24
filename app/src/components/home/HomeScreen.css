@@ -91,3 +91,7 @@
 .hm-spec-card:active { background: var(--line); }
 .hm-spec-ico { font-size: 20px; }
 .hm-spec-name { font-size: 13px; font-weight: 500; }
+
+/* Tappable cards */
+.hm-card-tap { cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background 0.15s; }
+.hm-card-tap:active { background: var(--line); }
