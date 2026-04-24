@@ -1,4 +1,5 @@
 import type { WeatherData } from '../../types/weather';
+import type { DepthLevel } from '../../App';
 import { SBWordmark } from '../shared/SBLogo';
 import { WxIcon, forecastToCondition } from '../shared/WxIcon';
 import { SeverityChip, nwsToSeverity } from '../shared/SeverityChip';
@@ -6,6 +7,7 @@ import './HomeScreen.css';
 
 interface Props {
   data: WeatherData;
+  depth: DepthLevel;
   onOpenSettings: () => void;
 }
 
@@ -13,7 +15,7 @@ function formatHour(iso: string) {
   return new Date(iso).toLocaleString('en-US', { hour: 'numeric', hour12: true });
 }
 
-export function HomeScreen({ data, onOpenSettings }: Props) {
+export function HomeScreen({ data, depth, onOpenSettings }: Props) {
   const { periods, hourly, alerts, env, point } = data;
   const p0 = periods[0];
 
@@ -91,60 +93,62 @@ export function HomeScreen({ data, onOpenSettings }: Props) {
       {/* ── Summary ── */}
       <div className="hm-summary">{summary.slice(0, 220)}</div>
 
-      {/* ── Hourly ── */}
-      <SectionLabel text="Next 12 hours" />
-      <div className="hm-hourly sb-scroll">
-        <div className="hm-hourly-inner">
-          {hourly.map((h, i) => {
-            const pop = h.probabilityOfPrecipitation?.value ?? 0;
-            return (
-              <div key={i} className="hm-hcell">
-                <div className="hm-htime sb-mono">{i === 0 ? 'Now' : formatHour(h.startTime)}</div>
-                <WxIcon kind={forecastToCondition(h.shortForecast)} size={22} color="var(--ink)" stroke={1.4} />
-                <div className="hm-htemp sb-mono">{h.temperature}°</div>
-                {pop > 0 && <div className="hm-hpop sb-mono" style={{ color: 'var(--sky-rain)' }}>{pop}%</div>}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* ── 7-Day ── */}
-      <SectionLabel text="7-day outlook" />
-      <div className="hm-daily">
-        {dayPairs.slice(0, 7).map((pair, i) => {
-          const d = pair.day, n = pair.night;
-          const dHi = d.temperature, dLo = n?.temperature ?? d.temperature;
-          const pop = d.probabilityOfPrecipitation?.value ?? 0;
-          const dt = new Date(d.startTime);
-          const dayLabel = i === 0 ? 'Today' : dt.toLocaleDateString('en-US', { weekday: 'short' });
-          const loPct = ((dLo - tMin) / tRange) * 100;
-          const hiPct = ((dHi - tMin) / tRange) * 100;
-          return (
-            <div key={i} className="hm-drow">
-              <div className="hm-dday">{dayLabel}</div>
-              <WxIcon kind={forecastToCondition(d.shortForecast)} size={20} color="var(--ink-soft)" stroke={1.4} />
-              <div className="hm-dpop sb-mono">{pop > 0 ? `${pop}%` : ''}</div>
-              <div className="hm-dlo sb-mono">{dLo}°</div>
-              <div className="hm-dbar"><div className="hm-dbar-fill" style={{ left: `${loPct}%`, width: `${hiPct - loPct}%` }} /></div>
-              <div className="hm-dhi sb-mono">{dHi}°</div>
+      {/* ── Scan depth: Hourly + 7-Day + Cards ── */}
+      {depth !== 'glance' && (
+        <>
+          <SectionLabel text="Next 12 hours" />
+          <div className="hm-hourly sb-scroll">
+            <div className="hm-hourly-inner">
+              {hourly.map((h, i) => {
+                const pop = h.probabilityOfPrecipitation?.value ?? 0;
+                return (
+                  <div key={i} className="hm-hcell">
+                    <div className="hm-htime sb-mono">{i === 0 ? 'Now' : formatHour(h.startTime)}</div>
+                    <WxIcon kind={forecastToCondition(h.shortForecast)} size={22} color="var(--ink)" stroke={1.4} />
+                    <div className="hm-htemp sb-mono">{h.temperature}°</div>
+                    {pop > 0 && <div className="hm-hpop sb-mono" style={{ color: 'var(--sky-rain)' }}>{pop}%</div>}
+                  </div>
+                );
+              })}
             </div>
-          );
-        })}
-      </div>
+          </div>
 
-      {/* ── Condition cards ── */}
-      <div className="hm-cards">
-        <MiniCard label="AIR QUALITY" value={env.aqi ?? '—'} unit="AQI" note={env.aqi != null ? (env.aqi <= 50 ? 'Good' : 'Moderate') : '—'} />
-        <MiniCard label="UV INDEX" value={env.uv ?? '—'} note={env.uv != null ? (env.uv <= 2 ? 'Low' : env.uv <= 5 ? 'Moderate' : 'High') : '—'} />
-        <MiniCard label="WIND" value={env.windMph ?? '—'} unit="mph" note={env.windDir ?? '—'} />
-        <MiniCard label="HUMIDITY" value={env.humidity ?? '—'} unit="%" note={env.humidity != null ? (env.humidity < 60 ? 'Comfortable' : 'Muggy') : '—'} />
-        <MiniCard label="PRESSURE" value={env.pressure ?? '—'} unit="in" note="Steady" />
-        <MiniCard label="VISIBILITY" value={env.visibMi ?? '—'} unit="mi" note={(env.visibMi ?? 0) >= 6 ? 'Clear' : 'Reduced'} />
-      </div>
+          <SectionLabel text="7-day outlook" />
+          <div className="hm-daily">
+            {dayPairs.slice(0, 7).map((pair, i) => {
+              const d = pair.day, n = pair.night;
+              const dHi = d.temperature, dLo = n?.temperature ?? d.temperature;
+              const pop = d.probabilityOfPrecipitation?.value ?? 0;
+              const dt = new Date(d.startTime);
+              const dayLabel = i === 0 ? 'Today' : dt.toLocaleDateString('en-US', { weekday: 'short' });
+              const loPct = ((dLo - tMin) / tRange) * 100;
+              const hiPct = ((dHi - tMin) / tRange) * 100;
+              return (
+                <div key={i} className="hm-drow">
+                  <div className="hm-dday">{dayLabel}</div>
+                  <WxIcon kind={forecastToCondition(d.shortForecast)} size={20} color="var(--ink-soft)" stroke={1.4} />
+                  <div className="hm-dpop sb-mono">{pop > 0 ? `${pop}%` : ''}</div>
+                  <div className="hm-dlo sb-mono">{dLo}°</div>
+                  <div className="hm-dbar"><div className="hm-dbar-fill" style={{ left: `${loPct}%`, width: `${hiPct - loPct}%` }} /></div>
+                  <div className="hm-dhi sb-mono">{dHi}°</div>
+                </div>
+              );
+            })}
+          </div>
 
-      {/* ── Forecast discussion (Dive) ── */}
-      {data.hazards.forecasterDiscussion && (
+          <div className="hm-cards">
+            <MiniCard label="AIR QUALITY" value={env.aqi ?? '—'} unit="AQI" note={env.aqi != null ? (env.aqi <= 50 ? 'Good' : 'Moderate') : '—'} />
+            <MiniCard label="UV INDEX" value={env.uv ?? '—'} note={env.uv != null ? (env.uv <= 2 ? 'Low' : env.uv <= 5 ? 'Moderate' : 'High') : '—'} />
+            <MiniCard label="WIND" value={env.windMph ?? '—'} unit="mph" note={env.windDir ?? '—'} />
+            <MiniCard label="HUMIDITY" value={env.humidity ?? '—'} unit="%" note={env.humidity != null ? (env.humidity < 60 ? 'Comfortable' : 'Muggy') : '—'} />
+            <MiniCard label="PRESSURE" value={env.pressure ?? '—'} unit="in" note="Steady" />
+            <MiniCard label="VISIBILITY" value={env.visibMi ?? '—'} unit="mi" note={(env.visibMi ?? 0) >= 6 ? 'Clear' : 'Reduced'} />
+          </div>
+        </>
+      )}
+
+      {/* ── Dive depth: Forecast discussion ── */}
+      {depth === 'dive' && data.hazards.forecasterDiscussion && (
         <>
           <SectionLabel text="Forecaster discussion" />
           <div className="hm-dive-card">

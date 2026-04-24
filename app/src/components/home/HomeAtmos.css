@@ -1,0 +1,49 @@
+.ha { flex: 1; overflow-y: auto; font-family: var(--font); padding-bottom: 40px; position: relative; }
+
+/* Sky gradients per condition */
+.ha-sky-clear-day { background: linear-gradient(180deg, #7bb3e0 0%, #e8d5b5 55%, #f6f2ea 100%); }
+.ha-sky-partly-cloudy-day { background: linear-gradient(180deg, #8aa8c0 0%, #c8cfd5 55%, #e8e5de 100%); }
+.ha-sky-cloudy { background: linear-gradient(180deg, #8690a0 0%, #a8adb5 55%, #c8c8c5 100%); }
+.ha-sky-rain { background: linear-gradient(180deg, #4a5a6b 0%, #6a7580 55%, #8a8d90 100%); }
+.ha-sky-thunder { background: linear-gradient(180deg, #3a3545 0%, #5a4e7a 55%, #7a6d95 100%); }
+.ha-sky-clear-night { background: linear-gradient(180deg, #0d1425 0%, #1a2540 55%, #3a4868 100%); }
+.ha-sky-snow { background: linear-gradient(180deg, #a8b4c0 0%, #d0d8e0 55%, #ecedef 100%); }
+.ha-sky-fog { background: linear-gradient(180deg, #a8a89f 0%, #c8c8c0 55%, #e8e5de 100%); }
+.ha-sky-wind { background: linear-gradient(180deg, #8aa8c0 0%, #c8cfd5 55%, #e8e5de 100%); }
+
+.ha-loading { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: var(--ink-mute); font-size: 13px; }
+.ha-spinner { width: 20px; height: 20px; border: 2px solid var(--line-strong); border-top-color: var(--ink); border-radius: 50%; animation: sb-spin 0.8s linear infinite; }
+
+/* Header */
+.ha-header { padding: 12px 22px 0; display: flex; align-items: center; justify-content: space-between; position: relative; }
+.ha-header-right { display: flex; align-items: center; gap: 10px; }
+.ha-gear { background: none; border: none; cursor: pointer; padding: 4px; display: flex; -webkit-tap-highlight-color: transparent; }
+
+/* Hero */
+.ha-hero { padding: 56px 22px 40px; text-align: center; position: relative; }
+.ha-cond-label { font-size: 13px; letter-spacing: 2px; text-transform: uppercase; font-weight: 500; margin-bottom: 8px; }
+.ha-temp { font-size: 180px; font-weight: 200; letter-spacing: -10px; line-height: 0.85; font-feature-settings: "tnum" 1; }
+.ha-deg { font-size: 60px; letter-spacing: -2px; vertical-align: top; margin-top: 18px; display: inline-block; }
+.ha-hl { font-size: 14px; margin-top: 8px; }
+
+/* Summary */
+.ha-summary { padding: 0 28px 32px; text-align: center; font-size: 17px; line-height: 1.4; font-weight: 400; text-wrap: balance; position: relative; }
+
+/* Glass cards */
+.ha-glass { backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%); border-radius: 18px; padding: 14px 16px; margin: 0 16px 12px; }
+.ha-glass-label { font-size: 10.5px; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 600; margin-bottom: 10px; }
+
+/* Hourly */
+.ha-hourly { overflow-x: auto; }
+.ha-hourly-inner { display: flex; gap: 20px; min-width: max-content; padding-bottom: 4px; }
+.ha-hcell { text-align: center; min-width: 32px; }
+
+/* Daily rows */
+.ha-drow { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid; font-size: 14px; }
+.ha-drow:last-child { border-bottom: none; }
+.ha-dbar { width: 50px; height: 3px; border-radius: 2px; position: relative; }
+.ha-dbar-fill { position: absolute; left: 10%; right: 15%; top: 0; bottom: 0; border-radius: 2px; background: linear-gradient(90deg, var(--sky-clear), var(--sky-sunny)); }
+
+/* Sunrise/sunset */
+.ha-sun-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 16px 12px; }
+.ha-sun-card { padding: 12px; }
